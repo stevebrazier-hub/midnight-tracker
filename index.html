@@ -304,6 +304,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       <h3>Quick Locations</h3>
       <p>Manage the quick-pick buttons shown when editing a day.</p>
       <div id="presetsList" style="margin:12px 0;"></div>
+      <div id="presetFormArea" style="display:none;"></div>
       <button class="btn btn-outline" onclick="addPresetUI()" style="width:100%">+ Add Location</button>
     </div>
 
@@ -951,47 +952,77 @@ function removePreset(idx) {
 
 function editPresetUI(idx) {
   const p = presets[idx];
-  const label = prompt('Name:', p.label);
-  if (label === null) return;
-  const icon = prompt('Emoji icon:', p.icon);
-  if (icon === null) return;
-  const place = prompt('Place / Address:', p.place || '');
-  if (place === null) return;
-  const city = prompt('City:', p.city);
-  if (city === null) return;
-  const country = prompt('Country:', p.country);
-  if (country === null) return;
-  const isHotel = confirm('Hotel city? (OK = hotel, Cancel = fixed)');
-
-  presets[idx] = {
-    ...p,
-    label: label || p.label,
-    icon: icon || p.icon,
-    place: place,
-    city: city || p.city,
-    country: country || p.country,
-    type: isHotel ? 'hotel' : 'fixed',
-    sub: (city || p.city) + ', ' + (country || p.country)
-  };
-  savePresets();
-  toast('Updated ' + presets[idx].label);
+  showPresetForm(p, function(data) {
+    presets[idx] = { ...p, ...data, sub: data.city + ', ' + data.country };
+    savePresets();
+    toast('Updated ' + data.label);
+  });
 }
 
 function addPresetUI() {
-  const label = prompt('Location name (e.g. "Paris", "London Hotel"):');
-  if (!label) return;
-  const icon = prompt('Emoji icon (e.g. 🇫🇷):', '📍') || '📍';
-  const place = prompt('Place / Address (leave blank for hotels):') || '';
-  const city = prompt('City:');
-  if (!city) return;
-  const country = prompt('Country:');
-  if (!country) return;
-  const type = confirm('Hotel city? (OK = hotel with name field, Cancel = fixed)') ? 'hotel' : 'fixed';
+  showPresetForm(null, function(data) {
+    const id = data.label.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now();
+    presets.push({ id, ...data, sub: data.city + ', ' + data.country });
+    savePresets();
+    toast('Added ' + data.label);
+  });
+}
 
-  const id = label.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now();
-  presets.push({ id, icon, label, sub: city + ', ' + country, type, place, city, country });
-  savePresets();
-  toast('Added ' + label);
+function showPresetForm(existing, onSave) {
+  const p = existing || { icon: '📍', label: '', place: '', city: '', country: '', type: 'fixed' };
+  const el = document.getElementById('presetFormArea');
+  el.innerHTML =
+    '<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:12px;">' +
+      '<div style="font-size:14px;font-weight:600;margin-bottom:12px;">' + (existing ? 'Edit Location' : 'Add Location') + '</div>' +
+      '<div style="display:grid;grid-template-columns:60px 1fr;gap:8px 12px;align-items:center;">' +
+        '<label style="font-size:12px;color:var(--text-light);text-align:right;">Icon</label>' +
+        '<input id="pf_icon" class="form-input" style="width:60px;" value="' + (p.icon||'') + '">' +
+        '<label style="font-size:12px;color:var(--text-light);text-align:right;">Name</label>' +
+        '<input id="pf_label" class="form-input" placeholder="e.g. Paris, Bangkok" value="' + (p.label||'') + '">' +
+        '<label style="font-size:12px;color:var(--text-light);text-align:right;">Place</label>' +
+        '<input id="pf_place" class="form-input" placeholder="Address or hotel name" value="' + (p.place||'') + '">' +
+        '<label style="font-size:12px;color:var(--text-light);text-align:right;">City</label>' +
+        '<input id="pf_city" class="form-input" placeholder="City" value="' + (p.city||'') + '">' +
+        '<label style="font-size:12px;color:var(--text-light);text-align:right;">Country</label>' +
+        '<input id="pf_country" class="form-input" placeholder="Country" value="' + (p.country||'') + '">' +
+        '<label style="font-size:12px;color:var(--text-light);text-align:right;">Type</label>' +
+        '<select id="pf_type" class="form-input">' +
+          '<option value="fixed"' + (p.type==='fixed'?' selected':'') + '>Fixed (one-click)</option>' +
+          '<option value="hotel"' + (p.type==='hotel'?' selected':'') + '>Hotel city (asks hotel name)</option>' +
+        '</select>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">' +
+        '<button class="btn btn-outline" onclick="closePresetForm()">Cancel</button>' +
+        '<button class="btn" onclick="submitPresetForm()">Save</button>' +
+      '</div>' +
+    '</div>';
+  el.style.display = 'block';
+  el._onSave = onSave;
+  document.getElementById('pf_label').focus();
+}
+
+function closePresetForm() {
+  const el = document.getElementById('presetFormArea');
+  el.innerHTML = '';
+  el.style.display = 'none';
+}
+
+function submitPresetForm() {
+  const label = document.getElementById('pf_label').value.trim();
+  const city = document.getElementById('pf_city').value.trim();
+  const country = document.getElementById('pf_country').value.trim();
+  if (!label || !city || !country) { toast('Name, city and country are required'); return; }
+  const data = {
+    icon: document.getElementById('pf_icon').value.trim() || '📍',
+    label: label,
+    place: document.getElementById('pf_place').value.trim(),
+    city: city,
+    country: country,
+    type: document.getElementById('pf_type').value
+  };
+  const el = document.getElementById('presetFormArea');
+  if (el._onSave) el._onSave(data);
+  closePresetForm();
 }
 
 // ===== HOME SETTINGS =====
