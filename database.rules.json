@@ -8,6 +8,10 @@
       ".read": "auth != null",
       ".write": "auth != null"
     },
+    "fcmTokens": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
     "locations": {
       ".read": "auth != null",
       ".write": "auth != null",

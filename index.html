@@ -15,6 +15,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
 <!-- XLSX for import -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -300,9 +301,17 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
     <div class="settings-card">
       <h3>Midnight GPS</h3>
-      <p>The app automatically captures GPS at midnight to log your location. If the location isn't recognised, it alerts via Teams.</p>
+      <p>The app captures GPS at midnight to log your location. A push notification wakes the app even when closed.</p>
+      <div style="font-size:12px;padding:8px;background:var(--bg);border-radius:6px;margin:8px 0;">
+        <strong>Status:</strong> <span id="pushStatus">Checking...</span>
+      </div>
       <div class="field" style="margin-top:8px;">
-        <label>Teams Webhook URL</label>
+        <label>VAPID Key (from Firebase Cloud Messaging)</label>
+        <input id="vapidKeyInput" placeholder="BL..." style="font-size:11px;" />
+      </div>
+      <button class="btn btn-outline" onclick="saveVapidKey()" style="width:100%;margin-bottom:8px;">Save VAPID Key</button>
+      <div class="field">
+        <label>Teams Webhook URL (for unrecognised locations)</label>
         <input id="teamsWebhookUrl" placeholder="https://outlook.office.com/webhook/..." style="font-size:12px;" />
       </div>
       <button class="btn btn-outline" onclick="saveTeamsWebhook()" style="width:100%;margin-bottom:8px;">Save Webhook</button>
@@ -471,6 +480,9 @@ function showApp(user) {
   scheduleMidnightCapture();
   // Check if today needs a GPS capture (delayed to let Firebase sync first)
   setTimeout(checkTodayGPS, 3000);
+  // Initialise push notifications
+  loadVapidKey();
+  setTimeout(initPushNotifications, 2000);
 }
 
 function showLogin() {
@@ -1095,9 +1107,9 @@ function clearDay() {
 
 // Known location coordinates for preset matching (lat, lon, radius in km)
 const KNOWN_LOCATIONS = [
-  { lat: 45.8472, lon: 9.0853, radius: 5, preset: 'home' },    // Cernobbio, Italy
-  { lat: 51.7520, lon: -1.2577, radius: 8, preset: 'oxford' },  // Oxford, UK
-  { lat: 13.7235, lon: 100.4925, radius: 8, preset: 'bangkok' }, // Klongsan/Bangkok
+  { lat: 45.8472, lon: 9.0853, radius: 50, preset: 'home' },    // Cernobbio, Italy
+  { lat: 51.7520, lon: -1.2577, radius: 50, preset: 'oxford' },  // Oxford, UK
+  { lat: 13.7235, lon: 100.4925, radius: 50, preset: 'bangkok' }, // Klongsan/Bangkok
 ];
 
 // Haversine distance in km
@@ -1308,6 +1320,100 @@ function checkTodayGPS() {
   }
 }
 
+// ===== PUSH NOTIFICATIONS (FCM) =====
+let messaging = null;
+const VAPID_KEY_STORAGE = 'mt_vapid_key';
+
+async function initPushNotifications() {
+  if (!fbReady || !('Notification' in window) || !('serviceWorker' in navigator)) {
+    console.log('Push notifications not supported');
+    return;
+  }
+
+  try {
+    messaging = firebase.messaging();
+
+    // Request notification permission
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      console.log('Notification permission denied');
+      updatePushStatus('Notifications blocked — enable in browser settings');
+      return;
+    }
+
+    // Get VAPID key from Firebase settings (stored in DB)
+    const vapidKey = localStorage.getItem(VAPID_KEY_STORAGE);
+    if (!vapidKey) {
+      console.log('No VAPID key configured yet — set it in Settings');
+      updatePushStatus('VAPID key needed — configure in Settings');
+      return;
+    }
+
+    // Register service worker for FCM
+    const swReg = await navigator.serviceWorker.ready;
+
+    // Get FCM token
+    const token = await messaging.getToken({
+      vapidKey: vapidKey,
+      serviceWorkerRegistration: swReg
+    });
+
+    if (token) {
+      console.log('FCM token:', token);
+      // Store token in Firebase so the GitHub Action can find it
+      const uid = currentUser?.uid || 'anonymous';
+      fbSet('fcmTokens/' + uid, {
+        token: token,
+        email: currentUser?.email || '',
+        updatedAt: new Date().toISOString()
+      });
+      updatePushStatus('Push notifications active');
+    }
+
+    // Handle foreground messages
+    messaging.onMessage(payload => {
+      console.log('Push received (foreground):', payload);
+      // App is open — trigger GPS capture
+      const todayStr = fmtDate(new Date());
+      autoGPSCapture(todayStr);
+    });
+
+  } catch(e) {
+    console.warn('FCM init error:', e);
+    updatePushStatus('Push setup failed: ' + e.message);
+  }
+}
+
+function updatePushStatus(text) {
+  const el = document.getElementById('pushStatus');
+  if (el) el.textContent = text;
+}
+
+function saveVapidKey() {
+  const key = document.getElementById('vapidKeyInput').value.trim();
+  if (!key) { toast('Enter a VAPID key'); return; }
+  localStorage.setItem(VAPID_KEY_STORAGE, key);
+  if (fbReady) fbSet('settings/vapidKey', key);
+  toast('VAPID key saved — reloading push...');
+  initPushNotifications();
+}
+
+function loadVapidKey() {
+  // Load from Firebase if available
+  if (fbReady) {
+    fbListen('settings/vapidKey', data => {
+      if (data) {
+        localStorage.setItem(VAPID_KEY_STORAGE, data);
+        const el = document.getElementById('vapidKeyInput');
+        if (el) el.value = data;
+      }
+    });
+  }
+  const saved = localStorage.getItem(VAPID_KEY_STORAGE) || '';
+  const el = document.getElementById('vapidKeyInput');
+  if (el) el.value = saved;
+}
+
 // Test button for settings
 function testMidnightGPS() {
   const todayStr = fmtDate(new Date());
@@ -1437,6 +1543,30 @@ if (!auth) {
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW registration failed', e));
+
+  // Listen for messages from service worker (notification click while app is open)
+  navigator.serviceWorker.addEventListener('message', event => {
+    if (event.data?.type === 'midnight-gps-capture') {
+      console.log('Push notification tapped — capturing GPS');
+      const todayStr = fmtDate(new Date());
+      const existing = entries[todayStr];
+      if (existing) delete existing.autoGps; // Force re-capture
+      autoGPSCapture(todayStr);
+    }
+  });
+}
+
+// Check URL params for capture flag (opened from notification)
+if (window.location.search.includes('capture=midnight')) {
+  // Remove the param from URL so it doesn't re-trigger on refresh
+  window.history.replaceState({}, '', window.location.pathname);
+  // Delay to let auth + Firebase sync happen first
+  setTimeout(() => {
+    const todayStr = fmtDate(new Date());
+    const existing = entries[todayStr];
+    if (existing) delete existing.autoGps;
+    autoGPSCapture(todayStr);
+  }, 4000);
 }
 </script>
 </body>
