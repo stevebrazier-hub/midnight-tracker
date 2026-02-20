@@ -1,5 +1,9 @@
 {
   "rules": {
+    "presets": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
     "locations": {
       ".read": "auth != null",
       ".write": "auth != null",

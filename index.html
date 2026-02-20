@@ -158,6 +158,22 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .app-wrap { display: none; }
 .app-wrap.authed { display: block; }
 
+/* Location presets */
+.presets-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.preset-btn { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 10px; background: var(--bg); border: 1.5px solid var(--border); cursor: pointer; transition: all .15s; text-align: left; }
+.preset-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+.preset-btn.selected { border-color: var(--primary); background: var(--primary-light); box-shadow: 0 0 0 1px var(--primary); }
+.preset-btn .preset-icon { font-size: 22px; flex: none; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: var(--white); }
+.preset-btn .preset-label { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.2; }
+.preset-btn .preset-sub { font-size: 11px; color: var(--text-light); font-weight: 400; }
+.custom-toggle { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 10px; background: var(--bg); border: 1.5px dashed var(--border); cursor: pointer; font-size: 13px; color: var(--text-light); transition: all .15s; }
+.custom-toggle:hover { border-color: var(--primary); color: var(--primary); }
+.custom-toggle.selected { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+.detail-fields { display: none; }
+.detail-fields.visible { display: block; }
+.extras-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.extras-row .field { flex: 1; margin-bottom: 0; }
+
 /* Sections */
 .view { display: none; }
 .view.active { display: block; }
@@ -267,6 +283,13 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
     </div>
 
     <div class="settings-card">
+      <h3>Quick Locations</h3>
+      <p>Manage the quick-pick buttons shown when editing a day.</p>
+      <div id="presetsList" style="margin:12px 0;"></div>
+      <button class="btn btn-outline" onclick="addPresetUI()" style="width:100%">+ Add Location</button>
+    </div>
+
+    <div class="settings-card">
       <h3>Account</h3>
       <p id="loggedInAs" style="margin-bottom:8px;"></p>
       <button class="btn btn-outline" onclick="doLogout()" style="width:100%">Sign Out</button>
@@ -278,41 +301,52 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 <div class="modal-bg" id="editModal">
   <div class="modal">
     <h2><span id="modalDate"></span><button onclick="closeModal()">&times;</button></h2>
-    <div class="field">
-      <label>Place / Hotel</label>
-      <input id="editPlace" placeholder="e.g. Hotel Negresco" />
+
+    <!-- Quick-pick presets -->
+    <div class="presets-grid" id="presetsGrid"></div>
+
+    <!-- Hotel shortcut: just type hotel name, city/country from preset -->
+    <div id="hotelField" class="detail-fields" style="margin-bottom:14px;">
+      <div class="field">
+        <label>Hotel name</label>
+        <input id="editHotelName" placeholder="e.g. Mandarin Oriental" />
+      </div>
     </div>
-    <div class="field">
-      <label>City</label>
-      <input id="editCity" placeholder="e.g. Nice" />
+
+    <!-- Custom / full form -->
+    <div id="customFields" class="detail-fields">
+      <div class="field">
+        <label>Place / Address</label>
+        <input id="editPlace" placeholder="e.g. 42 Acacia Avenue" />
+      </div>
+      <div class="field">
+        <label>City</label>
+        <input id="editCity" placeholder="e.g. Nice" />
+      </div>
+      <div class="field">
+        <label>Country</label>
+        <input id="editCountry" placeholder="e.g. France" />
+      </div>
     </div>
-    <div class="field">
-      <label>Country</label>
-      <input id="editCountry" placeholder="e.g. France" />
-    </div>
-    <div class="field">
-      <label>Flights</label>
-      <input id="editFlights" placeholder="e.g. BA569" />
-    </div>
-    <div class="field">
-      <label>Notes</label>
-      <textarea id="editNotes" rows="2" placeholder="Optional notes..."></textarea>
+
+    <!-- Always visible: flights, notes, working, GPS -->
+    <div class="extras-row">
+      <div class="field">
+        <label>Flights</label>
+        <input id="editFlights" placeholder="e.g. BA569" />
+      </div>
+      <div class="field">
+        <label>Notes</label>
+        <input id="editNotes" placeholder="Optional notes..." />
+      </div>
     </div>
     <div class="field" id="workingField">
       <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
         <input type="checkbox" id="editWorking" style="width:18px;height:18px;accent-color:var(--primary);flex:none;" />
         <span>Worked in the UK this day</span>
       </label>
-      <div style="font-size:11px;color:var(--text-light);margin-top:4px;">Tag days where you performed work in the UK (30-day annual limit)</div>
     </div>
-    <div class="field">
-      <label>GPS Coordinates</label>
-      <div style="display:flex;gap:8px;">
-        <input id="editLat" placeholder="Lat" style="flex:1" type="number" step="any" />
-        <input id="editLon" placeholder="Lon" style="flex:1" type="number" step="any" />
-        <button class="btn btn-outline" onclick="captureGPS()" style="flex:0 0 auto;">📍</button>
-      </div>
-    </div>
+
     <div class="btn-row">
       <button class="btn btn-outline" onclick="clearDay()">Clear</button>
       <button class="btn btn-primary" onclick="saveDay()">Save</button>
@@ -412,6 +446,7 @@ function showApp(user) {
   document.getElementById('appWrap').classList.add('authed');
   document.getElementById('loggedInAs').textContent = 'Signed in as ' + user.email;
   loadLocal();
+  loadPresets();
   render();
   initFirebaseSync();
 }
@@ -800,19 +835,179 @@ function renderStats() {
 
 document.getElementById('statsYear').addEventListener('change', renderStats);
 
+// ===== LOCATION PRESETS =====
+// type: 'fixed' = one-click fill, 'hotel' = asks for hotel name, 'custom' = full form
+const DEFAULT_PRESETS = [
+  { id: 'home', icon: '🏠', label: 'Home', sub: 'Cernobbio, Italy', type: 'fixed', place: 'Home', city: 'Cernobbio', country: 'Italy' },
+  { id: 'oxford', icon: '🇬🇧', label: 'Oxford', sub: 'UK', type: 'fixed', place: 'Oxford', city: 'Oxford', country: 'UK' },
+  { id: 'bangkok', icon: '🇹🇭', label: 'Bangkok Hotel', sub: 'Bangkok, Thailand', type: 'hotel', city: 'Bangkok', country: 'Thailand' },
+  { id: 'london', icon: '🇬🇧', label: 'London Hotel', sub: 'London, UK', type: 'hotel', city: 'London', country: 'UK' },
+];
+let presets = [...DEFAULT_PRESETS];
+let selectedPreset = null;
+
+function loadPresets() {
+  try {
+    const saved = localStorage.getItem('mt_presets');
+    if (saved) presets = JSON.parse(saved);
+  } catch(e) {}
+  // Also listen to Firebase for shared presets
+  if (fbReady) {
+    fbListen('presets', data => {
+      if (data && Array.isArray(data)) {
+        presets = data;
+        localStorage.setItem('mt_presets', JSON.stringify(presets));
+      }
+    });
+  }
+}
+
+function savePresets() {
+  localStorage.setItem('mt_presets', JSON.stringify(presets));
+  if (fbReady) fbSet('presets', presets);
+  renderPresetsSettings();
+}
+
+// ===== PRESET MANAGEMENT (Settings) =====
+function renderPresetsSettings() {
+  const el = document.getElementById('presetsList');
+  if (!el) return;
+  if (!presets.length) { el.innerHTML = '<p style="color:var(--text-light);font-size:13px;">No presets yet.</p>'; return; }
+  el.innerHTML = presets.map((p, i) =>
+    '<div style="display:flex;align-items:center;gap:10px;padding:8px;border-bottom:1px solid var(--border);">' +
+      '<span style="font-size:18px;">' + p.icon + '</span>' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-size:13px;font-weight:600;">' + p.label + '</div>' +
+        '<div style="font-size:11px;color:var(--text-light);">' + p.sub + ' · ' + (p.type === 'hotel' ? 'Hotel' : 'Fixed') + '</div>' +
+      '</div>' +
+      '<button class="btn btn-outline" style="padding:4px 8px;font-size:12px;" onclick="removePreset(' + i + ')">Remove</button>' +
+    '</div>'
+  ).join('');
+}
+
+function removePreset(idx) {
+  presets.splice(idx, 1);
+  savePresets();
+}
+
+function addPresetUI() {
+  const label = prompt('Location name (e.g. "Bangkok Hotel", "Paris"):');
+  if (!label) return;
+  const city = prompt('City:');
+  if (!city) return;
+  const country = prompt('Country:');
+  if (!country) return;
+  const type = confirm('Is this a hotel city? (OK = hotel with name field, Cancel = fixed place)') ? 'hotel' : 'fixed';
+  const icon = prompt('Emoji icon (e.g. 🇫🇷):', '📍') || '📍';
+  const place = type === 'fixed' ? (prompt('Place name (e.g. "Home", "Office"):') || city) : '';
+
+  const id = label.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now();
+  presets.push({ id, icon, label, sub: city + ', ' + country, type, place, city, country });
+  savePresets();
+  toast('Added ' + label);
+}
+
+function renderPresets(existingEntry) {
+  const grid = document.getElementById('presetsGrid');
+  let html = '';
+  presets.forEach(p => {
+    html += '<button class="preset-btn" data-preset="' + p.id + '" onclick="selectPreset(\'' + p.id + '\')">' +
+      '<div class="preset-icon">' + p.icon + '</div>' +
+      '<div><div class="preset-label">' + p.label + '</div><div class="preset-sub">' + p.sub + '</div></div>' +
+    '</button>';
+  });
+  // "Other" button for custom/friend's house
+  html += '<button class="custom-toggle" onclick="selectPreset(\'custom\')">' +
+    '✏️ Other place</button>';
+  grid.innerHTML = html;
+
+  // If existing entry matches a preset, highlight it
+  if (existingEntry && existingEntry.city) {
+    const match = presets.find(p =>
+      p.city === existingEntry.city && p.country === existingEntry.country &&
+      (p.type === 'fixed' ? p.place === existingEntry.place : true)
+    );
+    if (match) {
+      selectPreset(match.id, existingEntry);
+      return;
+    }
+    // Entry exists but doesn't match any preset — show custom
+    selectPreset('custom', existingEntry);
+  }
+}
+
+function selectPreset(id, existingEntry) {
+  selectedPreset = id;
+  // Clear highlights
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelector('.custom-toggle')?.classList.remove('selected');
+
+  const hotelField = document.getElementById('hotelField');
+  const customFields = document.getElementById('customFields');
+  hotelField.classList.remove('visible');
+  customFields.classList.remove('visible');
+
+  if (id === 'custom') {
+    document.querySelector('.custom-toggle')?.classList.add('selected');
+    customFields.classList.add('visible');
+    if (existingEntry) {
+      document.getElementById('editPlace').value = existingEntry.place || '';
+      document.getElementById('editCity').value = existingEntry.city || '';
+      document.getElementById('editCountry').value = existingEntry.country || '';
+    } else {
+      document.getElementById('editPlace').value = '';
+      document.getElementById('editCity').value = '';
+      document.getElementById('editCountry').value = '';
+    }
+    document.getElementById('editPlace').focus();
+    return;
+  }
+
+  const preset = presets.find(p => p.id === id);
+  if (!preset) return;
+
+  // Highlight the selected button
+  const btn = document.querySelector('[data-preset="' + id + '"]');
+  if (btn) btn.classList.add('selected');
+
+  if (preset.type === 'fixed') {
+    // One-click: fill hidden fields
+    document.getElementById('editPlace').value = preset.place || '';
+    document.getElementById('editCity').value = preset.city || '';
+    document.getElementById('editCountry').value = preset.country || '';
+  } else if (preset.type === 'hotel') {
+    // Show hotel name input, pre-fill city/country
+    hotelField.classList.add('visible');
+    document.getElementById('editHotelName').value = existingEntry?.place || '';
+    document.getElementById('editCity').value = preset.city;
+    document.getElementById('editCountry').value = preset.country;
+    document.getElementById('editPlace').value = existingEntry?.place || '';
+    setTimeout(() => document.getElementById('editHotelName').focus(), 100);
+  }
+}
+
 // ===== MODAL =====
 function openDay(dateStr) {
   editingDate = dateStr;
   const entry = entries[dateStr] || {};
   document.getElementById('modalDate').textContent = formatDisplayDate(dateStr);
+  // Reset hidden fields
   document.getElementById('editPlace').value = entry.place || '';
   document.getElementById('editCity').value = entry.city || '';
   document.getElementById('editCountry').value = entry.country || '';
   document.getElementById('editFlights').value = entry.flights || '';
   document.getElementById('editNotes').value = entry.notes || '';
-  document.getElementById('editLat').value = entry.lat || '';
-  document.getElementById('editLon').value = entry.lon || '';
   document.getElementById('editWorking').checked = !!entry.working;
+  document.getElementById('editHotelName').value = '';
+  selectedPreset = null;
+
+  // Hide detail sections by default
+  document.getElementById('hotelField').classList.remove('visible');
+  document.getElementById('customFields').classList.remove('visible');
+
+  // Render presets and auto-match existing entry
+  renderPresets(entry.city ? entry : null);
+
   document.getElementById('editModal').classList.add('open');
 }
 
@@ -824,18 +1019,30 @@ function closeModal() {
 function saveDay() {
   if (!editingDate) return;
   const savedDate = editingDate;
-  const country = document.getElementById('editCountry').value.trim();
+
+  // If hotel preset, use hotel name as place
+  let place = document.getElementById('editPlace').value.trim();
+  if (selectedPreset && selectedPreset !== 'custom') {
+    const preset = presets.find(p => p.id === selectedPreset);
+    if (preset?.type === 'hotel') {
+      place = document.getElementById('editHotelName').value.trim() || preset.city;
+    }
+  }
+
   const entry = {
-    place: document.getElementById('editPlace').value.trim(),
+    place: place,
     city: document.getElementById('editCity').value.trim(),
-    country: country,
+    country: document.getElementById('editCountry').value.trim(),
     flights: document.getElementById('editFlights').value.trim(),
     notes: document.getElementById('editNotes').value.trim(),
-    lat: parseFloat(document.getElementById('editLat').value) || null,
-    lon: parseFloat(document.getElementById('editLon').value) || null,
     working: document.getElementById('editWorking').checked ? true : false,
     synced: false
   };
+  // Preserve GPS if it was already set
+  const existing = entries[savedDate];
+  if (existing?.lat) entry.lat = existing.lat;
+  if (existing?.lon) entry.lon = existing.lon;
+
   if (entry.place || entry.city || entry.country) {
     entries[savedDate] = entry;
     syncEntry(savedDate, entry);
@@ -858,18 +1065,7 @@ function clearDay() {
 }
 
 // ===== GPS =====
-function captureGPS() {
-  if (!navigator.geolocation) { toast('GPS not available'); return; }
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      document.getElementById('editLat').value = pos.coords.latitude.toFixed(6);
-      document.getElementById('editLon').value = pos.coords.longitude.toFixed(6);
-      toast('GPS captured');
-    },
-    err => toast('GPS error: ' + err.message),
-    { enableHighAccuracy: true, timeout: 10000 }
-  );
-}
+// captureGPS is no longer needed (no lat/lon fields in modal); GPS is captured via FAB only
 
 function captureTodayGPS() {
   if (!navigator.geolocation) { toast('GPS not available'); return; }
@@ -1004,6 +1200,7 @@ function render() {
   const active = document.querySelector('.view.active')?.id;
   if (active === 'list') renderList();
   else if (active === 'stats') renderStats();
+  else if (active === 'settings') renderPresetsSettings();
 }
 
 // ===== INIT =====
