@@ -323,10 +323,15 @@ function initFirebaseSync() {
   // Listen for all entries — Firebase pushes updates in real time
   fbListen('locations', data => {
     if (data) {
-      // Merge Firebase data into local state
+      // Replace local state with Firebase data (Firebase is source of truth)
+      const newEntries = {};
       Object.keys(data).forEach(dateKey => {
-        entries[dateKey] = { ...data[dateKey], synced: true };
+        newEntries[dateKey] = { ...data[dateKey], synced: true };
       });
+      entries = newEntries;
+    } else {
+      // Database is empty
+      entries = {};
     }
     saveLocal();
     setSyncStatus('ok', 'Synced');
@@ -346,15 +351,16 @@ function initFirebaseSync() {
 function syncEntry(date, entry) {
   if (!fbReady) return;
   // Write to Firebase — same flat structure as Chelsea Tickets uses
+  // Avoid null values which Firebase strips (same lesson from Chelsea Tickets padTickets)
   const data = {
     place: entry.place || '',
     city: entry.city || '',
     country: entry.country || '',
     flights: entry.flights || '',
-    notes: entry.notes || '',
-    lat: entry.lat || null,
-    lon: entry.lon || null
+    notes: entry.notes || ''
   };
+  if (entry.lat) data.lat = entry.lat;
+  if (entry.lon) data.lon = entry.lon;
   fbSet('locations/' + date, data);
   entry.synced = true;
   saveLocal();
