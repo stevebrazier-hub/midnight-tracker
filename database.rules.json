@@ -11,7 +11,8 @@
         "flights": { ".validate": "newData.isString()" },
         "notes": { ".validate": "newData.isString()" },
         "lat": { ".validate": "newData.isNumber() || newData.val() === null" },
-        "lon": { ".validate": "newData.isNumber() || newData.val() === null" }
+        "lon": { ".validate": "newData.isNumber() || newData.val() === null" },
+        "working": { ".validate": "newData.isBoolean()" }
       }
     }
   }

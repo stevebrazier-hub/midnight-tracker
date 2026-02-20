@@ -245,12 +245,12 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       <label>Notes</label>
       <textarea id="editNotes" rows="2" placeholder="Optional notes..."></textarea>
     </div>
-    <div class="field" id="workingField" style="display:none;">
+    <div class="field" id="workingField">
       <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
         <input type="checkbox" id="editWorking" style="width:18px;height:18px;accent-color:var(--primary);flex:none;" />
-        <span>Working in the UK this day</span>
+        <span>Worked in the UK this day</span>
       </label>
-      <div style="font-size:11px;color:var(--text-light);margin-top:4px;">Tag UK days where you performed work (30-day annual limit)</div>
+      <div style="font-size:11px;color:var(--text-light);margin-top:4px;">Tag days where you performed work in the UK (30-day annual limit)</div>
     </div>
     <div class="field">
       <label>GPS Coordinates</label>
@@ -672,17 +672,8 @@ function openDay(dateStr) {
   document.getElementById('editLat').value = entry.lat || '';
   document.getElementById('editLon').value = entry.lon || '';
   document.getElementById('editWorking').checked = !!entry.working;
-  // Show working toggle only for UK days
-  updateWorkingFieldVisibility();
   document.getElementById('editModal').classList.add('open');
 }
-
-function updateWorkingFieldVisibility() {
-  const country = document.getElementById('editCountry').value.trim();
-  document.getElementById('workingField').style.display = (country === 'UK') ? 'block' : 'none';
-}
-// Listen for country field changes to show/hide working toggle
-document.getElementById('editCountry').addEventListener('input', updateWorkingFieldVisibility);
 
 function closeModal() {
   document.getElementById('editModal').classList.remove('open');
@@ -701,7 +692,7 @@ function saveDay() {
     notes: document.getElementById('editNotes').value.trim(),
     lat: parseFloat(document.getElementById('editLat').value) || null,
     lon: parseFloat(document.getElementById('editLon').value) || null,
-    working: (country === 'UK' && document.getElementById('editWorking').checked) ? true : false,
+    working: document.getElementById('editWorking').checked ? true : false,
     synced: false
   };
   if (entry.place || entry.city || entry.country) {
