@@ -189,6 +189,18 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
     </div>
     <div class="login-error" id="loginError"></div>
     <button class="btn btn-primary" style="width:100%;padding:12px;" onclick="doLogin()">Sign In</button>
+    <div id="resetSection" style="margin-top:16px;">
+      <a href="#" onclick="showResetForm();return false" style="font-size:13px;color:var(--primary);">Forgot password?</a>
+    </div>
+    <div id="resetForm" style="display:none;margin-top:16px;text-align:left;">
+      <div class="field">
+        <label>Email address</label>
+        <input id="resetEmail" type="email" placeholder="you@email.com" />
+      </div>
+      <div class="login-error" id="resetMsg"></div>
+      <button class="btn btn-primary" style="width:100%;padding:10px;" onclick="doReset()">Send Reset Link</button>
+      <div style="text-align:center;margin-top:10px;"><a href="#" onclick="hideResetForm();return false" style="font-size:13px;color:var(--text-light);">Back to sign in</a></div>
+    </div>
   </div>
 </div>
 
@@ -364,6 +376,34 @@ function doLogin() {
 
 function doLogout() {
   auth.signOut();
+}
+
+function showResetForm() {
+  document.getElementById('resetSection').style.display = 'none';
+  document.getElementById('resetForm').style.display = 'block';
+  document.getElementById('resetEmail').value = document.getElementById('loginEmail').value;
+  document.getElementById('resetMsg').textContent = '';
+}
+
+function hideResetForm() {
+  document.getElementById('resetSection').style.display = 'block';
+  document.getElementById('resetForm').style.display = 'none';
+}
+
+function doReset() {
+  const email = document.getElementById('resetEmail').value.trim();
+  const msgEl = document.getElementById('resetMsg');
+  if (!email) { msgEl.textContent = 'Enter your email address.'; msgEl.style.color = 'var(--err)'; return; }
+  auth.sendPasswordResetEmail(email)
+    .then(() => {
+      msgEl.textContent = 'Reset link sent! Check your inbox.';
+      msgEl.style.color = 'var(--ok)';
+    })
+    .catch(() => {
+      // Don't reveal whether the email exists
+      msgEl.textContent = 'If that email is registered, a reset link has been sent.';
+      msgEl.style.color = 'var(--ok)';
+    });
 }
 
 function showApp(user) {
