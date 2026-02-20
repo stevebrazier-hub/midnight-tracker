@@ -607,6 +607,7 @@ function syncEntry(date, entry) {
   if (entry.working) data.working = true;
   if (entry.autoGps) data.autoGps = true;
   if (entry.unconfirmed) data.unconfirmed = true;
+  if (entry.autoBooking) data.autoBooking = true;
   fbSet('locations/' + date, data);
   entry.synced = true;
   saveLocal();
@@ -695,7 +696,8 @@ function renderList() {
         (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') +
         (entry?.lat ? '<div style="font-size:10px;color:var(--text-light);font-family:monospace;">' + entry.lat.toFixed(5) + ', ' + entry.lon.toFixed(5) + '</div>' : '') +
         (isWorking ? '<div class="working-tag">WORKING</div>' : '') +
-        (isUnconfirmed ? '<div class="working-tag" style="background:var(--err-bg);color:var(--err);">UNCONFIRMED</div>' : '') + '</div>' +
+        (isUnconfirmed ? '<div class="working-tag" style="background:var(--err-bg);color:var(--err);">UNCONFIRMED</div>' : '') +
+        (entry?.autoBooking ? '<div class="working-tag" style="background:#e8f0fe;color:#1a73e8;">AUTO-BOOKING</div>' : '') + '</div>' +
         '<div class="list-flag">' + flag + '</div>' +
       '</div>';
     }
@@ -1574,7 +1576,7 @@ function exportCSV() {
   allDates.forEach(ds => {
     const e = entries[ds];
     const d = new Date(ds + 'T00:00:00');
-    csv += ds + ',' + daysFull[d.getDay()] + ',' + esc(e.place) + ',' + esc(e.city) + ',' + esc(e.country) + ',' + esc(e.flights) + ',' + esc(e.notes) + ',' + (e.lat||'') + ',' + (e.lon||'') + ',' + (e.working ? 'Yes' : '') + ',' + (e.autoGps ? 'GPS' : 'Manual') + '\n';
+    csv += ds + ',' + daysFull[d.getDay()] + ',' + esc(e.place) + ',' + esc(e.city) + ',' + esc(e.country) + ',' + esc(e.flights) + ',' + esc(e.notes) + ',' + (e.lat||'') + ',' + (e.lon||'') + ',' + (e.working ? 'Yes' : '') + ',' + (e.autoBooking ? 'Booking' : e.autoGps ? 'GPS' : 'Manual') + '\n';
   });
   download(csv, 'midnight-tracker-export-' + fmtDate(new Date()) + '.csv', 'text/csv');
   toast('Exported CSV');

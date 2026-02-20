@@ -26,7 +26,8 @@
         "lon": { ".validate": "newData.isNumber() || newData.val() === null" },
         "working": { ".validate": "newData.isBoolean()" },
         "autoGps": { ".validate": "newData.isBoolean()" },
-        "unconfirmed": { ".validate": "newData.isBoolean()" }
+        "unconfirmed": { ".validate": "newData.isBoolean()" },
+        "autoBooking": { ".validate": "newData.isBoolean()" }
       }
     }
   }
