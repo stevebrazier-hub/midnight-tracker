@@ -289,7 +289,15 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
     <div class="settings-card">
       <h3>Primary Home</h3>
-      <p>Your primary home is <strong>Cernobbio, Italy</strong>. Days without a location entry are counted as home days.</p>
+      <p style="margin-bottom:10px;">Days without a location entry are counted as home days.</p>
+      <div class="extras-row">
+        <div class="field"><label>Place</label><input id="homePlaceInput" /></div>
+      </div>
+      <div class="extras-row">
+        <div class="field"><label>City</label><input id="homeCityInput" /></div>
+        <div class="field"><label>Country</label><input id="homeCountryInput" /></div>
+      </div>
+      <button class="btn btn-outline" onclick="saveHomeSettings()" style="width:100%">Save Home</button>
     </div>
 
     <div class="settings-card">
@@ -473,6 +481,7 @@ function showApp(user) {
   document.getElementById('loggedInAs').textContent = 'Signed in as ' + user.email;
   loadLocal();
   loadPresets();
+  loadHomeSettings();
   loadTeamsWebhook();
   render();
   initFirebaseSync();
@@ -513,7 +522,7 @@ function fbListen(path, cb) {
 }
 
 // ===== STATE =====
-const HOME = { city: 'Cernobbio', country: 'Italy', place: 'Home' };
+let HOME = { city: 'Cernobbio', country: 'Italy', place: 'Home' };
 let entries = {};
 let editingDate = null;
 
@@ -668,7 +677,7 @@ function renderList() {
       const country = entry?.country || HOME.country;
       const flights = entry?.flights || '';
       const flag = entry?.country ? countryFlag(entry.country) : countryFlag(HOME.country);
-      const isHome = (!entry) || (entry.country === 'Italy' && entry.city === 'Cernobbio');
+      const isHome = (!entry) || (entry.country === HOME.country && entry.city === HOME.city);
       const isToday = ds === todayStr;
 
       if (isHome) homeDays++; else awayDays++;
@@ -912,37 +921,108 @@ function renderPresetsSettings() {
   if (!el) return;
   if (!presets.length) { el.innerHTML = '<p style="color:var(--text-light);font-size:13px;">No presets yet.</p>'; return; }
   el.innerHTML = presets.map((p, i) =>
-    '<div style="display:flex;align-items:center;gap:10px;padding:8px;border-bottom:1px solid var(--border);">' +
+    '<div style="display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid var(--border);">' +
       '<span style="font-size:18px;">' + p.icon + '</span>' +
       '<div style="flex:1;min-width:0;">' +
         '<div style="font-size:13px;font-weight:600;">' + p.label + '</div>' +
-        '<div style="font-size:11px;color:var(--text-light);">' + p.sub + ' · ' + (p.type === 'hotel' ? 'Hotel' : 'Fixed') + '</div>' +
+        '<div style="font-size:11px;color:var(--text-light);">' + (p.place ? p.place + ', ' : '') + p.city + ', ' + p.country + ' · ' + (p.type === 'hotel' ? 'Hotel' : 'Fixed') + '</div>' +
       '</div>' +
-      '<button class="btn btn-outline" style="padding:4px 8px;font-size:12px;" onclick="removePreset(' + i + ')">Remove</button>' +
+      '<button class="btn btn-outline" style="padding:4px 8px;font-size:12px;" onclick="editPresetUI(' + i + ')">Edit</button>' +
+      '<button class="btn btn-outline" style="padding:4px 8px;font-size:12px;color:var(--err);border-color:var(--err);" onclick="removePreset(' + i + ')">×</button>' +
     '</div>'
   ).join('');
+
+  // Also populate home fields
+  const hp = document.getElementById('homePlaceInput');
+  const hc = document.getElementById('homeCityInput');
+  const hco = document.getElementById('homeCountryInput');
+  if (hp) hp.value = HOME.place;
+  if (hc) hc.value = HOME.city;
+  if (hco) hco.value = HOME.country;
 }
 
 function removePreset(idx) {
+  if (!confirm('Remove "' + presets[idx].label + '"?')) return;
   presets.splice(idx, 1);
   savePresets();
 }
 
+function editPresetUI(idx) {
+  const p = presets[idx];
+  const label = prompt('Name:', p.label);
+  if (label === null) return;
+  const icon = prompt('Emoji icon:', p.icon);
+  if (icon === null) return;
+  const place = prompt('Place / Address:', p.place || '');
+  if (place === null) return;
+  const city = prompt('City:', p.city);
+  if (city === null) return;
+  const country = prompt('Country:', p.country);
+  if (country === null) return;
+  const isHotel = confirm('Hotel city? (OK = hotel, Cancel = fixed)');
+
+  presets[idx] = {
+    ...p,
+    label: label || p.label,
+    icon: icon || p.icon,
+    place: place,
+    city: city || p.city,
+    country: country || p.country,
+    type: isHotel ? 'hotel' : 'fixed',
+    sub: (city || p.city) + ', ' + (country || p.country)
+  };
+  savePresets();
+  toast('Updated ' + presets[idx].label);
+}
+
 function addPresetUI() {
-  const label = prompt('Location name (e.g. "Bangkok Hotel", "Paris"):');
+  const label = prompt('Location name (e.g. "Paris", "London Hotel"):');
   if (!label) return;
+  const icon = prompt('Emoji icon (e.g. 🇫🇷):', '📍') || '📍';
+  const place = prompt('Place / Address (leave blank for hotels):') || '';
   const city = prompt('City:');
   if (!city) return;
   const country = prompt('Country:');
   if (!country) return;
-  const type = confirm('Is this a hotel city? (OK = hotel with name field, Cancel = fixed place)') ? 'hotel' : 'fixed';
-  const icon = prompt('Emoji icon (e.g. 🇫🇷):', '📍') || '📍';
-  const place = type === 'fixed' ? (prompt('Place name (e.g. "Home", "Office"):') || city) : '';
+  const type = confirm('Hotel city? (OK = hotel with name field, Cancel = fixed)') ? 'hotel' : 'fixed';
 
   const id = label.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now();
   presets.push({ id, icon, label, sub: city + ', ' + country, type, place, city, country });
   savePresets();
   toast('Added ' + label);
+}
+
+// ===== HOME SETTINGS =====
+function saveHomeSettings() {
+  const place = document.getElementById('homePlaceInput').value.trim();
+  const city = document.getElementById('homeCityInput').value.trim();
+  const country = document.getElementById('homeCountryInput').value.trim();
+  if (!city || !country) { toast('City and country are required'); return; }
+  HOME.place = place || 'Home';
+  HOME.city = city;
+  HOME.country = country;
+  localStorage.setItem('mt_home', JSON.stringify(HOME));
+  if (fbReady) fbSet('settings/home', { place: HOME.place, city: HOME.city, country: HOME.country });
+  render();
+  toast('Home updated: ' + HOME.city + ', ' + HOME.country);
+}
+
+function loadHomeSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('mt_home'));
+    if (saved) { HOME.place = saved.place; HOME.city = saved.city; HOME.country = saved.country; }
+  } catch(e) {}
+  if (fbReady) {
+    fbListen('settings/home', data => {
+      if (data) {
+        HOME.place = data.place || 'Home';
+        HOME.city = data.city || 'Cernobbio';
+        HOME.country = data.country || 'Italy';
+        localStorage.setItem('mt_home', JSON.stringify(HOME));
+        render();
+      }
+    });
+  }
 }
 
 function renderPresets(existingEntry) {
