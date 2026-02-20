@@ -14,6 +14,7 @@
 <!-- Firebase SDKs — same versions as Chelsea Tickets -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <!-- XLSX for import -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
@@ -145,6 +146,18 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--navy); color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; z-index: 300; opacity: 0; transition: opacity .3s; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
 .toast.show { opacity: 1; }
 
+/* Login */
+.login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg); padding: 20px; }
+.login-card { background: var(--white); border-radius: 16px; border: 1px solid var(--border); padding: 40px 32px; max-width: 380px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,.08); text-align: center; }
+.login-card .logo { font-size: 48px; margin-bottom: 12px; }
+.login-card h1 { font-size: 22px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+.login-card h1 span { color: var(--primary); }
+.login-card .subtitle { font-size: 13px; color: var(--text-light); margin-bottom: 28px; }
+.login-card .field { text-align: left; }
+.login-card .login-error { color: var(--err); font-size: 13px; margin-bottom: 12px; min-height: 20px; }
+.app-wrap { display: none; }
+.app-wrap.authed { display: block; }
+
 /* Sections */
 .view { display: none; }
 .view.active { display: block; }
@@ -159,6 +172,28 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 </style>
 </head>
 <body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="logo">🌙</div>
+    <h1><span>Midnight</span> Tracker</h1>
+    <div class="subtitle">Sign in to continue</div>
+    <div class="field">
+      <label>Email</label>
+      <input id="loginEmail" type="email" placeholder="you@email.com" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input id="loginPassword" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <button class="btn btn-primary" style="width:100%;padding:12px;" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- APP (hidden until authenticated) -->
+<div class="app-wrap" id="appWrap">
 
 <div class="header">
   <h1>🌙 <span>Midnight</span> Tracker</h1>
@@ -218,6 +253,12 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       <h3>Primary Home</h3>
       <p>Your primary home is <strong>Cernobbio, Italy</strong>. Days without a location entry are counted as home days.</p>
     </div>
+
+    <div class="settings-card">
+      <h3>Account</h3>
+      <p id="loggedInAs" style="margin-bottom:8px;"></p>
+      <button class="btn btn-outline" onclick="doLogout()" style="width:100%">Sign Out</button>
+    </div>
   </div>
 </div>
 
@@ -270,6 +311,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 <!-- GPS FAB -->
 <button class="gps-btn" onclick="captureTodayGPS()" title="Capture GPS for today">📍</button>
 
+</div><!-- /app-wrap -->
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -286,14 +329,72 @@ const FIREBASE_CONFIG = {
 
 // ===== FIREBASE INIT =====
 let db = null;
+let auth = null;
 let fbReady = false;
+let currentUser = null;
 try {
   if (FIREBASE_CONFIG.apiKey !== 'YOUR_API_KEY') {
     firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.database();
+    auth = firebase.auth();
     fbReady = true;
   }
 } catch(e) { console.warn('Firebase init failed:', e); }
+
+// ===== AUTH =====
+function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  if (!email || !pw) { errEl.textContent = 'Enter email and password.'; return; }
+  auth.signInWithEmailAndPassword(email, pw)
+    .then(() => { /* onAuthStateChanged handles the rest */ })
+    .catch(err => {
+      console.warn('Login error:', err.code);
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        errEl.textContent = 'Invalid email or password.';
+      } else if (err.code === 'auth/too-many-requests') {
+        errEl.textContent = 'Too many attempts. Try again later.';
+      } else {
+        errEl.textContent = 'Login failed. Please try again.';
+      }
+    });
+}
+
+function doLogout() {
+  auth.signOut();
+}
+
+function showApp(user) {
+  currentUser = user;
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appWrap').classList.add('authed');
+  document.getElementById('loggedInAs').textContent = 'Signed in as ' + user.email;
+  loadLocal();
+  render();
+  initFirebaseSync();
+}
+
+function showLogin() {
+  currentUser = null;
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('appWrap').classList.remove('authed');
+  // Clear state
+  entries = {};
+  if (db) db.ref('locations').off();
+}
+
+// Listen for auth state changes
+if (auth) {
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      showApp(user);
+    } else {
+      showLogin();
+    }
+  });
+}
 
 function fbSet(path, val) { if (db) db.ref(path).set(val); }
 function fbUpdate(path, val) { if (db) db.ref(path).update(val); }
@@ -866,12 +967,14 @@ function render() {
 }
 
 // ===== INIT =====
-loadLocal();
 const now = new Date();
 anchorYear = now.getFullYear();
 anchorMonth = now.getMonth();
-render();
-initFirebaseSync();
+// Auth state listener (above) will call showApp() → loadLocal() + render() + initFirebaseSync()
+// If auth is not ready, fall back to showing login
+if (!auth) {
+  document.getElementById('loginScreen').style.display = 'flex';
+}
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW registration failed', e));
