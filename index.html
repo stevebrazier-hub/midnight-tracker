@@ -89,6 +89,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .list-info .place { font-weight: 500; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .list-info .city-country { font-size: 12px; color: var(--text-light); }
 .list-info .flights { font-size: 11px; color: var(--purple); margin-top: 1px; }
+.list-info .working-tag { display: inline-block; font-size: 10px; background: var(--warn-bg); color: var(--warn); padding: 1px 6px; border-radius: 4px; margin-top: 2px; font-weight: 600; }
 .list-flag { font-size: 16px; display: flex; align-items: center; }
 
 /* On mobile: single column full width */
@@ -244,6 +245,13 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       <label>Notes</label>
       <textarea id="editNotes" rows="2" placeholder="Optional notes..."></textarea>
     </div>
+    <div class="field" id="workingField" style="display:none;">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+        <input type="checkbox" id="editWorking" style="width:18px;height:18px;accent-color:var(--primary);flex:none;" />
+        <span>Working in the UK this day</span>
+      </label>
+      <div style="font-size:11px;color:var(--text-light);margin-top:4px;">Tag UK days where you performed work (30-day annual limit)</div>
+    </div>
     <div class="field">
       <label>GPS Coordinates</label>
       <div style="display:flex;gap:8px;">
@@ -377,6 +385,7 @@ function syncEntry(date, entry) {
   };
   if (entry.lat) data.lat = entry.lat;
   if (entry.lon) data.lon = entry.lon;
+  if (entry.working) data.working = true;
   fbSet('locations/' + date, data);
   entry.synced = true;
   saveLocal();
@@ -457,10 +466,12 @@ function renderList() {
       if (isToday) cls += ' is-today';
       if (isHome) cls += ' is-home';
 
+      const isWorking = entry?.working;
       monthHtml += '<div class="' + cls + '" onclick="openDay(\'' + ds + '\')">' +
         '<div class="list-date"><div class="day-num">' + d + '</div><div class="day-name">' + DAY_NAMES[dt.getDay()] + '</div></div>' +
         '<div class="list-info"><div class="place">' + place + '</div><div class="city-country">' + city + (country ? ', ' + country : '') + '</div>' +
-        (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') + '</div>' +
+        (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') +
+        (isWorking ? '<div class="working-tag">WORKING</div>' : '') + '</div>' +
         '<div class="list-flag">' + flag + '</div>' +
       '</div>';
     }
@@ -554,6 +565,7 @@ function renderStats() {
   let daysElapsed = 0;
   let ukNights = 0;
   let italyDays = 0;
+  let ukWorkDays = 0;
 
   for (let d = new Date(taxStart); d <= lastDay; d.setDate(d.getDate() + 1)) {
     const ds = fmtDate(d);
@@ -563,6 +575,7 @@ function renderStats() {
     daysElapsed++;
     if (country === 'UK') ukNights++;
     if (country === 'Italy') italyDays++;
+    if (entry?.working) ukWorkDays++;
   }
 
   const daysRemaining = totalTaxDays - daysElapsed;
@@ -623,6 +636,24 @@ function renderStats() {
   }
   html += '</div>';
 
+  // ── UK 30-day working limit ──
+  const ukWorkRemaining = Math.max(0, 30 - ukWorkDays);
+  const ukWorkProjected = daysElapsed > 0 ? Math.round((ukWorkDays / daysElapsed) * totalTaxDays) : 0;
+  const ukWorkSafe = ukWorkProjected <= 30;
+  const ukWorkPct = ((ukWorkDays / 30) * 100).toFixed(0);
+
+  html += '<div class="stat-card"><h3>🇬🇧 UK — 30-Day Working Limit</h3>';
+  html += '<div class="stat-bar" style="height:10px;margin-bottom:12px;"><div class="stat-bar-fill" style="width:' + Math.min(100, ukWorkPct) + '%;background:' + (ukWorkDays > 30 ? 'var(--err)' : ukWorkSafe ? 'var(--ok)' : 'var(--warn)') + '"></div></div>';
+  html += '<div class="stat-row"><span>UK working days (actual)</span><span class="days">' + ukWorkDays + ' / 30</span></div>';
+  html += '<div class="stat-row"><span>Projected full tax year</span><span class="days" style="color:' + (ukWorkSafe ? 'var(--ok)' : 'var(--err)') + '">' + ukWorkProjected + '</span></div>';
+  if (ukWorkDays > 30) {
+    html += '<div class="stat-row"><span>Status</span><span class="days" style="color:var(--err)">⚠ LIMIT EXCEEDED by ' + (ukWorkDays - 30) + ' days</span></div>';
+  } else {
+    html += '<div class="stat-row"><span>Days remaining</span><span class="days">' + ukWorkRemaining + ' UK work days available</span></div>';
+  }
+  html += '<div style="font-size:11px;color:var(--text-light);margin-top:8px;">Tag UK working days in the edit modal (defaults to not working)</div>';
+  html += '</div>';
+
   document.getElementById('statsContent').innerHTML = html;
 }
 
@@ -640,8 +671,18 @@ function openDay(dateStr) {
   document.getElementById('editNotes').value = entry.notes || '';
   document.getElementById('editLat').value = entry.lat || '';
   document.getElementById('editLon').value = entry.lon || '';
+  document.getElementById('editWorking').checked = !!entry.working;
+  // Show working toggle only for UK days
+  updateWorkingFieldVisibility();
   document.getElementById('editModal').classList.add('open');
 }
+
+function updateWorkingFieldVisibility() {
+  const country = document.getElementById('editCountry').value.trim();
+  document.getElementById('workingField').style.display = (country === 'UK') ? 'block' : 'none';
+}
+// Listen for country field changes to show/hide working toggle
+document.getElementById('editCountry').addEventListener('input', updateWorkingFieldVisibility);
 
 function closeModal() {
   document.getElementById('editModal').classList.remove('open');
@@ -651,14 +692,16 @@ function closeModal() {
 function saveDay() {
   if (!editingDate) return;
   const savedDate = editingDate;
+  const country = document.getElementById('editCountry').value.trim();
   const entry = {
     place: document.getElementById('editPlace').value.trim(),
     city: document.getElementById('editCity').value.trim(),
-    country: document.getElementById('editCountry').value.trim(),
+    country: country,
     flights: document.getElementById('editFlights').value.trim(),
     notes: document.getElementById('editNotes').value.trim(),
     lat: parseFloat(document.getElementById('editLat').value) || null,
     lon: parseFloat(document.getElementById('editLon').value) || null,
+    working: (country === 'UK' && document.getElementById('editWorking').checked) ? true : false,
     synced: false
   };
   if (entry.place || entry.city || entry.country) {
