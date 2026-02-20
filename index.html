@@ -208,7 +208,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       <input id="loginPassword" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()" />
     </div>
     <div class="login-error" id="loginError"></div>
-    <button class="btn btn-primary" style="width:100%;padding:12px;" onclick="doLogin()">Sign In</button>
+    <button class="btn btn-primary" style="width:100%;padding:12px;" onclick="doLogin()">Sign in</button>
     <div id="resetSection" style="margin-top:16px;">
       <a href="#" onclick="showResetForm();return false" style="font-size:13px;color:var(--primary);">Forgot password?</a>
     </div>
@@ -218,7 +218,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
         <input id="resetEmail" type="email" placeholder="you@email.com" />
       </div>
       <div class="login-error" id="resetMsg"></div>
-      <button class="btn btn-primary" style="width:100%;padding:10px;" onclick="doReset()">Send Reset Link</button>
+      <button class="btn btn-primary" style="width:100%;padding:10px;" onclick="doReset()">Send reset link</button>
       <div style="text-align:center;margin-top:10px;"><a href="#" onclick="hideResetForm();return false" style="font-size:13px;color:var(--text-light);">Back to sign in</a></div>
     </div>
   </div>
@@ -234,7 +234,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <div class="tabs">
   <button class="tab active" data-view="list">Location</button>
-  <button class="tab" data-view="stats">Tax Stats</button>
+  <button class="tab" data-view="stats">Tax stats</button>
   <button class="tab" data-view="settings">Settings</button>
 </div>
 
@@ -270,25 +270,25 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 <div id="settings" class="view">
   <div class="settings-section">
     <div class="settings-card">
-      <h3>Firebase Connection</h3>
+      <h3>Firebase connection</h3>
       <p id="fbStatus" style="margin-bottom:8px;">Checking connection...</p>
-      <button class="btn btn-primary" onclick="testFirebase()" style="width:100%">Test Connection</button>
+      <button class="btn btn-primary" onclick="testFirebase()" style="width:100%">Test connection</button>
     </div>
 
     <div class="settings-card">
-      <h3>Import Spreadsheet</h3>
+      <h3>Import spreadsheet</h3>
       <p>Import your existing Excel tracking spreadsheet. Format: Date | Day | Month | Year | Place | City | Country | Flights</p>
       <input type="file" id="importFile" accept=".xlsx,.csv" style="width:100%;margin-bottom:8px;" />
-      <button class="btn btn-primary" onclick="importSpreadsheet()" style="width:100%">Import Data</button>
+      <button class="btn btn-primary" onclick="importSpreadsheet()" style="width:100%">Import data</button>
     </div>
 
     <div class="settings-card">
-      <h3>Export Data</h3>
+      <h3>Export data</h3>
       <button class="btn btn-outline" onclick="exportCSV()" style="width:100%">Export as CSV</button>
     </div>
 
     <div class="settings-card">
-      <h3>Primary Home</h3>
+      <h3>Primary home</h3>
       <p style="margin-bottom:10px;">Days without a location entry are counted as home days.</p>
       <div class="extras-row">
         <div class="field"><label>Place</label><input id="homePlaceInput" /></div>
@@ -297,15 +297,15 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
         <div class="field"><label>City</label><input id="homeCityInput" /></div>
         <div class="field"><label>Country</label><input id="homeCountryInput" /></div>
       </div>
-      <button class="btn btn-outline" onclick="saveHomeSettings()" style="width:100%">Save Home</button>
+      <button class="btn btn-outline" onclick="saveHomeSettings()" style="width:100%">Save home</button>
     </div>
 
     <div class="settings-card">
-      <h3>Quick Locations</h3>
+      <h3>Quick locations</h3>
       <p>Manage the quick-pick buttons shown when editing a day.</p>
       <div id="presetsList" style="margin:12px 0;"></div>
       <div id="presetFormArea" style="display:none;"></div>
-      <button class="btn btn-outline" onclick="addPresetUI()" style="width:100%">+ Add Location</button>
+      <button class="btn btn-outline" onclick="addPresetUI()" style="width:100%">+ Add location</button>
     </div>
 
     <div class="settings-card">
@@ -315,22 +315,22 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
         <strong>Status:</strong> <span id="pushStatus">Checking...</span>
       </div>
       <div class="field" style="margin-top:8px;">
-        <label>VAPID Key (from Firebase Cloud Messaging)</label>
+        <label>VAPID key (from Firebase Cloud Messaging)</label>
         <input id="vapidKeyInput" placeholder="BL..." style="font-size:11px;" />
       </div>
-      <button class="btn btn-outline" onclick="saveVapidKey()" style="width:100%;margin-bottom:8px;">Save VAPID Key</button>
+      <button class="btn btn-outline" onclick="saveVapidKey()" style="width:100%;margin-bottom:8px;">Save VAPID key</button>
       <div class="field">
-        <label>Teams Webhook URL (for unrecognised locations)</label>
+        <label>Teams webhook URL (for unrecognised locations)</label>
         <input id="teamsWebhookUrl" placeholder="https://outlook.office.com/webhook/..." style="font-size:12px;" />
       </div>
-      <button class="btn btn-outline" onclick="saveTeamsWebhook()" style="width:100%;margin-bottom:8px;">Save Webhook</button>
-      <button class="btn btn-outline" onclick="testMidnightGPS()" style="width:100%;">Test GPS Capture Now</button>
+      <button class="btn btn-outline" onclick="saveTeamsWebhook()" style="width:100%;margin-bottom:8px;">Save webhook</button>
+      <button class="btn btn-outline" onclick="testMidnightGPS()" style="width:100%;">Test GPS capture now</button>
     </div>
 
     <div class="settings-card">
       <h3>Account</h3>
       <p id="loggedInAs" style="margin-bottom:8px;"></p>
-      <button class="btn btn-outline" onclick="doLogout()" style="width:100%">Sign Out</button>
+      <button class="btn btn-outline" onclick="doLogout()" style="width:100%">Sign out</button>
     </div>
   </div>
 </div>
@@ -810,7 +810,7 @@ function renderStats() {
   const maxDays = sorted[0]?.[1] || 1;
 
   // ── Country breakdown ──
-  let html = '<div class="stat-card"><h3>Midnights per Country — Tax Year ' + taxYearLabel(startYear) + '</h3>';
+  let html = '<div class="stat-card"><h3>Midnights per country — tax year ' + taxYearLabel(startYear) + '</h3>';
   html += '<div style="font-size:12px;color:var(--text-light);margin-bottom:10px;">' + daysElapsed + ' days elapsed · ' + daysRemaining + ' days remaining</div>';
   sorted.forEach(([country, days]) => {
     const pct = ((days / daysElapsed) * 100).toFixed(1);
@@ -827,7 +827,7 @@ function renderStats() {
   const italyOnTrack = italyProjected >= 183;
   const italyPct = ((italyDays / 183) * 100).toFixed(0);
 
-  html += '<div class="stat-card"><h3>🇮🇹 Italy — 183-Day Residency Target</h3>';
+  html += '<div class="stat-card"><h3>🇮🇹 Italy — 183-day residency target</h3>';
   html += '<div class="stat-bar" style="height:10px;margin-bottom:12px;"><div class="stat-bar-fill" style="width:' + Math.min(100, italyPct) + '%;background:' + (italyOnTrack ? 'var(--ok)' : 'var(--warn)') + '"></div></div>';
   html += '<div class="stat-row"><span>Nights in Italy (actual)</span><span class="days">' + italyDays + ' / 183</span></div>';
   html += '<div class="stat-row"><span>Projected full tax year</span><span class="days" style="color:' + (italyOnTrack ? 'var(--ok)' : 'var(--warn)') + '">' + italyProjected + '</span></div>';
@@ -848,7 +848,7 @@ function renderStats() {
   const ukSafe = ukProjected <= 90;
   const ukPct = ((ukNights / 90) * 100).toFixed(0);
 
-  html += '<div class="stat-card"><h3>🇬🇧 UK — 90-Night Limit</h3>';
+  html += '<div class="stat-card"><h3>🇬🇧 UK — 90-night limit</h3>';
   html += '<div class="stat-bar" style="height:10px;margin-bottom:12px;"><div class="stat-bar-fill" style="width:' + Math.min(100, ukPct) + '%;background:' + (ukNights > 90 ? 'var(--err)' : ukSafe ? 'var(--ok)' : 'var(--warn)') + '"></div></div>';
   html += '<div class="stat-row"><span>UK midnights (actual)</span><span class="days">' + ukNights + ' / 90</span></div>';
   html += '<div class="stat-row"><span>Projected full tax year</span><span class="days" style="color:' + (ukSafe ? 'var(--ok)' : 'var(--err)') + '">' + ukProjected + '</span></div>';
@@ -869,7 +869,7 @@ function renderStats() {
   const ukWorkSafe = ukWorkProjected <= 30;
   const ukWorkPct = ((ukWorkDays / 30) * 100).toFixed(0);
 
-  html += '<div class="stat-card"><h3>🇬🇧 UK — 30-Day Working Limit</h3>';
+  html += '<div class="stat-card"><h3>🇬🇧 UK — 30-day working limit</h3>';
   html += '<div class="stat-bar" style="height:10px;margin-bottom:12px;"><div class="stat-bar-fill" style="width:' + Math.min(100, ukWorkPct) + '%;background:' + (ukWorkDays > 30 ? 'var(--err)' : ukWorkSafe ? 'var(--ok)' : 'var(--warn)') + '"></div></div>';
   html += '<div class="stat-row"><span>UK working days (actual)</span><span class="days">' + ukWorkDays + ' / 30</span></div>';
   html += '<div class="stat-row"><span>Projected full tax year</span><span class="days" style="color:' + (ukWorkSafe ? 'var(--ok)' : 'var(--err)') + '">' + ukWorkProjected + '</span></div>';
@@ -973,7 +973,7 @@ function showPresetForm(existing, onSave) {
   const el = document.getElementById('presetFormArea');
   el.innerHTML =
     '<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:12px;">' +
-      '<div style="font-size:14px;font-weight:600;margin-bottom:12px;">' + (existing ? 'Edit Location' : 'Add Location') + '</div>' +
+      '<div style="font-size:14px;font-weight:600;margin-bottom:12px;">' + (existing ? 'Edit location' : 'Add location') + '</div>' +
       '<div style="display:grid;grid-template-columns:60px 1fr;gap:8px 12px;align-items:center;">' +
         '<label style="font-size:12px;color:var(--text-light);text-align:right;">Icon</label>' +
         '<input id="pf_icon" class="form-input" style="width:60px;" value="' + (p.icon||'') + '">' +
