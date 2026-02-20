@@ -61,35 +61,48 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .tab:hover { color: var(--text); }
 .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
 
-/* Calendar */
-.cal-nav { display: flex; align-items: center; justify-content: space-between; padding: 16px; }
-.cal-nav button { background: var(--white); border: 1px solid var(--border); padding: 6px 14px; border-radius: 8px; color: var(--text); transition: all .15s; }
-.cal-nav button:hover { border-color: var(--primary); background: var(--primary-light); }
-.cal-nav .month-label { font-size: 16px; font-weight: 600; }
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 0 12px 12px; }
-.cal-head { text-align: center; font-size: 11px; color: var(--text-light); padding: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
-.cal-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; font-size: 13px; cursor: pointer; position: relative; transition: all .15s; color: var(--text); }
-.cal-day:hover { background: var(--primary-light); }
-.cal-day.empty { pointer-events: none; }
-.cal-day.today { border: 2px solid var(--primary); font-weight: 700; }
-.cal-day.filled { background: var(--white); border: 1px solid var(--border); }
-.cal-day .flag { font-size: 10px; position: absolute; bottom: 2px; }
-.cal-day.home { border-left: 3px solid var(--ok); }
-.cal-day.away { border-left: 3px solid var(--warn); }
-.cal-day.flight { border-left: 3px solid var(--purple); }
+/* Multi-column list */
+.list-controls { padding: 10px 16px; display: flex; gap: 8px; align-items: center; background: var(--white); border-bottom: 1px solid var(--border); }
+.list-controls select { min-width: 120px; }
+.list-controls .spacer { flex: 1; }
+.list-controls .month-nav { display: flex; align-items: center; gap: 6px; }
+.list-controls .month-nav button { background: var(--white); border: 1px solid var(--border); padding: 4px 10px; border-radius: 6px; font-size: 13px; transition: all .15s; }
+.list-controls .month-nav button:hover { border-color: var(--primary); background: var(--primary-light); }
+.list-controls .month-nav .current-range { font-size: 13px; font-weight: 600; color: var(--text); min-width: 140px; text-align: center; }
 
-/* List View */
-.list-controls { padding: 12px 16px; display: flex; gap: 8px; flex-wrap: wrap; }
-.list-controls input, .list-controls select { flex: 1; min-width: 120px; }
-.list-item { display: flex; padding: 14px 16px; border-bottom: 1px solid var(--border); gap: 14px; cursor: pointer; transition: background .15s; background: var(--white); }
+.months-scroll { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; height: calc(100vh - 110px); }
+.months-scroll::-webkit-scrollbar { display: none; }
+.month-col { min-width: 320px; max-width: 420px; flex: 1 0 320px; scroll-snap-align: start; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+.month-header { padding: 12px 16px; background: var(--bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 5; }
+.month-header h2 { font-size: 15px; font-weight: 600; }
+.month-header .month-summary { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+.month-days { flex: 1; overflow-y: auto; }
+
+.list-item { display: flex; padding: 10px 16px; border-bottom: 1px solid var(--border); gap: 12px; cursor: pointer; transition: background .15s; background: var(--white); }
 .list-item:hover { background: var(--primary-light); }
-.list-date { min-width: 48px; text-align: center; }
-.list-date .day-num { font-size: 20px; font-weight: 700; color: var(--primary); }
-.list-date .day-name { font-size: 11px; color: var(--text-light); text-transform: uppercase; font-weight: 500; }
-.list-info { flex: 1; }
-.list-info .place { font-weight: 600; color: var(--text); }
-.list-info .city-country { font-size: 13px; color: var(--text-light); margin-top: 2px; }
-.list-info .flights { font-size: 12px; color: var(--purple); margin-top: 2px; }
+.list-item.is-today { background: var(--primary-light); border-left: 3px solid var(--primary); }
+.list-item.is-home { opacity: .6; }
+.list-date { min-width: 40px; text-align: center; }
+.list-date .day-num { font-size: 16px; font-weight: 700; color: var(--primary); }
+.list-date .day-name { font-size: 10px; color: var(--text-light); text-transform: uppercase; font-weight: 500; }
+.list-info { flex: 1; min-width: 0; }
+.list-info .place { font-weight: 500; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list-info .city-country { font-size: 12px; color: var(--text-light); }
+.list-info .flights { font-size: 11px; color: var(--purple); margin-top: 1px; }
+.list-flag { font-size: 16px; display: flex; align-items: center; }
+
+/* On mobile: single column full width */
+@media (max-width: 640px) {
+  .month-col { min-width: 100vw; max-width: 100vw; flex: 0 0 100vw; }
+}
+/* Tablet: 2 columns */
+@media (min-width: 641px) and (max-width: 960px) {
+  .month-col { min-width: 50vw; max-width: 50vw; flex: 0 0 50vw; }
+}
+/* Desktop: 3+ columns */
+@media (min-width: 961px) {
+  .month-col { min-width: 320px; max-width: 380px; }
+}
 
 /* Stats */
 .stats-container { padding: 16px; }
@@ -141,7 +154,6 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 @media (min-width: 768px) {
   .modal { border-radius: 16px; margin-bottom: 20px; }
-  .cal-day { font-size: 14px; }
 }
 </style>
 </head>
@@ -153,29 +165,23 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 </div>
 
 <div class="tabs">
-  <button class="tab active" data-view="calendar">Calendar</button>
-  <button class="tab" data-view="list">List</button>
+  <button class="tab active" data-view="list">Location</button>
   <button class="tab" data-view="stats">Tax Stats</button>
   <button class="tab" data-view="settings">Settings</button>
 </div>
 
-<!-- CALENDAR VIEW -->
-<div id="calendar" class="view active">
-  <div class="cal-nav">
-    <button onclick="calNav(-1)">◀</button>
-    <span class="month-label" id="calMonth"></span>
-    <button onclick="calNav(1)">▶</button>
-  </div>
-  <div class="cal-grid" id="calGrid"></div>
-</div>
-
-<!-- LIST VIEW -->
-<div id="list" class="view">
+<!-- LIST VIEW (default, multi-column) -->
+<div id="list" class="view active">
   <div class="list-controls">
-    <input type="month" id="listMonth" />
     <select id="listCountryFilter"><option value="">All countries</option></select>
+    <div class="spacer"></div>
+    <div class="month-nav">
+      <button onclick="scrollMonths(-1)">◀</button>
+      <span class="current-range" id="monthRange"></span>
+      <button onclick="scrollMonths(1)">▶</button>
+    </div>
   </div>
-  <div id="listItems"></div>
+  <div class="months-scroll" id="monthsScroll"></div>
 </div>
 
 <!-- STATS VIEW -->
@@ -260,12 +266,6 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== FIREBASE CONFIG =====
-// SETUP: Replace these values with your own Firebase project config
-// 1. Go to https://console.firebase.google.com
-// 2. Create a new project (e.g. "midnight-tracker")
-// 3. Add a web app, copy the config values below
-// 4. Go to Realtime Database > Create Database > europe-west1 > Start in test mode
-// 5. Once working, update rules (see database.rules.json in this repo)
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyAjZaVwXku1n1niJtkxvcKjXDHibSHHIRc",
   authDomain: "midnight-tracker-steve.firebaseapp.com",
@@ -276,7 +276,7 @@ const FIREBASE_CONFIG = {
   appId: "1:860824921259:web:b1c462b04dc3bf18ae03ee"
 };
 
-// ===== FIREBASE INIT — same pattern as Chelsea Tickets =====
+// ===== FIREBASE INIT =====
 let db = null;
 let fbReady = false;
 try {
@@ -287,7 +287,6 @@ try {
   }
 } catch(e) { console.warn('Firebase init failed:', e); }
 
-// Firebase helpers — mirrors Chelsea Tickets pattern
 function fbSet(path, val) { if (db) db.ref(path).set(val); }
 function fbUpdate(path, val) { if (db) db.ref(path).update(val); }
 function fbRemove(path) { if (db) db.ref(path).remove(); }
@@ -297,9 +296,14 @@ function fbListen(path, cb) {
 
 // ===== STATE =====
 const HOME = { city: 'Cernobbio', country: 'Italy', place: 'Home' };
-let entries = {}; // keyed by 'YYYY-MM-DD'
-let calYear, calMonth;
+let entries = {};
 let editingDate = null;
+
+// The "anchor" month for the scroll — current month by default
+let anchorYear, anchorMonth;
+// How many months to show at once (we render a window of months)
+const MONTHS_BUFFER = 6; // 3 past + current + 2 future
+let scrollOffset = 0; // 0 = current month is first column
 
 // ===== SYNC STATUS =====
 function setSyncStatus(state, text) {
@@ -327,7 +331,7 @@ function testFirebase() {
   });
 }
 
-// ===== LOCAL STORAGE (offline fallback, same as Chelsea pattern) =====
+// ===== LOCAL STORAGE =====
 function saveLocal() { localStorage.setItem('mt_entries', JSON.stringify(entries)); }
 function loadLocal() {
   try { entries = JSON.parse(localStorage.getItem('mt_entries') || '{}'); } catch { entries = {}; }
@@ -341,28 +345,21 @@ function initFirebaseSync() {
     document.getElementById('fbStatus').style.color = 'var(--err)';
     return;
   }
-
   setSyncStatus('pending', 'Syncing...');
-
-  // Listen for all entries — Firebase pushes updates in real time
   fbListen('locations', data => {
     if (data) {
-      // Replace local state with Firebase data (Firebase is source of truth)
       const newEntries = {};
       Object.keys(data).forEach(dateKey => {
         newEntries[dateKey] = { ...data[dateKey], synced: true };
       });
       entries = newEntries;
     } else {
-      // Database is empty
       entries = {};
     }
     saveLocal();
     setSyncStatus('ok', 'Synced');
     render();
   });
-
-  // Also listen for connection state
   db.ref('.info/connected').on('value', snap => {
     if (snap.val() === true) {
       setSyncStatus('ok', 'Connected');
@@ -374,14 +371,9 @@ function initFirebaseSync() {
 
 function syncEntry(date, entry) {
   if (!fbReady) return;
-  // Write to Firebase — same flat structure as Chelsea Tickets uses
-  // Avoid null values which Firebase strips (same lesson from Chelsea Tickets padTickets)
   const data = {
-    place: entry.place || '',
-    city: entry.city || '',
-    country: entry.country || '',
-    flights: entry.flights || '',
-    notes: entry.notes || ''
+    place: entry.place || '', city: entry.city || '', country: entry.country || '',
+    flights: entry.flights || '', notes: entry.notes || ''
   };
   if (entry.lat) data.lat = entry.lat;
   if (entry.lon) data.lon = entry.lon;
@@ -405,46 +397,92 @@ document.querySelectorAll('.tab').forEach(tab => {
   });
 });
 
-// ===== CALENDAR =====
-function calNav(dir) {
-  calMonth += dir;
-  if (calMonth > 11) { calMonth = 0; calYear++; }
-  if (calMonth < 0) { calMonth = 11; calYear--; }
-  renderCalendar();
+// ===== MULTI-COLUMN LIST =====
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function getMonthKey(y, m) { return y + '-' + String(m + 1).padStart(2, '0'); }
+
+function scrollMonths(dir) {
+  scrollOffset += dir;
+  renderList();
 }
 
-function renderCalendar() {
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('calMonth').textContent = months[calMonth] + ' ' + calYear;
-  const grid = document.getElementById('calGrid');
-  grid.innerHTML = '';
-  ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(d => {
-    grid.innerHTML += '<div class="cal-head">' + d + '</div>';
-  });
-  const first = new Date(calYear, calMonth, 1);
-  let startDay = first.getDay() - 1; if (startDay < 0) startDay = 6;
-  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-  const today = new Date(); const todayStr = fmtDate(today);
+function renderList() {
+  const container = document.getElementById('monthsScroll');
+  const countryFilter = document.getElementById('listCountryFilter').value;
+  const todayStr = fmtDate(new Date());
 
-  for (let i = 0; i < startDay; i++) grid.innerHTML += '<div class="cal-day empty"></div>';
+  // Populate country filter
+  const countries = [...new Set(Object.values(entries).map(e => e.country).filter(Boolean))].sort();
+  const sel = document.getElementById('listCountryFilter');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">All countries</option>' + countries.map(c => '<option value="' + c + '"' + (c === current ? ' selected' : '') + '>' + c + '</option>').join('');
 
-  for (let d = 1; d <= daysInMonth; d++) {
-    const ds = calYear + '-' + String(calMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
-    const entry = entries[ds];
-    const isToday = ds === todayStr;
-    let cls = 'cal-day';
-    let flag = '';
-    if (isToday) cls += ' today';
-    if (entry) {
-      cls += ' filled';
-      if (entry.country === 'Italy' && entry.city === 'Cernobbio') cls += ' home';
-      else if (entry.flights) cls += ' flight';
-      else cls += ' away';
-      if (entry.country) flag = countryFlag(entry.country);
+  // Build months array: scrollOffset controls which month is first
+  // scrollOffset 0 = current month first, -1 = last month first, +1 = next month first
+  let html = '';
+  const startY = anchorYear;
+  const startM = anchorMonth;
+
+  for (let i = 0; i < MONTHS_BUFFER; i++) {
+    let mOffset = scrollOffset + i;
+    let y = startY;
+    let m = startM + mOffset;
+    // Normalise month/year
+    while (m > 11) { m -= 12; y++; }
+    while (m < 0) { m += 12; y--; }
+
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    let monthHtml = '';
+    let awayDays = 0;
+    let homeDays = 0;
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const ds = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      const dt = new Date(y, m, d);
+      const entry = entries[ds];
+      const place = entry?.place || HOME.place;
+      const city = entry?.city || HOME.city;
+      const country = entry?.country || HOME.country;
+      const flights = entry?.flights || '';
+      const flag = entry?.country ? countryFlag(entry.country) : countryFlag(HOME.country);
+      const isHome = (!entry) || (entry.country === 'Italy' && entry.city === 'Cernobbio');
+      const isToday = ds === todayStr;
+
+      if (isHome) homeDays++; else awayDays++;
+      if (countryFilter && country !== countryFilter) continue;
+
+      let cls = 'list-item';
+      if (isToday) cls += ' is-today';
+      if (isHome) cls += ' is-home';
+
+      monthHtml += '<div class="' + cls + '" onclick="openDay(\'' + ds + '\')">' +
+        '<div class="list-date"><div class="day-num">' + d + '</div><div class="day-name">' + DAY_NAMES[dt.getDay()] + '</div></div>' +
+        '<div class="list-info"><div class="place">' + place + '</div><div class="city-country">' + city + (country ? ', ' + country : '') + '</div>' +
+        (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') + '</div>' +
+        '<div class="list-flag">' + flag + '</div>' +
+      '</div>';
     }
-    grid.innerHTML += '<div class="' + cls + '" onclick="openDay(\'' + ds + '\')">' + d + '<span class="flag">' + flag + '</span></div>';
+
+    html += '<div class="month-col">' +
+      '<div class="month-header"><h2>' + MONTH_NAMES[m] + ' ' + y + '</h2>' +
+      '<div class="month-summary">' + awayDays + ' away · ' + homeDays + ' home</div></div>' +
+      '<div class="month-days">' + (monthHtml || '<p style="padding:16px;color:var(--text-light)">No entries</p>') + '</div>' +
+    '</div>';
   }
+
+  container.innerHTML = html;
+
+  // Update range label
+  let firstM = startM + scrollOffset;
+  let firstY = startY;
+  while (firstM > 11) { firstM -= 12; firstY++; }
+  while (firstM < 0) { firstM += 12; firstY--; }
+  document.getElementById('monthRange').textContent = MONTH_NAMES[firstM].slice(0, 3) + ' ' + firstY;
 }
+
+document.getElementById('listCountryFilter').addEventListener('change', renderList);
 
 function countryFlag(country) {
   const map = {
@@ -457,43 +495,6 @@ function countryFlag(country) {
   };
   return map[country] || '🏳️';
 }
-
-// ===== LIST VIEW =====
-function renderList() {
-  const monthInput = document.getElementById('listMonth');
-  if (!monthInput.value) monthInput.value = calYear + '-' + String(calMonth+1).padStart(2,'0');
-  const parts = monthInput.value.split('-').map(Number);
-  const y = parts[0], m = parts[1];
-  const countryFilter = document.getElementById('listCountryFilter').value;
-  const daysInMonth = new Date(y, m, 0).getDate();
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  let html = '';
-
-  // Populate country filter
-  const countries = [...new Set(Object.values(entries).map(e => e.country).filter(Boolean))].sort();
-  const sel = document.getElementById('listCountryFilter');
-  const current = sel.value;
-  sel.innerHTML = '<option value="">All countries</option>' + countries.map(c => '<option value="' + c + '"' + (c===current?' selected':'') + '>' + c + '</option>').join('');
-
-  for (let d = 1; d <= daysInMonth; d++) {
-    const ds = y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0');
-    const dt = new Date(y, m-1, d);
-    const entry = entries[ds];
-    const place = entry?.place || HOME.place;
-    const city = entry?.city || HOME.city;
-    const country = entry?.country || HOME.country;
-    if (countryFilter && country !== countryFilter) continue;
-    const flights = entry?.flights || '';
-    html += '<div class="list-item" onclick="openDay(\'' + ds + '\')">' +
-      '<div class="list-date"><div class="day-num">' + d + '</div><div class="day-name">' + days[dt.getDay()].slice(0,3) + '</div></div>' +
-      '<div class="list-info"><div class="place">' + place + '</div><div class="city-country">' + city + (country ? ', '+country : '') + '</div>' + (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') + '</div>' +
-    '</div>';
-  }
-  document.getElementById('listItems').innerHTML = html || '<p style="padding:20px;color:var(--text-light)">No entries for this month</p>';
-}
-
-document.getElementById('listMonth').addEventListener('change', renderList);
-document.getElementById('listCountryFilter').addEventListener('change', renderList);
 
 // ===== STATS =====
 function renderStats() {
@@ -532,7 +533,6 @@ function renderStats() {
   });
   html += '</div>';
 
-  // Tax residency warnings
   const italyDays = countryCounts['Italy'] || 0;
   const projectedItaly = Math.round((italyDays / totalDays) * (isLeapYear(year) ? 366 : 365));
   html += '<div class="stat-card"><h3>Tax Residency Indicators</h3>';
@@ -624,7 +624,6 @@ function captureTodayGPS() {
       entry.lat = pos.coords.latitude;
       entry.lon = pos.coords.longitude;
       if (!entry.city) {
-        // Reverse geocode attempt
         try {
           const r = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&format=json');
           const data = await r.json();
@@ -683,7 +682,6 @@ async function importSpreadsheet() {
   render();
   toast('Imported ' + imported + ' entries');
 
-  // Sync all to Firebase
   if (fbReady) {
     toast('Syncing ' + imported + ' entries to Firebase...');
     const batch = {};
@@ -711,11 +709,11 @@ function exportCSV() {
   const allDates = Object.keys(entries).sort();
   if (!allDates.length) { toast('No data to export'); return; }
   let csv = 'Date,Day,Place,City,Country,Flights,Notes,Lat,Lon\n';
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const daysFull = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   allDates.forEach(ds => {
     const e = entries[ds];
     const d = new Date(ds + 'T00:00:00');
-    csv += ds + ',' + days[d.getDay()] + ',' + esc(e.place) + ',' + esc(e.city) + ',' + esc(e.country) + ',' + esc(e.flights) + ',' + esc(e.notes) + ',' + (e.lat||'') + ',' + (e.lon||'') + '\n';
+    csv += ds + ',' + daysFull[d.getDay()] + ',' + esc(e.place) + ',' + esc(e.city) + ',' + esc(e.country) + ',' + esc(e.flights) + ',' + esc(e.notes) + ',' + (e.lat||'') + ',' + (e.lon||'') + '\n';
   });
   download(csv, 'midnight-tracker-export-' + fmtDate(new Date()) + '.csv', 'text/csv');
   toast('Exported CSV');
@@ -748,20 +746,18 @@ function toast(msg) {
 
 function render() {
   const active = document.querySelector('.view.active')?.id;
-  if (active === 'calendar') renderCalendar();
-  else if (active === 'list') renderList();
+  if (active === 'list') renderList();
   else if (active === 'stats') renderStats();
 }
 
 // ===== INIT =====
 loadLocal();
 const now = new Date();
-calYear = now.getFullYear();
-calMonth = now.getMonth();
+anchorYear = now.getFullYear();
+anchorMonth = now.getMonth();
 render();
 initFirebaseSync();
 
-// Register SW
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW registration failed', e));
 }
