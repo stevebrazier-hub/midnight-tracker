@@ -1,0 +1,27 @@
+name: Midnight GPS Push
+
+# Runs at 23:00 UTC (midnight CET / 00:00 Italy time)
+# Adjust if needed for summer time (22:00 UTC = midnight CEST)
+on:
+  schedule:
+    - cron: '0 23 * * *'   # midnight CET (winter)
+    - cron: '0 22 * * *'   # midnight CEST (summer)
+  workflow_dispatch:         # manual trigger for testing
+
+jobs:
+  send-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install firebase-admin@12
+
+      - name: Send midnight push notification
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node .github/scripts/midnight-push.js
