@@ -269,23 +269,6 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 <!-- SETTINGS VIEW -->
 <div id="settings" class="view">
   <div class="settings-section">
-    <div class="settings-card">
-      <h3>Firebase connection</h3>
-      <p id="fbStatus" style="margin-bottom:8px;">Checking connection...</p>
-      <button class="btn btn-primary" onclick="testFirebase()" style="width:100%">Test connection</button>
-    </div>
-
-    <div class="settings-card">
-      <h3>Import spreadsheet</h3>
-      <p>Import your existing Excel tracking spreadsheet. Format: Date | Day | Month | Year | Place | City | Country | Flights</p>
-      <input type="file" id="importFile" accept=".xlsx,.csv" style="width:100%;margin-bottom:8px;" />
-      <button class="btn btn-primary" onclick="importSpreadsheet()" style="width:100%">Import data</button>
-    </div>
-
-    <div class="settings-card">
-      <h3>Export data</h3>
-      <button class="btn btn-outline" onclick="exportCSV()" style="width:100%">Export as CSV</button>
-    </div>
 
     <div class="settings-card">
       <h3>Primary home</h3>
@@ -309,22 +292,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
     </div>
 
     <div class="settings-card">
-      <h3>Midnight GPS</h3>
-      <p>The app captures GPS at midnight to log your location. A push notification wakes the app even when closed.</p>
-      <div style="font-size:12px;padding:8px;background:var(--bg);border-radius:6px;margin:8px 0;">
-        <strong>Status:</strong> <span id="pushStatus">Checking...</span>
-      </div>
-      <div class="field" style="margin-top:8px;">
-        <label>VAPID key (from Firebase Cloud Messaging)</label>
-        <input id="vapidKeyInput" placeholder="BL..." style="font-size:11px;" />
-      </div>
-      <button class="btn btn-outline" onclick="saveVapidKey()" style="width:100%;margin-bottom:8px;">Save VAPID key</button>
-      <div class="field">
-        <label>Teams webhook URL (for unrecognised locations)</label>
-        <input id="teamsWebhookUrl" placeholder="https://outlook.office.com/webhook/..." style="font-size:12px;" />
-      </div>
-      <button class="btn btn-outline" onclick="saveTeamsWebhook()" style="width:100%;margin-bottom:8px;">Save webhook</button>
-      <button class="btn btn-outline" onclick="testMidnightGPS()" style="width:100%;">Test GPS capture now</button>
+      <h3>Export data</h3>
+      <button class="btn btn-outline" onclick="exportCSV()" style="width:100%">Export as CSV</button>
     </div>
 
     <div class="settings-card">
@@ -332,6 +301,45 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       <p id="loggedInAs" style="margin-bottom:8px;"></p>
       <button class="btn btn-outline" onclick="doLogout()" style="width:100%">Sign out</button>
     </div>
+
+    <div style="margin-top:8px;text-align:center;">
+      <a href="#" onclick="document.getElementById('advancedSettings').style.display=document.getElementById('advancedSettings').style.display==='none'?'block':'none';this.textContent=document.getElementById('advancedSettings').style.display==='none'?'Show advanced settings':'Hide advanced settings';return false" style="font-size:13px;color:var(--text-light);">Show advanced settings</a>
+    </div>
+
+    <div id="advancedSettings" style="display:none;">
+      <div class="settings-card">
+        <h3>Midnight GPS</h3>
+        <p>The app captures GPS at midnight to log your location. A push notification wakes the app even when closed.</p>
+        <div style="font-size:12px;padding:8px;background:var(--bg);border-radius:6px;margin:8px 0;">
+          <strong>Status:</strong> <span id="pushStatus">Checking...</span>
+        </div>
+        <div class="field" style="margin-top:8px;">
+          <label>VAPID key (from Firebase Cloud Messaging)</label>
+          <input id="vapidKeyInput" placeholder="BL..." style="font-size:11px;" />
+        </div>
+        <button class="btn btn-outline" onclick="saveVapidKey()" style="width:100%;margin-bottom:8px;">Save VAPID key</button>
+        <div class="field">
+          <label>Teams webhook URL (for unrecognised locations)</label>
+          <input id="teamsWebhookUrl" placeholder="https://outlook.office.com/webhook/..." style="font-size:12px;" />
+        </div>
+        <button class="btn btn-outline" onclick="saveTeamsWebhook()" style="width:100%;margin-bottom:8px;">Save webhook</button>
+        <button class="btn btn-outline" onclick="testMidnightGPS()" style="width:100%;">Test GPS capture now</button>
+      </div>
+
+      <div class="settings-card">
+        <h3>Firebase connection</h3>
+        <p id="fbStatus" style="margin-bottom:8px;">Checking connection...</p>
+        <button class="btn btn-primary" onclick="testFirebase()" style="width:100%">Test connection</button>
+      </div>
+
+      <div class="settings-card">
+        <h3>Import spreadsheet</h3>
+        <p>Import your existing Excel tracking spreadsheet. Format: Date | Day | Month | Year | Place | City | Country | Flights</p>
+        <input type="file" id="importFile" accept=".xlsx,.csv" style="width:100%;margin-bottom:8px;" />
+        <button class="btn btn-primary" onclick="importSpreadsheet()" style="width:100%">Import data</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
