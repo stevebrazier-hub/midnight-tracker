@@ -545,6 +545,7 @@ function closeModal() {
 
 function saveDay() {
   if (!editingDate) return;
+  const savedDate = editingDate;
   const entry = {
     place: document.getElementById('editPlace').value.trim(),
     city: document.getElementById('editCity').value.trim(),
@@ -556,23 +557,24 @@ function saveDay() {
     synced: false
   };
   if (entry.place || entry.city || entry.country) {
-    entries[editingDate] = entry;
-    syncEntry(editingDate, entry);
+    entries[savedDate] = entry;
+    syncEntry(savedDate, entry);
   }
   saveLocal();
   closeModal();
   render();
-  toast('Saved ' + formatDisplayDate(editingDate));
+  toast('Saved ' + formatDisplayDate(savedDate));
 }
 
 function clearDay() {
   if (!editingDate) return;
-  delete entries[editingDate];
-  deleteEntry(editingDate);
+  const savedDate = editingDate;
+  delete entries[savedDate];
+  deleteEntry(savedDate);
   saveLocal();
   closeModal();
   render();
-  toast('Cleared ' + formatDisplayDate(editingDate));
+  toast('Cleared ' + formatDisplayDate(savedDate));
 }
 
 // ===== GPS =====
