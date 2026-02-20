@@ -23,7 +23,7 @@ const USER_EMAIL = process.env.MS_USER_EMAIL || 'steveb@canapii.com';
 const DAYS_AHEAD = 90;  // Look 90 days ahead for calendar events
 const DAYS_BACK = 7;    // Look 7 days back for recent emails
 const HOTEL_FOLDERS = ['Hotels', 'Hotel', 'Hotels and Bookings'];
-const FLIGHT_FOLDERS = ['Flights', 'Flight', 'Travel'];
+const FLIGHT_FOLDERS = ['Flights', 'Flights (4 others)', 'Flight', 'Travel'];
 
 // Known airports → city/country mapping
 const AIRPORTS = {
@@ -308,15 +308,21 @@ async function findFolder(token, folderName) {
     return null;
   }
 
+  const topLevel = (result.value || []).map(f => f.displayName);
+  console.log('  Top-level folders:', topLevel.join(', '));
+
   for (const folder of (result.value || [])) {
     if (folder.displayName === folderName) return folder.id;
 
     // Check child folders
     const children = await graphGet(token, `/users/${USER_EMAIL}/mailFolders/${folder.id}/childFolders?$top=50`);
+    const childNames = (children.value || []).map(c => c.displayName);
+    if (childNames.length) console.log('  ' + folder.displayName + ' → children:', childNames.join(', '));
     for (const child of (children.value || [])) {
       if (child.displayName === folderName) return child.id;
     }
   }
+  console.log('  Folder "' + folderName + '" not found');
   return null;
 }
 
