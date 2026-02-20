@@ -4,6 +4,10 @@
       ".read": "auth != null",
       ".write": "auth != null"
     },
+    "settings": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
     "locations": {
       ".read": "auth != null",
       ".write": "auth != null",
@@ -16,7 +20,9 @@
         "notes": { ".validate": "newData.isString()" },
         "lat": { ".validate": "newData.isNumber() || newData.val() === null" },
         "lon": { ".validate": "newData.isNumber() || newData.val() === null" },
-        "working": { ".validate": "newData.isBoolean()" }
+        "working": { ".validate": "newData.isBoolean()" },
+        "autoGps": { ".validate": "newData.isBoolean()" },
+        "unconfirmed": { ".validate": "newData.isBoolean()" }
       }
     }
   }

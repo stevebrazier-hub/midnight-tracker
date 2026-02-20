@@ -178,9 +178,12 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .view { display: none; }
 .view.active { display: block; }
 
-/* GPS button */
-.gps-btn { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 12px rgba(0,184,169,.4); z-index: 50; transition: background .15s; }
-.gps-btn:hover { background: var(--primary-dark); }
+/* Auto-GPS status banner */
+.gps-banner { padding: 10px 16px; font-size: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+.gps-banner.ok { background: var(--ok-bg); color: var(--ok); }
+.gps-banner.pending { background: var(--warn-bg); color: var(--warn); }
+.gps-banner.error { background: var(--err-bg); color: var(--err); }
+.gps-banner .gps-dismiss { margin-left: auto; background: none; font-size: 16px; color: inherit; opacity: .6; }
 
 @media (min-width: 768px) {
   .modal { border-radius: 16px; margin-bottom: 20px; }
@@ -232,6 +235,12 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
   <button class="tab active" data-view="list">Location</button>
   <button class="tab" data-view="stats">Tax Stats</button>
   <button class="tab" data-view="settings">Settings</button>
+</div>
+
+<!-- GPS status banner (shown when auto-GPS needs attention) -->
+<div class="gps-banner pending" id="gpsBanner" style="display:none;">
+  <span id="gpsBannerText"></span>
+  <button class="gps-dismiss" onclick="dismissGpsBanner()">&times;</button>
 </div>
 
 <!-- LIST VIEW (default, multi-column) -->
@@ -287,6 +296,17 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       <p>Manage the quick-pick buttons shown when editing a day.</p>
       <div id="presetsList" style="margin:12px 0;"></div>
       <button class="btn btn-outline" onclick="addPresetUI()" style="width:100%">+ Add Location</button>
+    </div>
+
+    <div class="settings-card">
+      <h3>Midnight GPS</h3>
+      <p>The app automatically captures GPS at midnight to log your location. If the location isn't recognised, it alerts via Teams.</p>
+      <div class="field" style="margin-top:8px;">
+        <label>Teams Webhook URL</label>
+        <input id="teamsWebhookUrl" placeholder="https://outlook.office.com/webhook/..." style="font-size:12px;" />
+      </div>
+      <button class="btn btn-outline" onclick="saveTeamsWebhook()" style="width:100%;margin-bottom:8px;">Save Webhook</button>
+      <button class="btn btn-outline" onclick="testMidnightGPS()" style="width:100%;">Test GPS Capture Now</button>
     </div>
 
     <div class="settings-card">
@@ -353,9 +373,6 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
     </div>
   </div>
 </div>
-
-<!-- GPS FAB -->
-<button class="gps-btn" onclick="captureTodayGPS()" title="Capture GPS for today">📍</button>
 
 </div><!-- /app-wrap -->
 
@@ -447,8 +464,13 @@ function showApp(user) {
   document.getElementById('loggedInAs').textContent = 'Signed in as ' + user.email;
   loadLocal();
   loadPresets();
+  loadTeamsWebhook();
   render();
   initFirebaseSync();
+  // Start midnight GPS system
+  scheduleMidnightCapture();
+  // Check if today needs a GPS capture (delayed to let Firebase sync first)
+  setTimeout(checkTodayGPS, 3000);
 }
 
 function showLogin() {
@@ -562,6 +584,8 @@ function syncEntry(date, entry) {
   if (entry.lat) data.lat = entry.lat;
   if (entry.lon) data.lon = entry.lon;
   if (entry.working) data.working = true;
+  if (entry.autoGps) data.autoGps = true;
+  if (entry.unconfirmed) data.unconfirmed = true;
   fbSet('locations/' + date, data);
   entry.synced = true;
   saveLocal();
@@ -643,11 +667,13 @@ function renderList() {
       if (isHome) cls += ' is-home';
 
       const isWorking = entry?.working;
+      const isUnconfirmed = entry?.unconfirmed;
       monthHtml += '<div class="' + cls + '" onclick="openDay(\'' + ds + '\')">' +
         '<div class="list-date"><div class="day-num">' + d + '</div><div class="day-name">' + DAY_NAMES[dt.getDay()] + '</div></div>' +
         '<div class="list-info"><div class="place">' + place + '</div><div class="city-country">' + city + (country ? ', ' + country : '') + '</div>' +
         (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') +
-        (isWorking ? '<div class="working-tag">WORKING</div>' : '') + '</div>' +
+        (isWorking ? '<div class="working-tag">WORKING</div>' : '') +
+        (isUnconfirmed ? '<div class="working-tag" style="background:var(--err-bg);color:var(--err);">UNCONFIRMED</div>' : '') + '</div>' +
         '<div class="list-flag">' + flag + '</div>' +
       '</div>';
     }
@@ -1028,6 +1054,7 @@ function saveDay() {
     }
   }
 
+  const existing = entries[savedDate];
   const entry = {
     place: place,
     city: document.getElementById('editCity').value.trim(),
@@ -1038,9 +1065,10 @@ function saveDay() {
     synced: false
   };
   // Preserve GPS if it was already set
-  const existing = entries[savedDate];
   if (existing?.lat) entry.lat = existing.lat;
   if (existing?.lon) entry.lon = existing.lon;
+  // Manual save clears auto-GPS flags
+  // (no autoGps, no unconfirmed = manually confirmed)
 
   if (entry.place || entry.city || entry.country) {
     entries[savedDate] = entry;
@@ -1063,35 +1091,230 @@ function clearDay() {
   toast('Cleared ' + formatDisplayDate(savedDate));
 }
 
-// ===== GPS =====
-// captureGPS is no longer needed (no lat/lon fields in modal); GPS is captured via FAB only
+// ===== AUTO-GPS MIDNIGHT SYSTEM =====
 
-function captureTodayGPS() {
-  if (!navigator.geolocation) { toast('GPS not available'); return; }
-  navigator.geolocation.getCurrentPosition(
-    async pos => {
-      const todayStr = fmtDate(new Date());
-      const entry = entries[todayStr] || {};
-      entry.lat = pos.coords.latitude;
-      entry.lon = pos.coords.longitude;
-      if (!entry.city) {
-        try {
-          const r = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&format=json');
-          const data = await r.json();
-          entry.city = data.address?.city || data.address?.town || data.address?.village || '';
-          entry.country = data.address?.country || '';
-          entry.place = data.display_name?.split(',')[0] || '';
-        } catch(e) { console.warn('Geocode failed', e); }
+// Known location coordinates for preset matching (lat, lon, radius in km)
+const KNOWN_LOCATIONS = [
+  { lat: 45.8472, lon: 9.0853, radius: 5, preset: 'home' },    // Cernobbio, Italy
+  { lat: 51.7520, lon: -1.2577, radius: 8, preset: 'oxford' },  // Oxford, UK
+  { lat: 13.7235, lon: 100.4925, radius: 8, preset: 'bangkok' }, // Klongsan/Bangkok
+];
+
+// Haversine distance in km
+function gpsDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Match GPS coordinates to a known preset
+function matchLocationToPreset(lat, lon) {
+  for (const loc of KNOWN_LOCATIONS) {
+    const dist = gpsDistance(lat, lon, loc.lat, loc.lon);
+    if (dist <= loc.radius) {
+      const preset = presets.find(p => p.id === loc.preset);
+      if (preset) return { preset, distance: dist };
+    }
+  }
+  return null;
+}
+
+// Teams webhook
+let teamsWebhookUrl = '';
+function loadTeamsWebhook() {
+  teamsWebhookUrl = localStorage.getItem('mt_teams_webhook') || '';
+  const el = document.getElementById('teamsWebhookUrl');
+  if (el) el.value = teamsWebhookUrl;
+  // Also sync from Firebase
+  if (fbReady) {
+    fbListen('settings/teamsWebhook', data => {
+      if (data) {
+        teamsWebhookUrl = data;
+        localStorage.setItem('mt_teams_webhook', data);
+        const el2 = document.getElementById('teamsWebhookUrl');
+        if (el2) el2.value = data;
       }
-      entries[todayStr] = entry;
-      saveLocal();
-      syncEntry(todayStr, entry);
-      render();
-      toast('GPS: ' + (entry.city || pos.coords.latitude.toFixed(4)) + ', ' + (entry.country || pos.coords.longitude.toFixed(4)));
-    },
-    err => toast('GPS error: ' + err.message),
-    { enableHighAccuracy: true, timeout: 10000 }
-  );
+    });
+  }
+}
+
+function saveTeamsWebhook() {
+  teamsWebhookUrl = document.getElementById('teamsWebhookUrl').value.trim();
+  localStorage.setItem('mt_teams_webhook', teamsWebhookUrl);
+  if (fbReady) fbSet('settings/teamsWebhook', teamsWebhookUrl);
+  toast('Webhook saved');
+}
+
+async function sendTeamsAlert(message) {
+  if (!teamsWebhookUrl) { console.warn('No Teams webhook configured'); return; }
+  try {
+    await fetch(teamsWebhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        '@type': 'MessageCard',
+        '@context': 'http://schema.org/extensions',
+        themeColor: '00b8a9',
+        summary: 'Midnight Tracker',
+        sections: [{
+          activityTitle: 'Midnight Tracker — Location Check',
+          activityImage: 'https://img.icons8.com/fluency/48/moon-satellite.png',
+          text: message
+        }]
+      })
+    });
+    console.log('Teams alert sent');
+  } catch(e) {
+    console.warn('Teams webhook failed:', e);
+  }
+}
+
+// Core auto-GPS function
+async function autoGPSCapture(dateStr) {
+  if (!navigator.geolocation) {
+    showGpsBanner('error', 'GPS not available on this device.');
+    return;
+  }
+
+  // Don't overwrite a manually-set entry (one that has a city but wasn't auto-captured)
+  const existing = entries[dateStr];
+  if (existing && existing.city && !existing.autoGps) {
+    console.log('Skipping auto-GPS for ' + dateStr + ' — already manually set');
+    return;
+  }
+
+  showGpsBanner('pending', 'Capturing GPS for ' + formatDisplayDate(dateStr) + '...');
+
+  return new Promise(resolve => {
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        console.log('GPS captured:', lat, lon);
+
+        // Try to match against known presets
+        const match = matchLocationToPreset(lat, lon);
+
+        if (match) {
+          // Recognised location — auto-fill from preset
+          const p = match.preset;
+          const entry = {
+            place: p.place || p.city, city: p.city, country: p.country,
+            flights: existing?.flights || '', notes: existing?.notes || '',
+            working: existing?.working || false,
+            lat, lon, autoGps: true, synced: false
+          };
+          entries[dateStr] = entry;
+          syncEntry(dateStr, entry);
+          saveLocal();
+          render();
+          showGpsBanner('ok', 'Auto-logged: ' + p.label + ' (' + match.distance.toFixed(1) + 'km away)');
+          setTimeout(dismissGpsBanner, 5000);
+          resolve(true);
+        } else {
+          // Unknown location — reverse geocode and flag
+          let city = '', country = '', placeName = '';
+          try {
+            const r = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json&accept-language=en');
+            const data = await r.json();
+            city = data.address?.city || data.address?.town || data.address?.village || '';
+            country = data.address?.country || '';
+            placeName = data.display_name?.split(',')[0] || '';
+          } catch(e) { console.warn('Geocode failed', e); }
+
+          // Save with what we have, flagged as unconfirmed
+          const entry = {
+            place: placeName, city, country,
+            flights: existing?.flights || '', notes: existing?.notes || '',
+            working: existing?.working || false,
+            lat, lon, autoGps: true, unconfirmed: true, synced: false
+          };
+          entries[dateStr] = entry;
+          syncEntry(dateStr, entry);
+          saveLocal();
+          render();
+
+          const locDesc = (city ? city + ', ' : '') + (country || lat.toFixed(4) + ', ' + lon.toFixed(4));
+          showGpsBanner('error', 'Unknown location: ' + locDesc + '. Please confirm where you were.');
+
+          // Send Teams alert
+          const dateDisplay = formatDisplayDate(dateStr);
+          sendTeamsAlert(
+            '**Unrecognised midnight location** on ' + dateDisplay + '.<br><br>' +
+            'GPS: ' + lat.toFixed(5) + ', ' + lon.toFixed(5) + '<br>' +
+            'Detected: **' + locDesc + '**<br><br>' +
+            'Please open <a href="https://midnight.cancomo.com">midnight.cancomo.com</a> and confirm where Steve was at midnight.'
+          );
+          resolve(false);
+        }
+      },
+      err => {
+        console.warn('GPS error:', err.message);
+        showGpsBanner('error', 'GPS failed: ' + err.message);
+        // Send Teams alert about GPS failure
+        sendTeamsAlert(
+          '**GPS capture failed** for ' + formatDisplayDate(dateStr) + '.<br><br>' +
+          'Error: ' + err.message + '<br><br>' +
+          'Please open <a href="https://midnight.cancomo.com">midnight.cancomo.com</a> and manually log the location.'
+        );
+        resolve(false);
+      },
+      { enableHighAccuracy: true, timeout: 15000 }
+    );
+  });
+}
+
+function showGpsBanner(type, text) {
+  const banner = document.getElementById('gpsBanner');
+  banner.style.display = 'flex';
+  banner.className = 'gps-banner ' + type;
+  document.getElementById('gpsBannerText').textContent = text;
+}
+
+function dismissGpsBanner() {
+  document.getElementById('gpsBanner').style.display = 'none';
+}
+
+// Schedule GPS capture at midnight
+let midnightTimer = null;
+function scheduleMidnightCapture() {
+  if (midnightTimer) clearTimeout(midnightTimer);
+  const now = new Date();
+  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5); // 5 seconds past midnight
+  const ms = midnight - now;
+  console.log('Next midnight GPS capture in ' + Math.round(ms / 60000) + ' minutes');
+  midnightTimer = setTimeout(() => {
+    const dateStr = fmtDate(new Date());
+    console.log('Midnight! Auto-capturing GPS for ' + dateStr);
+    autoGPSCapture(dateStr).then(() => {
+      // Schedule the next one
+      scheduleMidnightCapture();
+    });
+  }, ms);
+}
+
+// On app load, check if today needs auto-GPS
+function checkTodayGPS() {
+  const todayStr = fmtDate(new Date());
+  const existing = entries[todayStr];
+  // If no entry for today, or entry was auto-GPS and unconfirmed, try capturing
+  if (!existing || (!existing.city && !existing.place)) {
+    console.log('No entry for today, auto-capturing GPS...');
+    autoGPSCapture(todayStr);
+  }
+}
+
+// Test button for settings
+function testMidnightGPS() {
+  const todayStr = fmtDate(new Date());
+  // Force capture even if already set
+  const existing = entries[todayStr];
+  if (existing) delete existing.autoGps; // Allow re-capture
+  autoGPSCapture(todayStr);
 }
 
 // ===== IMPORT/EXPORT =====
