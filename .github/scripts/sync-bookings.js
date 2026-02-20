@@ -22,7 +22,8 @@ const https = require('https');
 const USER_EMAIL = process.env.MS_USER_EMAIL || 'steveb@canapii.com';
 const DAYS_AHEAD = 90;  // Look 90 days ahead for calendar events
 const DAYS_BACK = 7;    // Look 7 days back for recent emails
-const EMAIL_FOLDER = 'Hotels and Bookings'; // The subfolder name
+const HOTEL_FOLDERS = ['Hotels', 'Hotel', 'Hotels and Bookings'];
+const FLIGHT_FOLDERS = ['Flights', 'Flight', 'Travel'];
 
 // Known airports → city/country mapping
 const AIRPORTS = {
@@ -319,29 +320,48 @@ async function findFolder(token, folderName) {
   return null;
 }
 
-async function processEmails(token) {
-  console.log(`Looking for "${EMAIL_FOLDER}" folder...`);
-  const folderId = await findFolder(token, EMAIL_FOLDER);
-
-  if (!folderId) {
-    console.log(`Folder "${EMAIL_FOLDER}" not found. Trying common variations...`);
-    // Try variations
-    for (const name of ['Hotels and Bookings', 'Hotels & Bookings', 'Hotels', 'Bookings', 'Travel']) {
-      const id = await findFolder(token, name);
-      if (id) {
-        console.log(`Found folder: "${name}"`);
-        return processEmailsFromFolder(token, id);
-      }
+async function findFirstFolder(token, candidates) {
+  for (const name of candidates) {
+    const id = await findFolder(token, name);
+    if (id) {
+      console.log(`Found folder: "${name}"`);
+      return id;
     }
-    console.log('No booking folder found. Skipping email processing.');
-    return [];
   }
-
-  console.log(`Found folder: ${EMAIL_FOLDER}`);
-  return processEmailsFromFolder(token, folderId);
+  return null;
 }
 
-async function processEmailsFromFolder(token, folderId) {
+async function processEmails(token) {
+  const allBookings = [];
+
+  // Process hotel folders
+  console.log('Looking for hotel email folder...');
+  const hotelFolderId = await findFirstFolder(token, HOTEL_FOLDERS);
+  if (hotelFolderId) {
+    const hotelBookings = await processEmailsFromFolder(token, hotelFolderId, 'hotel');
+    allBookings.push(...hotelBookings);
+  } else {
+    console.log('No hotel folder found.');
+  }
+
+  // Process flight folders
+  console.log('Looking for flights email folder...');
+  const flightFolderId = await findFirstFolder(token, FLIGHT_FOLDERS);
+  if (flightFolderId) {
+    const flightBookings = await processEmailsFromFolder(token, flightFolderId, 'flight');
+    allBookings.push(...flightBookings);
+  } else {
+    console.log('No flights folder found.');
+  }
+
+  if (!allBookings.length) {
+    console.log('No booking folders found. Skipping email processing.');
+  }
+
+  return allBookings;
+}
+
+async function processEmailsFromFolder(token, folderId, folderType) {
   const since = new Date();
   since.setDate(since.getDate() - DAYS_BACK);
 
@@ -355,7 +375,7 @@ async function processEmailsFromFolder(token, folderId) {
   }
 
   const messages = result.value || [];
-  console.log(`Found ${messages.length} recent emails in booking folder`);
+  console.log(`Found ${messages.length} recent emails in ${folderType} folder`);
 
   const bookings = [];
 
@@ -366,10 +386,12 @@ async function processEmailsFromFolder(token, folderId) {
     const allText = subject + ' ' + body;
     const allTextUpper = allText.toUpperCase();
 
-    // Try to determine if this is a flight or hotel booking
-    const isFlight = /\b(flight|itinerary|boarding|e-?ticket|airline)/i.test(allText) ||
+    // Use folder type as hint — emails in Hotels folder are hotels, Flights folder are flights
+    const isFlight = folderType === 'flight' ||
+                     /\b(flight|itinerary|boarding|e-?ticket|airline)/i.test(allText) ||
                      extractFlights(allTextUpper).length > 0;
-    const isHotel = /\b(hotel|reservation|check.?in|booking|stay|accommodation|airbnb|nights?)/i.test(allText);
+    const isHotel = folderType === 'hotel' ||
+                    /\b(hotel|reservation|check.?in|booking|stay|accommodation|airbnb|nights?)/i.test(allText);
 
     // Try to extract dates from the email
     // Common patterns: "Check-in: 15 March 2026", "Date: 2026-03-15", "March 15, 2026"
