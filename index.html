@@ -496,55 +496,136 @@ function countryFlag(country) {
   return map[country] || '🏳️';
 }
 
-// ===== STATS =====
+// ===== STATS (UK Tax Year: 6 Apr – 5 Apr) =====
+
+// Get tax year label from a start year, e.g. 2025 => "2025/26"
+function taxYearLabel(startYear) {
+  return startYear + '/' + String(startYear + 1).slice(2);
+}
+
+// Tax year start: 6 April of startYear. End: 5 April of startYear+1.
+function taxYearDates(startYear) {
+  return {
+    start: new Date(startYear, 3, 6),  // 6 April
+    end: new Date(startYear + 1, 3, 5) // 5 April next year
+  };
+}
+
+// Total days in a tax year (365 or 366 depending on whether it spans a leap year)
+function taxYearTotalDays(startYear) {
+  const { start, end } = taxYearDates(startYear);
+  return Math.round((end - start) / 86400000) + 1;
+}
+
+// Which tax year does today fall in?
+function currentTaxYear() {
+  const now = new Date();
+  // If before 6 April, we're in the tax year that started last year
+  if (now.getMonth() < 3 || (now.getMonth() === 3 && now.getDate() < 6)) {
+    return now.getFullYear() - 1;
+  }
+  return now.getFullYear();
+}
+
 function renderStats() {
   const sel = document.getElementById('statsYear');
-  const years = [...new Set([new Date().getFullYear(), ...Object.keys(entries).map(d => parseInt(d))])].sort();
-  if (!sel.options.length || sel.options.length !== years.length) {
-    sel.innerHTML = years.map(y => '<option value="' + y + '">' + y + '</option>').join('');
-    sel.value = new Date().getFullYear();
-  }
-  const year = parseInt(sel.value);
-  const startDate = new Date(year, 0, 1);
-  const endDate = new Date(year, 11, 31);
-  const today = new Date();
-  const lastDay = endDate < today ? endDate : today;
+  // Build list of tax years from data
+  const dataYears = Object.keys(entries).map(d => {
+    const dt = new Date(d + 'T00:00:00');
+    if (dt.getMonth() < 3 || (dt.getMonth() === 3 && dt.getDate() < 6)) return dt.getFullYear() - 1;
+    return dt.getFullYear();
+  });
+  const taxYears = [...new Set([currentTaxYear(), ...dataYears])].sort().reverse();
 
+  if (!sel.options.length || sel.dataset.count !== String(taxYears.length)) {
+    sel.innerHTML = taxYears.map(y => '<option value="' + y + '">' + taxYearLabel(y) + ' (6 Apr ' + y + ' – 5 Apr ' + (y+1) + ')</option>').join('');
+    sel.value = currentTaxYear();
+    sel.dataset.count = String(taxYears.length);
+  }
+
+  const startYear = parseInt(sel.value);
+  const { start: taxStart, end: taxEnd } = taxYearDates(startYear);
+  const today = new Date();
+  const lastDay = taxEnd < today ? taxEnd : today;
+  const totalTaxDays = taxYearTotalDays(startYear);
+
+  // Count days per country within the tax year
   const countryCounts = {};
-  let totalDays = 0;
-  for (let d = new Date(startDate); d <= lastDay; d.setDate(d.getDate() + 1)) {
+  let daysElapsed = 0;
+  let ukNights = 0;
+  let italyDays = 0;
+
+  for (let d = new Date(taxStart); d <= lastDay; d.setDate(d.getDate() + 1)) {
     const ds = fmtDate(d);
     const entry = entries[ds];
     const country = entry?.country || HOME.country;
     countryCounts[country] = (countryCounts[country] || 0) + 1;
-    totalDays++;
+    daysElapsed++;
+    if (country === 'UK') ukNights++;
+    if (country === 'Italy') italyDays++;
   }
 
+  const daysRemaining = totalTaxDays - daysElapsed;
   const sorted = Object.entries(countryCounts).sort((a, b) => b[1] - a[1]);
   const maxDays = sorted[0]?.[1] || 1;
 
-  let html = '<div class="stat-card"><h3>Days per Country (' + year + ') — ' + totalDays + ' days tracked</h3>';
+  // ── Country breakdown ──
+  let html = '<div class="stat-card"><h3>Midnights per Country — Tax Year ' + taxYearLabel(startYear) + '</h3>';
+  html += '<div style="font-size:12px;color:var(--text-light);margin-bottom:10px;">' + daysElapsed + ' days elapsed · ' + daysRemaining + ' days remaining</div>';
   sorted.forEach(([country, days]) => {
-    const pct = ((days / totalDays) * 100).toFixed(1);
+    const pct = ((days / daysElapsed) * 100).toFixed(1);
     const barW = ((days / maxDays) * 100).toFixed(0);
     const flag = countryFlag(country);
-    html += '<div class="stat-row"><span class="country">' + flag + ' ' + country + '</span><span class="days">' + days + ' days (' + pct + '%)</span></div>' +
+    html += '<div class="stat-row"><span class="country">' + flag + ' ' + country + '</span><span class="days">' + days + ' nights (' + pct + '%)</span></div>' +
             '<div class="stat-bar"><div class="stat-bar-fill" style="width:' + barW + '%"></div></div>';
   });
   html += '</div>';
 
-  const italyDays = countryCounts['Italy'] || 0;
-  const projectedItaly = Math.round((italyDays / totalDays) * (isLeapYear(year) ? 366 : 365));
-  html += '<div class="stat-card"><h3>Tax Residency Indicators</h3>';
-  html += '<div class="stat-row"><span>Italy days (actual)</span><span class="days">' + italyDays + '</span></div>';
-  html += '<div class="stat-row"><span>Italy days (projected full year)</span><span class="days" style="color:' + (projectedItaly > 183 ? 'var(--ok)' : 'var(--warn)') + '">' + projectedItaly + '</span></div>';
-  html += '<div class="stat-row"><span>183-day threshold</span><span style="color:var(--text-light)">Need 183+ days in Italy for tax residency</span></div>';
+  // ── Italy 183-day target ──
+  const italyProjected = daysElapsed > 0 ? Math.round((italyDays / daysElapsed) * totalTaxDays) : 0;
+  const italyNeeded = Math.max(0, 183 - italyDays);
+  const italyOnTrack = italyProjected >= 183;
+  const italyPct = ((italyDays / 183) * 100).toFixed(0);
+
+  html += '<div class="stat-card"><h3>🇮🇹 Italy — 183-Day Residency Target</h3>';
+  html += '<div class="stat-bar" style="height:10px;margin-bottom:12px;"><div class="stat-bar-fill" style="width:' + Math.min(100, italyPct) + '%;background:' + (italyOnTrack ? 'var(--ok)' : 'var(--warn)') + '"></div></div>';
+  html += '<div class="stat-row"><span>Nights in Italy (actual)</span><span class="days">' + italyDays + ' / 183</span></div>';
+  html += '<div class="stat-row"><span>Projected full tax year</span><span class="days" style="color:' + (italyOnTrack ? 'var(--ok)' : 'var(--warn)') + '">' + italyProjected + '</span></div>';
+  if (italyNeeded > 0) {
+    html += '<div class="stat-row"><span>Still needed</span><span class="days" style="color:var(--warn)">' + italyNeeded + ' more nights</span></div>';
+    if (daysRemaining > 0) {
+      const italyPaceNeeded = (italyNeeded / daysRemaining * 100).toFixed(0);
+      html += '<div class="stat-row"><span>Required pace</span><span style="color:var(--text-light)">' + italyPaceNeeded + '% of remaining days in Italy</span></div>';
+    }
+  } else {
+    html += '<div class="stat-row"><span>Status</span><span class="days" style="color:var(--ok)">✓ Target met!</span></div>';
+  }
+  html += '</div>';
+
+  // ── UK 90-night limit ──
+  const ukProjected = daysElapsed > 0 ? Math.round((ukNights / daysElapsed) * totalTaxDays) : 0;
+  const ukRemaining = Math.max(0, 90 - ukNights);
+  const ukSafe = ukProjected <= 90;
+  const ukPct = ((ukNights / 90) * 100).toFixed(0);
+
+  html += '<div class="stat-card"><h3>🇬🇧 UK — 90-Night Limit</h3>';
+  html += '<div class="stat-bar" style="height:10px;margin-bottom:12px;"><div class="stat-bar-fill" style="width:' + Math.min(100, ukPct) + '%;background:' + (ukNights > 90 ? 'var(--err)' : ukSafe ? 'var(--ok)' : 'var(--warn)') + '"></div></div>';
+  html += '<div class="stat-row"><span>UK midnights (actual)</span><span class="days">' + ukNights + ' / 90</span></div>';
+  html += '<div class="stat-row"><span>Projected full tax year</span><span class="days" style="color:' + (ukSafe ? 'var(--ok)' : 'var(--err)') + '">' + ukProjected + '</span></div>';
+  if (ukNights > 90) {
+    html += '<div class="stat-row"><span>Status</span><span class="days" style="color:var(--err)">⚠ LIMIT EXCEEDED by ' + (ukNights - 90) + ' nights</span></div>';
+  } else {
+    html += '<div class="stat-row"><span>Nights remaining</span><span class="days">' + ukRemaining + ' UK nights available</span></div>';
+    if (daysRemaining > 0 && ukRemaining > 0) {
+      const avgDaysBetweenUK = Math.round(daysRemaining / ukRemaining);
+      html += '<div class="stat-row"><span>Budget</span><span style="color:var(--text-light)">~1 UK night every ' + avgDaysBetweenUK + ' days</span></div>';
+    }
+  }
   html += '</div>';
 
   document.getElementById('statsContent').innerHTML = html;
 }
 
-function isLeapYear(y) { return (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0); }
 document.getElementById('statsYear').addEventListener('change', renderStats);
 
 // ===== MODAL =====
