@@ -684,6 +684,7 @@ function renderList() {
         '<div class="list-date"><div class="day-num">' + d + '</div><div class="day-name">' + DAY_NAMES[dt.getDay()] + '</div></div>' +
         '<div class="list-info"><div class="place">' + place + '</div><div class="city-country">' + city + (country ? ', ' + country : '') + '</div>' +
         (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') +
+        (entry?.lat ? '<div style="font-size:10px;color:var(--text-light);font-family:monospace;">' + entry.lat.toFixed(5) + ', ' + entry.lon.toFixed(5) + '</div>' : '') +
         (isWorking ? '<div class="working-tag">WORKING</div>' : '') +
         (isUnconfirmed ? '<div class="working-tag" style="background:var(--err-bg);color:var(--err);">UNCONFIRMED</div>' : '') + '</div>' +
         '<div class="list-flag">' + flag + '</div>' +
@@ -1488,12 +1489,12 @@ async function importSpreadsheet() {
 function exportCSV() {
   const allDates = Object.keys(entries).sort();
   if (!allDates.length) { toast('No data to export'); return; }
-  let csv = 'Date,Day,Place,City,Country,Flights,Notes,Lat,Lon\n';
+  let csv = 'Date,Day,Place,City,Country,Flights,Notes,Lat,Lon,Working,Source\n';
   const daysFull = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   allDates.forEach(ds => {
     const e = entries[ds];
     const d = new Date(ds + 'T00:00:00');
-    csv += ds + ',' + daysFull[d.getDay()] + ',' + esc(e.place) + ',' + esc(e.city) + ',' + esc(e.country) + ',' + esc(e.flights) + ',' + esc(e.notes) + ',' + (e.lat||'') + ',' + (e.lon||'') + '\n';
+    csv += ds + ',' + daysFull[d.getDay()] + ',' + esc(e.place) + ',' + esc(e.city) + ',' + esc(e.country) + ',' + esc(e.flights) + ',' + esc(e.notes) + ',' + (e.lat||'') + ',' + (e.lon||'') + ',' + (e.working ? 'Yes' : '') + ',' + (e.autoGps ? 'GPS' : 'Manual') + '\n';
   });
   download(csv, 'midnight-tracker-export-' + fmtDate(new Date()) + '.csv', 'text/csv');
   toast('Exported CSV');
