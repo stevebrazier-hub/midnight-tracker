@@ -609,6 +609,7 @@ function syncEntry(date, entry) {
   if (entry.autoGps) data.autoGps = true;
   if (entry.unconfirmed) data.unconfirmed = true;
   if (entry.autoBooking) data.autoBooking = true;
+  if (entry.countryConflict) data.countryConflict = entry.countryConflict;
   fbSet('locations/' + date, data);
   entry.synced = true;
   saveLocal();
@@ -698,7 +699,8 @@ function renderList() {
         (entry?.lat ? '<div style="font-size:10px;color:var(--text-light);font-family:monospace;">' + entry.lat.toFixed(5) + ', ' + entry.lon.toFixed(5) + '</div>' : '') +
         (isWorking ? '<div class="working-tag">WORKING</div>' : '') +
         (isUnconfirmed ? '<div class="working-tag" style="background:var(--err-bg);color:var(--err);">UNCONFIRMED</div>' : '') +
-        (entry?.autoBooking ? '<div class="working-tag" style="background:#e8f0fe;color:#1a73e8;">AUTO-BOOKING</div>' : '') + '</div>' +
+        (entry?.autoBooking ? '<div class="working-tag" style="background:#e8f0fe;color:#1a73e8;">AUTO-BOOKING</div>' : '') +
+        (entry?.countryConflict ? '<div class="working-tag" style="background:#fff3cd;color:#856404;">⚠ COUNTRY MISMATCH</div>' : '') + '</div>' +
         '<div class="list-flag">' + flag + '</div>' +
       '</div>';
     }
@@ -1334,12 +1336,25 @@ async function autoGPSCapture(dateStr) {
             working: existing?.working || false,
             lat, lon, autoGps: true, synced: false
           };
+          // Check for country conflict with existing booking data
+          if (existing && existing.country && existing.autoBooking && existing.country !== p.country) {
+            entry.countryConflict = 'GPS says ' + p.country + ', booking says ' + existing.country;
+            sendTeamsAlert(
+              '**Country mismatch** on ' + formatDisplayDate(dateStr) + '.<br><br>' +
+              'GPS location: **' + p.city + ', ' + p.country + '**<br>' +
+              'Booking expected: **' + existing.city + ', ' + existing.country + '**<br><br>' +
+              'Please check <a href="https://midnight.cancomo.com">midnight.cancomo.com</a> and confirm the correct country.'
+            );
+          }
+          // Preserve flight info from booking
+          if (existing?.flights && !entry.flights) entry.flights = existing.flights;
           entries[dateStr] = entry;
           syncEntry(dateStr, entry);
           saveLocal();
           render();
-          showGpsBanner('ok', 'Auto-logged: ' + p.label + ' (' + match.distance.toFixed(1) + 'km away)');
-          setTimeout(dismissGpsBanner, 5000);
+          showGpsBanner('ok', 'Auto-logged: ' + p.label + ' (' + match.distance.toFixed(1) + 'km away)' +
+            (entry.countryConflict ? ' ⚠ Country mismatch with booking!' : ''));
+          setTimeout(dismissGpsBanner, entry.countryConflict ? 10000 : 5000);
           resolve(true);
         } else {
           // Unknown location — reverse geocode and flag
@@ -1359,6 +1374,10 @@ async function autoGPSCapture(dateStr) {
             working: existing?.working || false,
             lat, lon, autoGps: true, unconfirmed: true, synced: false
           };
+          // Check for country conflict with existing booking data
+          if (existing && existing.country && existing.autoBooking && country && existing.country !== country) {
+            entry.countryConflict = 'GPS says ' + country + ', booking says ' + existing.country;
+          }
           entries[dateStr] = entry;
           syncEntry(dateStr, entry);
           saveLocal();
@@ -1602,12 +1621,12 @@ async function importSpreadsheet() {
 function exportCSV() {
   const allDates = Object.keys(entries).sort();
   if (!allDates.length) { toast('No data to export'); return; }
-  let csv = 'Date,Day,Place,City,Country,Flights,Notes,Lat,Lon,Working,Source\n';
+  let csv = 'Date,Day,Place,City,Country,Flights,Notes,Lat,Lon,Working,Source,Conflict\n';
   const daysFull = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   allDates.forEach(ds => {
     const e = entries[ds];
     const d = new Date(ds + 'T00:00:00');
-    csv += ds + ',' + daysFull[d.getDay()] + ',' + esc(e.place) + ',' + esc(e.city) + ',' + esc(e.country) + ',' + esc(e.flights) + ',' + esc(e.notes) + ',' + (e.lat||'') + ',' + (e.lon||'') + ',' + (e.working ? 'Yes' : '') + ',' + (e.autoBooking ? 'Booking' : e.autoGps ? 'GPS' : 'Manual') + '\n';
+    csv += ds + ',' + daysFull[d.getDay()] + ',' + esc(e.place) + ',' + esc(e.city) + ',' + esc(e.country) + ',' + esc(e.flights) + ',' + esc(e.notes) + ',' + (e.lat||'') + ',' + (e.lon||'') + ',' + (e.working ? 'Yes' : '') + ',' + (e.autoBooking ? 'Booking' : e.autoGps ? 'GPS' : 'Manual') + ',' + esc(e.countryConflict || '') + '\n';
   });
   download(csv, 'midnight-tracker-export-' + fmtDate(new Date()) + '.csv', 'text/csv');
   toast('Exported CSV');

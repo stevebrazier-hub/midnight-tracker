@@ -499,6 +499,13 @@ async function updateFirebase(bookings) {
     if (current?.working) entry.working = current.working;
     if (current?.autoGps) entry.autoGps = current.autoGps;
 
+    // Check for country conflict — GPS vs booking disagree on country
+    if (current?.autoGps && current?.country && booking.country &&
+        current.country !== booking.country) {
+      entry.countryConflict = 'GPS says ' + current.country + ', booking says ' + booking.country;
+      console.log(`  ⚠ COUNTRY CONFLICT on ${dateStr}: GPS=${current.country}, Booking=${booking.country}`);
+    }
+
     // Only update if we're adding new information
     const hasNew = (!current) ||
                    (!current.place && entry.place) ||
