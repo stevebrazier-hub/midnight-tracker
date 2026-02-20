@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Midnight">
+<meta name="theme-color" content="#1e40af">
+<title>Midnight Tracker</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231e40af'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>🌙</text></svg>">
+<link rel="manifest" href="./manifest.json">
+<!-- Firebase SDKs — same versions as Chelsea Tickets -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<!-- XLSX for import -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg: #0f172a; --surface: #1e293b; --surface2: #334155; --border: #475569;
+  --text: #f1f5f9; --text2: #94a3b8; --blue: #3b82f6; --green: #22c55e;
+  --red: #ef4444; --amber: #f59e0b; --purple: #a855f7;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+button { cursor: pointer; border: none; font: inherit; color: var(--text); }
+input, select, textarea { font: inherit; color: var(--text); background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--blue); }
+
+/* Header */
+.header { background: var(--surface); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+.header h1 { font-size: 18px; font-weight: 600; }
+.header h1 span { color: var(--blue); }
+.sync-status { font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 4px; }
+.sync-dot { width: 8px; height: 8px; border-radius: 50%; }
+.sync-dot.ok { background: var(--green); }
+.sync-dot.pending { background: var(--amber); }
+.sync-dot.error { background: var(--red); }
+
+/* Tabs */
+.tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); }
+.tab { flex: 1; padding: 10px; text-align: center; background: none; color: var(--text2); font-size: 13px; border-bottom: 2px solid transparent; transition: all .2s; }
+.tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+/* Calendar */
+.cal-nav { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; }
+.cal-nav button { background: var(--surface2); padding: 6px 12px; border-radius: 8px; }
+.cal-nav .month-label { font-size: 16px; font-weight: 600; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 0 8px 8px; }
+.cal-head { text-align: center; font-size: 11px; color: var(--text2); padding: 4px; }
+.cal-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; font-size: 13px; cursor: pointer; position: relative; transition: all .15s; }
+.cal-day:hover { background: var(--surface2); }
+.cal-day.empty { pointer-events: none; }
+.cal-day.today { border: 2px solid var(--blue); }
+.cal-day.filled { background: var(--surface2); }
+.cal-day .flag { font-size: 10px; position: absolute; bottom: 2px; }
+.cal-day.home { border-left: 3px solid var(--green); }
+.cal-day.away { border-left: 3px solid var(--amber); }
+.cal-day.flight { border-left: 3px solid var(--purple); }
+
+/* List View */
+.list-controls { padding: 12px 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+.list-controls input, .list-controls select { flex: 1; min-width: 120px; }
+.list-item { display: flex; padding: 12px 16px; border-bottom: 1px solid var(--border); gap: 12px; cursor: pointer; transition: background .15s; }
+.list-item:hover { background: var(--surface); }
+.list-date { min-width: 48px; text-align: center; }
+.list-date .day-num { font-size: 20px; font-weight: 700; color: var(--blue); }
+.list-date .day-name { font-size: 11px; color: var(--text2); }
+.list-info { flex: 1; }
+.list-info .place { font-weight: 500; }
+.list-info .city-country { font-size: 13px; color: var(--text2); }
+.list-info .flights { font-size: 12px; color: var(--purple); margin-top: 2px; }
+
+/* Stats */
+.stats-container { padding: 16px; }
+.stats-year-select { margin-bottom: 16px; }
+.stat-card { background: var(--surface); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.stat-card h3 { font-size: 14px; color: var(--text2); margin-bottom: 8px; }
+.stat-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
+.stat-row .country { font-weight: 500; }
+.stat-row .days { color: var(--blue); font-weight: 700; }
+.stat-bar { height: 6px; background: var(--surface2); border-radius: 3px; margin-top: 4px; }
+.stat-bar-fill { height: 100%; border-radius: 3px; background: var(--blue); transition: width .5s; }
+
+/* Modal */
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 200; align-items: flex-end; justify-content: center; }
+.modal-bg.open { display: flex; }
+.modal { background: var(--surface); border-radius: 16px 16px 0 0; width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; padding: 20px; }
+.modal h2 { font-size: 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+.modal h2 button { background: none; font-size: 24px; color: var(--text2); }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 13px; color: var(--text2); margin-bottom: 4px; }
+.field input, .field select, .field textarea { width: 100%; }
+.btn { padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; }
+.btn-primary { background: var(--blue); }
+.btn-danger { background: var(--red); }
+.btn-outline { background: none; border: 1px solid var(--border); }
+.btn-row { display: flex; gap: 8px; margin-top: 16px; }
+.btn-row .btn { flex: 1; }
+
+/* Settings */
+.settings-section { padding: 16px; }
+.settings-section h3 { font-size: 14px; color: var(--text2); margin-bottom: 12px; }
+.settings-card { background: var(--surface); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+.settings-card p { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
+
+/* Toast */
+.toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--surface2); padding: 10px 20px; border-radius: 8px; font-size: 14px; z-index: 300; opacity: 0; transition: opacity .3s; pointer-events: none; }
+.toast.show { opacity: 1; }
+
+/* Sections */
+.view { display: none; }
+.view.active { display: block; }
+
+/* GPS button */
+.gps-btn { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--blue); display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 12px rgba(59,130,246,.4); z-index: 50; }
+
+@media (min-width: 768px) {
+  .modal { border-radius: 16px; margin-bottom: 20px; }
+  .cal-day { font-size: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🌙 <span>Midnight</span> Tracker</h1>
+  <div class="sync-status" id="syncStatus"><div class="sync-dot pending"></div>Connecting...</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-view="calendar">Calendar</button>
+  <button class="tab" data-view="list">List</button>
+  <button class="tab" data-view="stats">Tax Stats</button>
+  <button class="tab" data-view="settings">Settings</button>
+</div>
+
+<!-- CALENDAR VIEW -->
+<div id="calendar" class="view active">
+  <div class="cal-nav">
+    <button onclick="calNav(-1)">◀</button>
+    <span class="month-label" id="calMonth"></span>
+    <button onclick="calNav(1)">▶</button>
+  </div>
+  <div class="cal-grid" id="calGrid"></div>
+</div>
+
+<!-- LIST VIEW -->
+<div id="list" class="view">
+  <div class="list-controls">
+    <input type="month" id="listMonth" />
+    <select id="listCountryFilter"><option value="">All countries</option></select>
+  </div>
+  <div id="listItems"></div>
+</div>
+
+<!-- STATS VIEW -->
+<div id="stats" class="view">
+  <div class="stats-container">
+    <select class="stats-year-select" id="statsYear" style="width:100%;margin-bottom:16px;"></select>
+    <div id="statsContent"></div>
+  </div>
+</div>
+
+<!-- SETTINGS VIEW -->
+<div id="settings" class="view">
+  <div class="settings-section">
+    <div class="settings-card">
+      <h3>Firebase Connection</h3>
+      <p id="fbStatus" style="margin-bottom:8px;">Checking connection...</p>
+      <button class="btn btn-primary" onclick="testFirebase()" style="width:100%">Test Connection</button>
+    </div>
+
+    <div class="settings-card">
+      <h3>Import Spreadsheet</h3>
+      <p>Import your existing Excel tracking spreadsheet. Format: Date | Day | Month | Year | Place | City | Country | Flights</p>
+      <input type="file" id="importFile" accept=".xlsx,.csv" style="width:100%;margin-bottom:8px;" />
+      <button class="btn btn-primary" onclick="importSpreadsheet()" style="width:100%">Import Data</button>
+    </div>
+
+    <div class="settings-card">
+      <h3>Export Data</h3>
+      <button class="btn btn-outline" onclick="exportCSV()" style="width:100%">Export as CSV</button>
+    </div>
+
+    <div class="settings-card">
+      <h3>Primary Home</h3>
+      <p>Your primary home is <strong>Cernobbio, Italy</strong>. Days without a location entry are counted as home days.</p>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <h2><span id="modalDate"></span><button onclick="closeModal()">&times;</button></h2>
+    <div class="field">
+      <label>Place / Hotel</label>
+      <input id="editPlace" placeholder="e.g. Hotel Negresco" />
+    </div>
+    <div class="field">
+      <label>City</label>
+      <input id="editCity" placeholder="e.g. Nice" />
+    </div>
+    <div class="field">
+      <label>Country</label>
+      <input id="editCountry" placeholder="e.g. France" />
+    </div>
+    <div class="field">
+      <label>Flights</label>
+      <input id="editFlights" placeholder="e.g. BA569" />
+    </div>
+    <div class="field">
+      <label>Notes</label>
+      <textarea id="editNotes" rows="2" placeholder="Optional notes..."></textarea>
+    </div>
+    <div class="field">
+      <label>GPS Coordinates</label>
+      <div style="display:flex;gap:8px;">
+        <input id="editLat" placeholder="Lat" style="flex:1" type="number" step="any" />
+        <input id="editLon" placeholder="Lon" style="flex:1" type="number" step="any" />
+        <button class="btn btn-outline" onclick="captureGPS()" style="flex:0 0 auto;">📍</button>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="clearDay()">Clear</button>
+      <button class="btn btn-primary" onclick="saveDay()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- GPS FAB -->
+<button class="gps-btn" onclick="captureTodayGPS()" title="Capture GPS for today">📍</button>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== FIREBASE CONFIG =====
+// SETUP: Replace these values with your own Firebase project config
+// 1. Go to https://console.firebase.google.com
+// 2. Create a new project (e.g. "midnight-tracker")
+// 3. Add a web app, copy the config values below
+// 4. Go to Realtime Database > Create Database > europe-west1 > Start in test mode
+// 5. Once working, update rules (see database.rules.json in this repo)
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAjZaVwXku1n1niJtkxvcKjXDHibSHHIRc",
+  authDomain: "midnight-tracker-steve.firebaseapp.com",
+  databaseURL: "https://midnight-tracker-steve-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "midnight-tracker-steve",
+  storageBucket: "midnight-tracker-steve.firebasestorage.app",
+  messagingSenderId: "860824921259",
+  appId: "1:860824921259:web:b1c462b04dc3bf18ae03ee"
+};
+
+// ===== FIREBASE INIT — same pattern as Chelsea Tickets =====
+let db = null;
+let fbReady = false;
+try {
+  if (FIREBASE_CONFIG.apiKey !== 'YOUR_API_KEY') {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.database();
+    fbReady = true;
+  }
+} catch(e) { console.warn('Firebase init failed:', e); }
+
+// Firebase helpers — mirrors Chelsea Tickets pattern
+function fbSet(path, val) { if (db) db.ref(path).set(val); }
+function fbUpdate(path, val) { if (db) db.ref(path).update(val); }
+function fbRemove(path) { if (db) db.ref(path).remove(); }
+function fbListen(path, cb) {
+  if (db) db.ref(path).on('value', snap => { const v = snap.val(); cb(v); });
+}
+
+// ===== STATE =====
+const HOME = { city: 'Cernobbio', country: 'Italy', place: 'Home' };
+let entries = {}; // keyed by 'YYYY-MM-DD'
+let calYear, calMonth;
+let editingDate = null;
+
+// ===== SYNC STATUS =====
+function setSyncStatus(state, text) {
+  const el = document.getElementById('syncStatus');
+  el.innerHTML = '<div class="sync-dot ' + state + '"></div>' + text;
+}
+
+function testFirebase() {
+  const statusEl = document.getElementById('fbStatus');
+  if (!fbReady) {
+    statusEl.textContent = 'Firebase not configured. Edit FIREBASE_CONFIG in index.html.';
+    statusEl.style.color = 'var(--red)';
+    return;
+  }
+  statusEl.textContent = 'Testing connection...';
+  statusEl.style.color = 'var(--amber)';
+  db.ref('.info/connected').once('value', snap => {
+    if (snap.val() === true) {
+      statusEl.textContent = 'Connected to Firebase (' + FIREBASE_CONFIG.projectId + ')';
+      statusEl.style.color = 'var(--green)';
+    } else {
+      statusEl.textContent = 'Firebase initialised but not connected yet.';
+      statusEl.style.color = 'var(--amber)';
+    }
+  });
+}
+
+// ===== LOCAL STORAGE (offline fallback, same as Chelsea pattern) =====
+function saveLocal() { localStorage.setItem('mt_entries', JSON.stringify(entries)); }
+function loadLocal() {
+  try { entries = JSON.parse(localStorage.getItem('mt_entries') || '{}'); } catch { entries = {}; }
+}
+
+// ===== FIREBASE SYNC =====
+function initFirebaseSync() {
+  if (!fbReady) {
+    setSyncStatus('error', 'Not configured');
+    document.getElementById('fbStatus').textContent = 'Firebase not configured. Edit FIREBASE_CONFIG in index.html.';
+    document.getElementById('fbStatus').style.color = 'var(--red)';
+    return;
+  }
+
+  setSyncStatus('pending', 'Syncing...');
+
+  // Listen for all entries — Firebase pushes updates in real time
+  fbListen('locations', data => {
+    if (data) {
+      // Merge Firebase data into local state
+      Object.keys(data).forEach(dateKey => {
+        entries[dateKey] = { ...data[dateKey], synced: true };
+      });
+    }
+    saveLocal();
+    setSyncStatus('ok', 'Synced');
+    render();
+  });
+
+  // Also listen for connection state
+  db.ref('.info/connected').on('value', snap => {
+    if (snap.val() === true) {
+      setSyncStatus('ok', 'Connected');
+    } else {
+      setSyncStatus('pending', 'Reconnecting...');
+    }
+  });
+}
+
+function syncEntry(date, entry) {
+  if (!fbReady) return;
+  // Write to Firebase — same flat structure as Chelsea Tickets uses
+  const data = {
+    place: entry.place || '',
+    city: entry.city || '',
+    country: entry.country || '',
+    flights: entry.flights || '',
+    notes: entry.notes || '',
+    lat: entry.lat || null,
+    lon: entry.lon || null
+  };
+  fbSet('locations/' + date, data);
+  entry.synced = true;
+  saveLocal();
+}
+
+function deleteEntry(date) {
+  if (fbReady) fbRemove('locations/' + date);
+}
+
+// ===== TABS =====
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.view).classList.add('active');
+    render();
+  });
+});
+
+// ===== CALENDAR =====
+function calNav(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calMonth').textContent = months[calMonth] + ' ' + calYear;
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(d => {
+    grid.innerHTML += '<div class="cal-head">' + d + '</div>';
+  });
+  const first = new Date(calYear, calMonth, 1);
+  let startDay = first.getDay() - 1; if (startDay < 0) startDay = 6;
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const today = new Date(); const todayStr = fmtDate(today);
+
+  for (let i = 0; i < startDay; i++) grid.innerHTML += '<div class="cal-day empty"></div>';
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = calYear + '-' + String(calMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    const entry = entries[ds];
+    const isToday = ds === todayStr;
+    let cls = 'cal-day';
+    let flag = '';
+    if (isToday) cls += ' today';
+    if (entry) {
+      cls += ' filled';
+      if (entry.country === 'Italy' && entry.city === 'Cernobbio') cls += ' home';
+      else if (entry.flights) cls += ' flight';
+      else cls += ' away';
+      if (entry.country) flag = countryFlag(entry.country);
+    }
+    grid.innerHTML += '<div class="' + cls + '" onclick="openDay(\'' + ds + '\')">' + d + '<span class="flag">' + flag + '</span></div>';
+  }
+}
+
+function countryFlag(country) {
+  const map = {
+    'Italy':'🇮🇹','UK':'🇬🇧','Thailand':'🇹🇭','Japan':'🇯🇵','Taiwan':'🇹🇼',
+    'India':'🇮🇳','Switzerland':'🇨🇭','France':'🇫🇷','Germany':'🇩🇪','Spain':'🇪🇸',
+    'USA':'🇺🇸','United States':'🇺🇸','China':'🇨🇳','Australia':'🇦🇺','Canada':'🇨🇦',
+    'Singapore':'🇸🇬','UAE':'🇦🇪','Netherlands':'🇳🇱','Portugal':'🇵🇹','Greece':'🇬🇷',
+    'Turkey':'🇹🇷','Brazil':'🇧🇷','Mexico':'🇲🇽','South Korea':'🇰🇷','Indonesia':'🇮🇩',
+    'Malaysia':'🇲🇾','Vietnam':'🇻🇳','Philippines':'🇵🇭','Hong Kong':'🇭🇰',
+  };
+  return map[country] || '🏳️';
+}
+
+// ===== LIST VIEW =====
+function renderList() {
+  const monthInput = document.getElementById('listMonth');
+  if (!monthInput.value) monthInput.value = calYear + '-' + String(calMonth+1).padStart(2,'0');
+  const parts = monthInput.value.split('-').map(Number);
+  const y = parts[0], m = parts[1];
+  const countryFilter = document.getElementById('listCountryFilter').value;
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  let html = '';
+
+  // Populate country filter
+  const countries = [...new Set(Object.values(entries).map(e => e.country).filter(Boolean))].sort();
+  const sel = document.getElementById('listCountryFilter');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">All countries</option>' + countries.map(c => '<option value="' + c + '"' + (c===current?' selected':'') + '>' + c + '</option>').join('');
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    const dt = new Date(y, m-1, d);
+    const entry = entries[ds];
+    const place = entry?.place || HOME.place;
+    const city = entry?.city || HOME.city;
+    const country = entry?.country || HOME.country;
+    if (countryFilter && country !== countryFilter) continue;
+    const flights = entry?.flights || '';
+    html += '<div class="list-item" onclick="openDay(\'' + ds + '\')">' +
+      '<div class="list-date"><div class="day-num">' + d + '</div><div class="day-name">' + days[dt.getDay()].slice(0,3) + '</div></div>' +
+      '<div class="list-info"><div class="place">' + place + '</div><div class="city-country">' + city + (country ? ', '+country : '') + '</div>' + (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') + '</div>' +
+    '</div>';
+  }
+  document.getElementById('listItems').innerHTML = html || '<p style="padding:20px;color:var(--text2)">No entries for this month</p>';
+}
+
+document.getElementById('listMonth').addEventListener('change', renderList);
+document.getElementById('listCountryFilter').addEventListener('change', renderList);
+
+// ===== STATS =====
+function renderStats() {
+  const sel = document.getElementById('statsYear');
+  const years = [...new Set([new Date().getFullYear(), ...Object.keys(entries).map(d => parseInt(d))])].sort();
+  if (!sel.options.length || sel.options.length !== years.length) {
+    sel.innerHTML = years.map(y => '<option value="' + y + '">' + y + '</option>').join('');
+    sel.value = new Date().getFullYear();
+  }
+  const year = parseInt(sel.value);
+  const startDate = new Date(year, 0, 1);
+  const endDate = new Date(year, 11, 31);
+  const today = new Date();
+  const lastDay = endDate < today ? endDate : today;
+
+  const countryCounts = {};
+  let totalDays = 0;
+  for (let d = new Date(startDate); d <= lastDay; d.setDate(d.getDate() + 1)) {
+    const ds = fmtDate(d);
+    const entry = entries[ds];
+    const country = entry?.country || HOME.country;
+    countryCounts[country] = (countryCounts[country] || 0) + 1;
+    totalDays++;
+  }
+
+  const sorted = Object.entries(countryCounts).sort((a, b) => b[1] - a[1]);
+  const maxDays = sorted[0]?.[1] || 1;
+
+  let html = '<div class="stat-card"><h3>Days per Country (' + year + ') — ' + totalDays + ' days tracked</h3>';
+  sorted.forEach(([country, days]) => {
+    const pct = ((days / totalDays) * 100).toFixed(1);
+    const barW = ((days / maxDays) * 100).toFixed(0);
+    const flag = countryFlag(country);
+    html += '<div class="stat-row"><span class="country">' + flag + ' ' + country + '</span><span class="days">' + days + ' days (' + pct + '%)</span></div>' +
+            '<div class="stat-bar"><div class="stat-bar-fill" style="width:' + barW + '%"></div></div>';
+  });
+  html += '</div>';
+
+  // Tax residency warnings
+  const italyDays = countryCounts['Italy'] || 0;
+  const projectedItaly = Math.round((italyDays / totalDays) * (isLeapYear(year) ? 366 : 365));
+  html += '<div class="stat-card"><h3>Tax Residency Indicators</h3>';
+  html += '<div class="stat-row"><span>Italy days (actual)</span><span class="days">' + italyDays + '</span></div>';
+  html += '<div class="stat-row"><span>Italy days (projected full year)</span><span class="days" style="color:' + (projectedItaly > 183 ? 'var(--green)' : 'var(--amber)') + '">' + projectedItaly + '</span></div>';
+  html += '<div class="stat-row"><span>183-day threshold</span><span style="color:var(--text2)">Need 183+ days in Italy for tax residency</span></div>';
+  html += '</div>';
+
+  document.getElementById('statsContent').innerHTML = html;
+}
+
+function isLeapYear(y) { return (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0); }
+document.getElementById('statsYear').addEventListener('change', renderStats);
+
+// ===== MODAL =====
+function openDay(dateStr) {
+  editingDate = dateStr;
+  const entry = entries[dateStr] || {};
+  document.getElementById('modalDate').textContent = formatDisplayDate(dateStr);
+  document.getElementById('editPlace').value = entry.place || '';
+  document.getElementById('editCity').value = entry.city || '';
+  document.getElementById('editCountry').value = entry.country || '';
+  document.getElementById('editFlights').value = entry.flights || '';
+  document.getElementById('editNotes').value = entry.notes || '';
+  document.getElementById('editLat').value = entry.lat || '';
+  document.getElementById('editLon').value = entry.lon || '';
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('editModal').classList.remove('open');
+  editingDate = null;
+}
+
+function saveDay() {
+  if (!editingDate) return;
+  const entry = {
+    place: document.getElementById('editPlace').value.trim(),
+    city: document.getElementById('editCity').value.trim(),
+    country: document.getElementById('editCountry').value.trim(),
+    flights: document.getElementById('editFlights').value.trim(),
+    notes: document.getElementById('editNotes').value.trim(),
+    lat: parseFloat(document.getElementById('editLat').value) || null,
+    lon: parseFloat(document.getElementById('editLon').value) || null,
+    synced: false
+  };
+  if (entry.place || entry.city || entry.country) {
+    entries[editingDate] = entry;
+    syncEntry(editingDate, entry);
+  }
+  saveLocal();
+  closeModal();
+  render();
+  toast('Saved ' + formatDisplayDate(editingDate));
+}
+
+function clearDay() {
+  if (!editingDate) return;
+  delete entries[editingDate];
+  deleteEntry(editingDate);
+  saveLocal();
+  closeModal();
+  render();
+  toast('Cleared ' + formatDisplayDate(editingDate));
+}
+
+// ===== GPS =====
+function captureGPS() {
+  if (!navigator.geolocation) { toast('GPS not available'); return; }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      document.getElementById('editLat').value = pos.coords.latitude.toFixed(6);
+      document.getElementById('editLon').value = pos.coords.longitude.toFixed(6);
+      toast('GPS captured');
+    },
+    err => toast('GPS error: ' + err.message),
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+function captureTodayGPS() {
+  if (!navigator.geolocation) { toast('GPS not available'); return; }
+  navigator.geolocation.getCurrentPosition(
+    async pos => {
+      const todayStr = fmtDate(new Date());
+      const entry = entries[todayStr] || {};
+      entry.lat = pos.coords.latitude;
+      entry.lon = pos.coords.longitude;
+      if (!entry.city) {
+        // Reverse geocode attempt
+        try {
+          const r = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&format=json');
+          const data = await r.json();
+          entry.city = data.address?.city || data.address?.town || data.address?.village || '';
+          entry.country = data.address?.country || '';
+          entry.place = data.display_name?.split(',')[0] || '';
+        } catch(e) { console.warn('Geocode failed', e); }
+      }
+      entries[todayStr] = entry;
+      saveLocal();
+      syncEntry(todayStr, entry);
+      render();
+      toast('GPS: ' + (entry.city || pos.coords.latitude.toFixed(4)) + ', ' + (entry.country || pos.coords.longitude.toFixed(4)));
+    },
+    err => toast('GPS error: ' + err.message),
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+// ===== IMPORT/EXPORT =====
+async function importSpreadsheet() {
+  const file = document.getElementById('importFile').files[0];
+  if (!file) { toast('Select a file first'); return; }
+  const data = await file.arrayBuffer();
+  const wb = XLSX.read(data);
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+  let imported = 0;
+  const startRow = rows[0]?.[0]?.toString().toLowerCase().includes('date') || rows[0]?.[0]?.toString().includes('Steve') ? 1 : 0;
+  const dataStart = rows[startRow]?.[0]?.toString().toLowerCase().includes('date') ? startRow + 1 : startRow;
+
+  for (let i = dataStart; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || !row[0]) continue;
+    let dateVal = row[0];
+    let dateStr;
+    if (typeof dateVal === 'number') {
+      const d = new Date((dateVal - 25569) * 86400 * 1000);
+      dateStr = fmtDate(d);
+    } else {
+      const d = new Date(dateVal);
+      if (isNaN(d.getTime())) continue;
+      dateStr = fmtDate(d);
+    }
+    const place = row[4]?.toString().trim() || '';
+    const city = row[5]?.toString().trim() || '';
+    const country = row[6]?.toString().trim() || '';
+    const flights = row[7]?.toString().trim() || '';
+    if (place || city || country) {
+      entries[dateStr] = { place, city, country, flights, notes: '', lat: null, lon: null, synced: false };
+      imported++;
+    }
+  }
+  saveLocal();
+  render();
+  toast('Imported ' + imported + ' entries');
+
+  // Sync all to Firebase
+  if (fbReady) {
+    toast('Syncing ' + imported + ' entries to Firebase...');
+    const batch = {};
+    Object.entries(entries).filter(([, e]) => !e.synced).forEach(([date, entry]) => {
+      batch['locations/' + date] = {
+        place: entry.place || '', city: entry.city || '', country: entry.country || '',
+        flights: entry.flights || '', notes: entry.notes || '',
+        lat: entry.lat || null, lon: entry.lon || null
+      };
+    });
+    if (Object.keys(batch).length > 0) {
+      db.ref().update(batch).then(() => {
+        Object.values(entries).forEach(e => e.synced = true);
+        saveLocal();
+        toast('All entries synced to Firebase!');
+      }).catch(e => {
+        toast('Sync error: ' + e.message);
+        console.error(e);
+      });
+    }
+  }
+}
+
+function exportCSV() {
+  const allDates = Object.keys(entries).sort();
+  if (!allDates.length) { toast('No data to export'); return; }
+  let csv = 'Date,Day,Place,City,Country,Flights,Notes,Lat,Lon\n';
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  allDates.forEach(ds => {
+    const e = entries[ds];
+    const d = new Date(ds + 'T00:00:00');
+    csv += ds + ',' + days[d.getDay()] + ',' + esc(e.place) + ',' + esc(e.city) + ',' + esc(e.country) + ',' + esc(e.flights) + ',' + esc(e.notes) + ',' + (e.lat||'') + ',' + (e.lon||'') + '\n';
+  });
+  download(csv, 'midnight-tracker-export-' + fmtDate(new Date()) + '.csv', 'text/csv');
+  toast('Exported CSV');
+}
+
+function esc(s) { return s && s.includes(',') ? '"' + s + '"' : (s || ''); }
+function download(content, name, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type }));
+  a.download = name;
+  a.click();
+}
+
+// ===== HELPERS =====
+function fmtDate(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function formatDisplayDate(ds) {
+  const d = new Date(ds + 'T00:00:00');
+  return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function render() {
+  const active = document.querySelector('.view.active')?.id;
+  if (active === 'calendar') renderCalendar();
+  else if (active === 'list') renderList();
+  else if (active === 'stats') renderStats();
+}
+
+// ===== INIT =====
+loadLocal();
+const now = new Date();
+calYear = now.getFullYear();
+calMonth = now.getMonth();
+render();
+initFirebaseSync();
+
+// Register SW
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW registration failed', e));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "rules": {
+    "locations": {
+      ".read": true,
+      ".write": true,
+      "$date": {
+        ".validate": "$date.matches(/^\\d{4}-\\d{2}-\\d{2}$/)",
+        "place": { ".validate": "newData.isString()" },
+        "city": { ".validate": "newData.isString()" },
+        "country": { ".validate": "newData.isString()" },
+        "flights": { ".validate": "newData.isString()" },
+        "notes": { ".validate": "newData.isString()" },
+        "lat": { ".validate": "newData.isNumber() || newData.val() === null" },
+        "lon": { ".validate": "newData.isNumber() || newData.val() === null" }
+      }
+    }
+  }
+}
