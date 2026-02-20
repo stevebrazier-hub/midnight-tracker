@@ -22,8 +22,8 @@ const https = require('https');
 const USER_EMAIL = process.env.MS_USER_EMAIL || 'steveb@canapii.com';
 const DAYS_AHEAD = 90;  // Look 90 days ahead for calendar events
 const DAYS_BACK = 7;    // Look 7 days back for recent emails
-const HOTEL_FOLDERS = ['Hotels', 'Hotel', 'Hotels and Bookings'];
-const FLIGHT_FOLDERS = ['Flights', 'Flights (4 others)', 'Flight', 'Travel'];
+const HOTEL_FOLDERS = ['Hotels', 'Hotel'];
+const FLIGHT_FOLDERS = ['Flights', 'Flight'];
 
 // Known airports → city/country mapping
 const AIRPORTS = {
