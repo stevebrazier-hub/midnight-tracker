@@ -194,10 +194,10 @@ function extractHotelName(text) {
   if (!text) return null;
   // Common patterns in hotel confirmation subjects/bodies
   const patterns = [
-    /(?:booking|reservation|confirmation)\s+(?:at|for)\s+(.+?)(?:\s*[-–|,]|\s+in\s+|\s+on\s+|$)/i,
-    /(?:hotel|resort|inn|lodge|hostel|apartment|residence|suites?)\s*:?\s*(.+?)(?:\s*[-–|,]|$)/i,
-    /(?:your stay at|check.?in at|welcome to)\s+(.+?)(?:\s*[-–|,]|\s+on\s+|$)/i,
     /(?:check.?in|check.?out)\s+(.+?)(?:\s*[-–|,]|\s+on\s+|$)/i,
+    /(?:booking|reservation|confirmation)\s+(?:at|for)\s+(.+?)(?:\s*[-–|,]|\s+in\s+|\s+on\s+|$)/i,
+    /(?:your stay at|check.?in at|welcome to)\s+(.+?)(?:\s*[-–|,]|\s+on\s+|$)/i,
+    /(?:hotel|resort|inn|lodge|hostel|apartment|residence|suites?)\s*:?\s*(.+?)(?:\s*[-–|,]|$)/i,
   ];
   for (const pat of patterns) {
     const m = pat.exec(text);
@@ -281,7 +281,8 @@ async function processCalendar(token) {
     }
 
     if (isHotel && endDate) {
-      const hotelName = extractHotelName(allText) || '';
+      // Use subject first for cleaner extraction, fall back to full text
+      const hotelName = extractHotelName(subject) || extractHotelName(allText) || '';
       const nights = dateRange(startDate, new Date(endDate.getTime() - 86400000)); // Exclude checkout day
 
       for (const dateStr of nights) {
