@@ -1482,11 +1482,27 @@ async function initPushNotifications() {
       return;
     }
 
-    // Get VAPID key from Firebase settings (stored in DB)
-    const vapidKey = localStorage.getItem(VAPID_KEY_STORAGE);
+    // Get VAPID key — check localStorage first, then wait for Firebase
+    let vapidKey = localStorage.getItem(VAPID_KEY_STORAGE);
+    if (!vapidKey && fbReady) {
+      // Try to load from Firebase (key was set on a different device)
+      vapidKey = await new Promise(resolve => {
+        db.ref('settings/vapidKey').once('value', snap => {
+          const val = snap.val();
+          if (val) {
+            localStorage.setItem(VAPID_KEY_STORAGE, val);
+            const el = document.getElementById('vapidKeyInput');
+            if (el) el.value = val;
+          }
+          resolve(val);
+        });
+        // Timeout after 5 seconds
+        setTimeout(() => resolve(null), 5000);
+      });
+    }
     if (!vapidKey) {
       console.log('No VAPID key configured yet — set it in Settings');
-      updatePushStatus('VAPID key needed — configure in Settings');
+      updatePushStatus('VAPID key needed — configure in advanced settings');
       return;
     }
 
