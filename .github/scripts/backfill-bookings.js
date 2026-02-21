@@ -228,6 +228,7 @@ function extractHotelName(text) {
     /(?:booking|reservation|confirmation)\s+(?:at|for)\s+(.+?)(?:\s*[-–|,]|\s+in\s+|\s+on\s+|$)/i,
     /(?:hotel|resort|inn|lodge|hostel|apartment|residence|suites?)\s*:?\s*(.+?)(?:\s*[-–|,]|$)/i,
     /(?:your stay at|check.?in at|welcome to)\s+(.+?)(?:\s*[-–|,]|\s+on\s+|$)/i,
+    /(?:check.?in|check.?out)\s+(.+?)(?:\s*[-–|,]|\s+on\s+|$)/i,
   ];
   for (const pat of patterns) {
     const m = pat.exec(text);
