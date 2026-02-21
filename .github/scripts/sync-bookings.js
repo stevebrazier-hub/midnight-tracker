@@ -449,6 +449,8 @@ async function processEmailsFromFolder(token, folderId, folderType) {
       const hotelName = extractHotelName(allText) || '';
       const checkIn = extractedDates[0];
       const checkOut = extractedDates[extractedDates.length - 1];
+      const daySpan = Math.round((checkOut - checkIn) / 86400000);
+      if (daySpan > 30 || daySpan < 1) continue; // Sanity check
       const nights = dateRange(checkIn, new Date(checkOut.getTime() - 86400000));
 
       for (const dateStr of nights) {
