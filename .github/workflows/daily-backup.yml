@@ -1,0 +1,32 @@
+name: Daily Firebase backup
+
+on:
+  schedule:
+    - cron: '30 2 * * *'   # 02:30 UTC daily (after midnight CET)
+  workflow_dispatch:         # manual trigger
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install firebase-admin@12 xlsx@0.18
+
+      - name: Run backup
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node .github/scripts/daily-backup.js
+
+      - name: Commit backup files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add backups/
+          git diff --staged --quiet || git commit -m "Daily backup $(date -u +%Y-%m-%d)"
+          git push
