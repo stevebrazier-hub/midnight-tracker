@@ -938,15 +938,29 @@ function loadPresets() {
     const saved = localStorage.getItem('mt_presets');
     if (saved) presets = JSON.parse(saved);
   } catch(e) {}
+  migratePresets();
   // Also listen to Firebase for shared presets
   if (fbReady) {
     fbListen('presets', data => {
       if (data && Array.isArray(data)) {
         presets = data;
+        migratePresets();
         localStorage.setItem('mt_presets', JSON.stringify(presets));
       }
     });
   }
+}
+
+function migratePresets() {
+  // Rename old "Home" preset to "Cernobbio"
+  let changed = false;
+  presets.forEach(p => {
+    if (p.id === 'home' && p.label === 'Home') {
+      p.id = 'cernobbio'; p.icon = '🇮🇹'; p.label = 'Cernobbio'; p.sub = 'Italy'; p.place = 'Cernobbio';
+      changed = true;
+    }
+  });
+  if (changed) savePresets();
 }
 
 function savePresets() {
@@ -1098,6 +1112,23 @@ function loadHomeSettings() {
 function renderPresets(existingEntry) {
   const grid = document.getElementById('presetsGrid');
   let html = '';
+
+  // "Same as yesterday" — dynamic option showing previous day's location
+  if (editingDate) {
+    const d = new Date(editingDate + 'T12:00:00');
+    d.setDate(d.getDate() - 1);
+    const yesterdayStr = fmtDate(d);
+    const yEntry = entries[yesterdayStr];
+    if (yEntry && yEntry.city) {
+      const yLabel = yEntry.place || yEntry.city;
+      const ySub = yEntry.city + (yEntry.country ? ', ' + yEntry.country : '');
+      html += '<button class="preset-btn" data-preset="yesterday" onclick="selectPreset(\'yesterday\')" style="border-style:dashed;">' +
+        '<div class="preset-icon">⏪</div>' +
+        '<div><div class="preset-label">Same as yesterday</div><div class="preset-sub">' + ySub + '</div></div>' +
+      '</button>';
+    }
+  }
+
   presets.forEach(p => {
     html += '<button class="preset-btn" data-preset="' + p.id + '" onclick="selectPreset(\'' + p.id + '\')">' +
       '<div class="preset-icon">' + p.icon + '</div>' +
@@ -1134,6 +1165,23 @@ function selectPreset(id, existingEntry) {
   const customFields = document.getElementById('customFields');
   hotelField.classList.remove('visible');
   customFields.classList.remove('visible');
+
+  if (id === 'yesterday') {
+    // Fill from previous day's entry
+    const d = new Date(editingDate + 'T12:00:00');
+    d.setDate(d.getDate() - 1);
+    const yEntry = entries[fmtDate(d)];
+    if (yEntry) {
+      document.getElementById('editPlace').value = yEntry.place || '';
+      document.getElementById('editCity').value = yEntry.city || '';
+      document.getElementById('editCountry').value = yEntry.country || '';
+      document.getElementById('editFlights').value = '';
+      document.getElementById('editNotes').value = '';
+      const btn = document.querySelector('[data-preset="yesterday"]');
+      if (btn) btn.classList.add('selected');
+    }
+    return;
+  }
 
   if (id === 'custom') {
     document.querySelector('.custom-toggle')?.classList.add('selected');
