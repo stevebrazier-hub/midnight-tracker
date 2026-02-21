@@ -393,8 +393,17 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       </label>
     </div>
 
-    <div id="bookingSourceInfo" style="display:none;margin-top:8px;padding:8px;background:var(--bg);border-radius:6px;font-size:11px;color:var(--text-light);">
-      <strong>Booking source:</strong> <span id="bookingSourceText"></span>
+    <div id="modalMetaInfo" style="margin-top:10px;padding:10px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--text-light);">
+      <div id="modalGpsCoords" style="margin-bottom:6px;display:none;">
+        <span style="color:var(--text-light);">📍 GPS at midnight:</span> <span id="modalGpsText" style="font-family:monospace;font-size:11px;"></span>
+      </div>
+      <div id="modalNoGps" style="margin-bottom:6px;display:none;">
+        <span style="color:var(--text-light);">📍 GPS at midnight:</span> <span style="font-style:italic;color:#999;">none</span>
+      </div>
+      <div id="modalSources" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      <div id="modalBookingSource" style="display:none;margin-top:6px;font-size:11px;">
+        <span style="color:var(--text-light);">Booking detail:</span> <span id="bookingSourceText"></span>
+      </div>
     </div>
 
     <div class="btn-row">
@@ -1187,14 +1196,52 @@ function openDay(dateStr) {
   // Render presets and auto-match existing entry
   renderPresets(entry.city ? entry : null);
 
-  // Show booking source if available
-  const bsDiv = document.getElementById('bookingSourceInfo');
+  // GPS coordinates
+  const gpsDiv = document.getElementById('modalGpsCoords');
+  const noGpsDiv = document.getElementById('modalNoGps');
+  const gpsText = document.getElementById('modalGpsText');
+  if (entry.lat && entry.lon) {
+    gpsText.textContent = entry.lat.toFixed(6) + ', ' + entry.lon.toFixed(6);
+    gpsDiv.style.display = '';
+    noGpsDiv.style.display = 'none';
+  } else {
+    gpsDiv.style.display = 'none';
+    noGpsDiv.style.display = '';
+  }
+
+  // Source icons — show which inputs contributed
+  const sourcesDiv = document.getElementById('modalSources');
+  const sources = [];
+  if (entry.city && !entry.autoGps && !entry.autoBooking && !entry.gpsConfirmed) {
+    sources.push({ icon: '✏️', label: 'Manual', color: '#f3e8ff', text: '#6b21a8' });
+  }
+  if (entry.gpsConfirmed) {
+    sources.push({ icon: '✏️', label: 'Manual', color: '#f3e8ff', text: '#6b21a8' });
+    sources.push({ icon: '📡', label: 'GPS', color: '#e8f5e9', text: '#2e7d32' });
+  }
+  if (entry.autoGps && !entry.gpsConfirmed) {
+    sources.push({ icon: '📡', label: 'GPS', color: '#e8f5e9', text: '#2e7d32' });
+  }
+  if (entry.autoBooking || entry.bookingSource) {
+    const bs = entry.bookingSource || '';
+    if (bs.includes('email')) sources.push({ icon: '📧', label: 'Email', color: '#e8f0fe', text: '#1a73e8' });
+    if (bs.includes('calendar')) sources.push({ icon: '📅', label: 'Calendar', color: '#fef3e8', text: '#e8780a' });
+    if (!bs.includes('email') && !bs.includes('calendar')) {
+      sources.push({ icon: '📧', label: 'Booking', color: '#e8f0fe', text: '#1a73e8' });
+    }
+  }
+  sourcesDiv.innerHTML = sources.length
+    ? sources.map(s => '<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;background:' + s.color + ';color:' + s.text + ';font-size:11px;font-weight:500;">' + s.icon + ' ' + s.label + '</span>').join('')
+    : '<span style="font-style:italic;color:#999;font-size:11px;">No data sources</span>';
+
+  // Booking source detail
+  const bsDetailDiv = document.getElementById('modalBookingSource');
   const bsText = document.getElementById('bookingSourceText');
   if (entry.bookingSource) {
     bsText.textContent = entry.bookingSource;
-    bsDiv.style.display = '';
+    bsDetailDiv.style.display = '';
   } else {
-    bsDiv.style.display = 'none';
+    bsDetailDiv.style.display = 'none';
   }
 
   document.getElementById('editModal').classList.add('open');
