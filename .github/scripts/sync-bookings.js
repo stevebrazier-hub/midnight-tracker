@@ -251,6 +251,9 @@ async function processCalendar(token) {
     const allText = subject + ' ' + body + ' ' + location;
     const allTextUpper = allText.toUpperCase();
 
+    // Skip car rentals
+    if (/\b(car\s*rental|hertz|avis|europcar|sixt|enterprise|rent.?a.?car|pick.?up.*drop.?off|vehicle\s*collect)/i.test(allText)) continue;
+
     // Skip events that don't look like travel
     const isFlight = /\b(flight|fly|depart|arrive|airport|boarding|BA\d|EK\d|LH\d|AF\d|AZ\d|FR\d|U2\d|QR\d|EY\d|SQ\d|CX\d|TK\d)/i.test(allText);
     const isHotel = /\b(hotel|check.?in|check.?out|booking|reservation|stay|accommodation|airbnb)/i.test(allText);
@@ -277,7 +280,7 @@ async function processCalendar(token) {
     }
 
     if (isHotel && endDate) {
-      const hotelName = extractHotelName(allText) || subject;
+      const hotelName = extractHotelName(allText) || '';
       const nights = dateRange(startDate, new Date(endDate.getTime() - 86400000)); // Exclude checkout day
 
       for (const dateStr of nights) {
@@ -392,6 +395,12 @@ async function processEmailsFromFolder(token, folderId, folderType) {
     const allText = subject + ' ' + body;
     const allTextUpper = allText.toUpperCase();
 
+    // Skip car rental emails
+    if (/\b(car\s*rental|hertz|avis|europcar|sixt|enterprise|rent.?a.?car|pick.?up.*drop.?off|vehicle\s*collect)/i.test(allText)) {
+      console.log(`  🚗 SKIP car rental: ${subject.slice(0, 60)}`);
+      continue;
+    }
+
     // Use folder type as hint — emails in Hotels folder are hotels, Flights folder are flights
     const isFlight = folderType === 'flight' ||
                      /\b(flight|itinerary|boarding|e-?ticket|airline)/i.test(allText) ||
@@ -437,7 +446,7 @@ async function processEmailsFromFolder(token, folderId, folderType) {
     }
 
     if (isHotel && extractedDates.length > 0) {
-      const hotelName = extractHotelName(allText) || subject;
+      const hotelName = extractHotelName(allText) || '';
       const checkIn = extractedDates[0];
       const checkOut = extractedDates.length > 1 ? extractedDates[extractedDates.length - 1] : new Date(checkIn.getTime() + 86400000);
       const nights = dateRange(checkIn, new Date(checkOut.getTime() - 86400000));
@@ -525,7 +534,8 @@ async function updateFirebase(bookings) {
                    (!current.place && entry.place) ||
                    (!current.city && entry.city) ||
                    (!current.flights && entry.flights) ||
-                   (entry.flights && entry.flights !== current.flights);
+                   (entry.flights && entry.flights !== current.flights) ||
+                   (!current.bookingSource && entry.bookingSource);
 
     if (hasNew) {
       updates['locations/' + dateStr] = entry;
