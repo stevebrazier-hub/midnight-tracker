@@ -271,8 +271,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
   <div class="settings-section">
 
     <div class="settings-card">
-      <h3>Primary home</h3>
-      <p style="margin-bottom:10px;">Days without a location entry are counted as home days.</p>
+      <h3>Primary residence</h3>
+      <p style="margin-bottom:10px;">Used to identify home vs away days in stats. Days without data are shown as unrecorded.</p>
       <div class="extras-row">
         <div class="field"><label>Place</label><input id="homePlaceInput" /></div>
       </div>
@@ -280,7 +280,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
         <div class="field"><label>City</label><input id="homeCityInput" /></div>
         <div class="field"><label>Country</label><input id="homeCountryInput" /></div>
       </div>
-      <button class="btn btn-outline" onclick="saveHomeSettings()" style="width:100%">Save home</button>
+      <button class="btn btn-outline" onclick="saveHomeSettings()" style="width:100%">Save residence</button>
     </div>
 
     <div class="settings-card">
@@ -689,26 +689,28 @@ function renderList() {
       const ds = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
       const dt = new Date(y, m, d);
       const entry = entries[ds];
-      const place = entry?.place || HOME.place;
-      const city = entry?.city || HOME.city;
-      const country = entry?.country || HOME.country;
+      const place = entry?.place || '';
+      const city = entry?.city || '';
+      const country = entry?.country || '';
       const flights = entry?.flights || '';
-      const flag = entry?.country ? countryFlag(entry.country) : countryFlag(HOME.country);
-      const isHome = (!entry) || (entry.country === HOME.country && entry.city === HOME.city);
+      const flag = country ? countryFlag(country) : '';
+      const hasData = entry && (entry.city || entry.country);
+      const isHome = hasData && entry.country === HOME.country && entry.city === HOME.city;
       const isToday = ds === todayStr;
 
-      if (isHome) homeDays++; else awayDays++;
+      if (!hasData) { /* unrecorded — don't count */ } else if (isHome) homeDays++; else awayDays++;
       if (countryFilter && country !== countryFilter) continue;
 
       let cls = 'list-item';
       if (isToday) cls += ' is-today';
-      if (isHome) cls += ' is-home';
+      if (hasData && isHome) cls += ' is-home';
+      if (!hasData) cls += ' is-unrecorded';
 
       const isWorking = entry?.working;
       const isUnconfirmed = entry?.unconfirmed;
       monthHtml += '<div class="' + cls + '" onclick="openDay(\'' + ds + '\')">' +
         '<div class="list-date"><div class="day-num">' + d + '</div><div class="day-name">' + DAY_NAMES[dt.getDay()] + '</div></div>' +
-        '<div class="list-info"><div class="place">' + place + '</div><div class="city-country">' + city + (country ? ', ' + country : '') + '</div>' +
+        '<div class="list-info"><div class="place">' + (place || (!hasData ? '<span style="color:var(--text-light);font-style:italic;">No data</span>' : '')) + '</div><div class="city-country">' + city + (country ? ', ' + country : '') + '</div>' +
         (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') +
         '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">' +
         (entry?.lat ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">📍 ' + entry.lat.toFixed(4) + ', ' + entry.lon.toFixed(4) + '</div>' : '') +
@@ -819,8 +821,12 @@ function renderStats() {
   for (let d = new Date(taxStart); d <= lastDay; d.setDate(d.getDate() + 1)) {
     const ds = fmtDate(d);
     const entry = entries[ds];
-    const country = entry?.country || HOME.country;
-    countryCounts[country] = (countryCounts[country] || 0) + 1;
+    const country = entry?.country || '';
+    if (country) {
+      countryCounts[country] = (countryCounts[country] || 0) + 1;
+    } else {
+      countryCounts['Unrecorded'] = (countryCounts['Unrecorded'] || 0) + 1;
+    }
     daysElapsed++;
     if (country === 'UK') ukNights++;
     if (country === 'Italy') italyDays++;
@@ -911,7 +917,7 @@ document.getElementById('statsYear').addEventListener('change', renderStats);
 // ===== LOCATION PRESETS =====
 // type: 'fixed' = one-click fill, 'hotel' = asks for hotel name, 'custom' = full form
 const DEFAULT_PRESETS = [
-  { id: 'home', icon: '🏠', label: 'Home', sub: 'Cernobbio, Italy', type: 'fixed', place: 'Home', city: 'Cernobbio', country: 'Italy' },
+  { id: 'cernobbio', icon: '🇮🇹', label: 'Cernobbio', sub: 'Italy', type: 'fixed', place: 'Cernobbio', city: 'Cernobbio', country: 'Italy' },
   { id: 'oxford', icon: '🇬🇧', label: 'Oxford', sub: 'UK', type: 'fixed', place: 'Oxford', city: 'Oxford', country: 'UK' },
   { id: 'bangkok', icon: '🇹🇭', label: 'Bangkok', sub: 'Klongsan, Thailand', type: 'fixed', place: 'Baan Sathorn Chaophraya', city: 'Bangkok', country: 'Thailand' },
 ];
@@ -1254,7 +1260,7 @@ function clearDay() {
 
 // Known location coordinates for preset matching (lat, lon, radius in km)
 const KNOWN_LOCATIONS = [
-  { lat: 45.8472, lon: 9.0853, radius: 50, preset: 'home' },    // Cernobbio, Italy
+  { lat: 45.8472, lon: 9.0853, radius: 50, preset: 'cernobbio' },    // Cernobbio, Italy
   { lat: 51.7520, lon: -1.2577, radius: 50, preset: 'oxford' },  // Oxford, UK
   { lat: 13.7235, lon: 100.4925, radius: 50, preset: 'bangkok' }, // Klongsan/Bangkok
 ];
