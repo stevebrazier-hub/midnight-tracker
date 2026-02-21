@@ -704,11 +704,16 @@ function renderList() {
         '<div class="list-date"><div class="day-num">' + d + '</div><div class="day-name">' + DAY_NAMES[dt.getDay()] + '</div></div>' +
         '<div class="list-info"><div class="place">' + place + '</div><div class="city-country">' + city + (country ? ', ' + country : '') + '</div>' +
         (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') +
-        (entry?.lat ? '<div style="font-size:10px;color:var(--text-light);font-family:monospace;">' + entry.lat.toFixed(5) + ', ' + entry.lon.toFixed(5) + '</div>' : '') +
-        (isWorking ? '<div class="working-tag">WORKING</div>' : '') +
+        '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">' +
+        (entry?.lat ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">📍 ' + entry.lat.toFixed(4) + ', ' + entry.lon.toFixed(4) + '</div>' : '') +
+        (entry?.autoGps && !entry?.unconfirmed ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS VERIFIED</div>' : '') +
+        (entry && !entry.autoGps && !entry.autoBooking && entry.city ? '<div class="working-tag" style="background:#f3e8ff;color:#6b21a8;">MANUAL</div>' : '') +
+        (entry?.autoBooking ? '<div class="working-tag" style="background:#e8f0fe;color:#1a73e8;">BOOKING</div>' : '') +
         (isUnconfirmed ? '<div class="working-tag" style="background:var(--err-bg);color:var(--err);">UNCONFIRMED</div>' : '') +
-        (entry?.autoBooking ? '<div class="working-tag" style="background:#e8f0fe;color:#1a73e8;">AUTO-BOOKING</div>' : '') +
-        (entry?.countryConflict ? '<div class="working-tag" style="background:#fff3cd;color:#856404;">⚠ COUNTRY MISMATCH</div>' : '') + '</div>' +
+        (entry?.countryConflict ? '<div class="working-tag" style="background:#fff3cd;color:#856404;">⚠ COUNTRY MISMATCH</div>' : '') +
+        (isWorking ? '<div class="working-tag">WORKING</div>' : '') +
+        (!entry ? '<div class="working-tag" style="background:#f5f5f5;color:#999;">NO DATA</div>' : '') +
+        '</div>' + '</div>' +
         '<div class="list-flag">' + flag + '</div>' +
       '</div>';
     }
@@ -1573,11 +1578,14 @@ function loadVapidKey() {
 
 // Test button for settings
 function testMidnightGPS() {
+  toast('Capturing GPS...');
   const todayStr = fmtDate(new Date());
   // Force capture even if already set
   const existing = entries[todayStr];
   if (existing) delete existing.autoGps; // Allow re-capture
-  autoGPSCapture(todayStr);
+  autoGPSCapture(todayStr).then(ok => {
+    if (ok) toast('GPS captured — check today in the location tab');
+  });
 }
 
 // ===== IMPORT/EXPORT =====
