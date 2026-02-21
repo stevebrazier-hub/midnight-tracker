@@ -393,6 +393,10 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       </label>
     </div>
 
+    <div id="bookingSourceInfo" style="display:none;margin-top:8px;padding:8px;background:var(--bg);border-radius:6px;font-size:11px;color:var(--text-light);">
+      <strong>Booking source:</strong> <span id="bookingSourceText"></span>
+    </div>
+
     <div class="btn-row">
       <button class="btn btn-outline" onclick="clearDay()">Clear</button>
       <button class="btn btn-primary" onclick="saveDay()">Save</button>
@@ -618,6 +622,7 @@ function syncEntry(date, entry) {
   if (entry.unconfirmed) data.unconfirmed = true;
   if (entry.autoBooking) data.autoBooking = true;
   if (entry.gpsConfirmed) data.gpsConfirmed = true;
+  if (entry.bookingSource) data.bookingSource = entry.bookingSource;
   if (entry.countryConflict) data.countryConflict = entry.countryConflict;
   fbSet('locations/' + date, data);
   entry.synced = true;
@@ -1176,6 +1181,16 @@ function openDay(dateStr) {
   // Render presets and auto-match existing entry
   renderPresets(entry.city ? entry : null);
 
+  // Show booking source if available
+  const bsDiv = document.getElementById('bookingSourceInfo');
+  const bsText = document.getElementById('bookingSourceText');
+  if (entry.bookingSource) {
+    bsText.textContent = entry.bookingSource;
+    bsDiv.style.display = '';
+  } else {
+    bsDiv.style.display = 'none';
+  }
+
   document.getElementById('editModal').classList.add('open');
 }
 
@@ -1211,6 +1226,7 @@ function saveDay() {
   if (existing?.lat) entry.lat = existing.lat;
   if (existing?.lon) entry.lon = existing.lon;
   if (existing?.autoGps) entry.gpsConfirmed = true; // GPS was captured at some point
+  if (existing?.bookingSource) entry.bookingSource = existing.bookingSource; // Preserve audit trail
   // Manual save clears unconfirmed and conflict flags
 
   if (entry.place || entry.city || entry.country) {
@@ -1655,12 +1671,12 @@ async function importSpreadsheet() {
 function exportCSV() {
   const allDates = Object.keys(entries).sort();
   if (!allDates.length) { toast('No data to export'); return; }
-  let csv = 'Date,Day,Place,City,Country,Flights,Notes,Lat,Lon,Working,Source,Conflict\n';
+  let csv = 'Date,Day,Place,City,Country,Flights,Notes,Lat,Lon,Working,Source,Conflict,Booking source\n';
   const daysFull = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   allDates.forEach(ds => {
     const e = entries[ds];
     const d = new Date(ds + 'T00:00:00');
-    csv += ds + ',' + daysFull[d.getDay()] + ',' + esc(e.place) + ',' + esc(e.city) + ',' + esc(e.country) + ',' + esc(e.flights) + ',' + esc(e.notes) + ',' + (e.lat||'') + ',' + (e.lon||'') + ',' + (e.working ? 'Yes' : '') + ',' + (e.gpsConfirmed ? 'GPS + Manual' : e.autoBooking ? 'Booking' : e.autoGps ? 'GPS' : 'Manual') + ',' + esc(e.countryConflict || '') + '\n';
+    csv += ds + ',' + daysFull[d.getDay()] + ',' + esc(e.place) + ',' + esc(e.city) + ',' + esc(e.country) + ',' + esc(e.flights) + ',' + esc(e.notes) + ',' + (e.lat||'') + ',' + (e.lon||'') + ',' + (e.working ? 'Yes' : '') + ',' + (e.gpsConfirmed ? 'GPS + Manual' : e.autoBooking ? 'Booking' : e.autoGps ? 'GPS' : 'Manual') + ',' + esc(e.countryConflict || '') + ',' + esc(e.bookingSource || '') + '\n';
   });
   download(csv, 'midnight-tracker-export-' + fmtDate(new Date()) + '.csv', 'text/csv');
   toast('Exported CSV');

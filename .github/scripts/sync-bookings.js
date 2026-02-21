@@ -490,13 +490,21 @@ async function updateFirebase(bookings) {
     }
 
     // Merge: existing data takes priority, booking data fills gaps
+    // Build booking source audit trail
+    const sourceInfo = booking.source + ': ' + (booking.raw || '').slice(0, 120);
+    const existingSource = current?.bookingSource || '';
+    const combinedSource = existingSource
+      ? (existingSource.includes(sourceInfo) ? existingSource : existingSource + ' | ' + sourceInfo)
+      : sourceInfo;
+
     const entry = {
       place: current?.place || booking.place || '',
       city: current?.city || booking.city || '',
       country: current?.country || booking.country || '',
       flights: mergeFlights(current?.flights, booking.flights),
       notes: current?.notes || '',
-      autoBooking: true
+      autoBooking: true,
+      bookingSource: combinedSource
     };
 
     // Preserve existing fields
