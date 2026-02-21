@@ -1120,12 +1120,17 @@ function renderPresets(existingEntry) {
     const yesterdayStr = fmtDate(d);
     const yEntry = entries[yesterdayStr];
     if (yEntry && yEntry.city) {
-      const yLabel = yEntry.place || yEntry.city;
-      const ySub = yEntry.city + (yEntry.country ? ', ' + yEntry.country : '');
-      html += '<button class="preset-btn" data-preset="yesterday" onclick="selectPreset(\'yesterday\')" style="border-style:dashed;">' +
-        '<div class="preset-icon">⏪</div>' +
-        '<div><div class="preset-label">Same as yesterday</div><div class="preset-sub">' + ySub + '</div></div>' +
-      '</button>';
+      // Only show if yesterday's location doesn't match any saved preset
+      const matchesPreset = presets.some(p =>
+        p.city === yEntry.city && p.country === yEntry.country
+      );
+      if (!matchesPreset) {
+        const ySub = yEntry.city + (yEntry.country ? ', ' + yEntry.country : '');
+        html += '<button class="preset-btn" data-preset="yesterday" onclick="selectPreset(\'yesterday\')" style="border-style:dashed;">' +
+          '<div class="preset-icon">⏪</div>' +
+          '<div><div class="preset-label">Same as yesterday</div><div class="preset-sub">' + ySub + '</div></div>' +
+        '</button>';
+      }
     }
   }
 
