@@ -445,10 +445,10 @@ async function processEmailsFromFolder(token, folderId, folderType) {
       });
     }
 
-    if (isHotel && extractedDates.length > 0) {
+    if (isHotel && extractedDates.length >= 2) {
       const hotelName = extractHotelName(allText) || '';
       const checkIn = extractedDates[0];
-      const checkOut = extractedDates.length > 1 ? extractedDates[extractedDates.length - 1] : new Date(checkIn.getTime() + 86400000);
+      const checkOut = extractedDates[extractedDates.length - 1];
       const nights = dateRange(checkIn, new Date(checkOut.getTime() - 86400000));
 
       for (const dateStr of nights) {

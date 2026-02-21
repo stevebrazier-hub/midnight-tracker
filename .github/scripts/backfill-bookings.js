@@ -447,25 +447,32 @@ async function processEmailsFromFolder(token, folderId, folderType) {
 
     if (isHotel && validDates.length > 0) {
       const hotelName = extractHotelName(allText) || '';
-      const checkIn = validDates[0];
-      const checkOut = validDates.length > 1 ? validDates[validDates.length - 1] : new Date(checkIn.getTime() + 86400000);
-      const nights = dateRange(checkIn, new Date(checkOut.getTime() - 86400000));
-      const nightsInTaxYear = nights.filter(d => d >= TAX_YEAR_START);
 
-      for (const dateStr of nightsInTaxYear) {
-        bookings.push({
-          type: 'hotel',
-          date: dateStr,
-          flights: '',
-          city: extractCity(allText) || '',
-          country: '',
-          place: hotelName,
-          source: 'email',
-          raw: subject
-        });
-      }
-      if (nightsInTaxYear.length) {
-        console.log(`  🏨 ${nightsInTaxYear[0]}→${nightsInTaxYear[nightsInTaxYear.length-1]} | ${hotelName.slice(0, 40)} | ${nightsInTaxYear.length} nights`);
+      // Need at least 2 dates for a hotel stay (check-in and check-out)
+      // With only 1 date, it's likely just the email/confirmation date — skip
+      if (validDates.length < 2) {
+        console.log(`  ⏭ SKIP hotel (only 1 date found): ${subject.slice(0, 60)}`);
+      } else {
+        const checkIn = validDates[0];
+        const checkOut = validDates[validDates.length - 1];
+        const nights = dateRange(checkIn, new Date(checkOut.getTime() - 86400000));
+        const nightsInTaxYear = nights.filter(d => d >= TAX_YEAR_START);
+
+        for (const dateStr of nightsInTaxYear) {
+          bookings.push({
+            type: 'hotel',
+            date: dateStr,
+            flights: '',
+            city: extractCity(allText) || '',
+            country: '',
+            place: hotelName,
+            source: 'email',
+            raw: subject
+          });
+        }
+        if (nightsInTaxYear.length) {
+          console.log(`  🏨 ${nightsInTaxYear[0]}→${nightsInTaxYear[nightsInTaxYear.length-1]} | ${hotelName.slice(0, 40)} | ${nightsInTaxYear.length} nights`);
+        }
       }
     }
   }
@@ -544,6 +551,22 @@ async function updateFirebase(bookings) {
     console.log(`\nUpdated Firebase: ${newCount} new, ${mergedCount} merged, ${skippedCount} skipped`);
   } else {
     console.log(`\nNo updates needed (${skippedCount} skipped)`);
+  }
+
+  // Clean up bad place names from previous backfill runs (email subjects used as place names)
+  const cleanupSnapshot = await db.ref('locations').once('value');
+  const allEntries = cleanupSnapshot.val() || {};
+  const cleanups = {};
+  let cleanCount = 0;
+  for (const [dateStr, entry] of Object.entries(allEntries)) {
+    if (entry.place && /^(Fw:|Re:|FW:|RE:)|Booking confirmation/i.test(entry.place)) {
+      cleanups['locations/' + dateStr + '/place'] = '';
+      cleanCount++;
+    }
+  }
+  if (cleanCount > 0) {
+    await db.ref().update(cleanups);
+    console.log(`\nCleaned up ${cleanCount} bad place names (email subjects)`);
   }
 
   await db.ref('settings/lastBackfill').set(new Date().toISOString());
