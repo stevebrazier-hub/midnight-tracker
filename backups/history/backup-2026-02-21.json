@@ -1,0 +1,1998 @@
+{
+  "fcmTokens": {
+    "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
+      "email": "steveb@canapii.com",
+      "token": "c-t0zWnIrKCMEQD7kvGECC:APA91bGcNTI1tTXxmSFC97yMuMwM4eIMCYEIE0uv1EmCHnKc1z2CuEGyffXiz7Nc-10ijjax4iyaPl9UaBZ6K6cx9NJKxcqaX7TjxtXNQTdj-8c3xbwB13k",
+      "updatedAt": "2026-02-21T01:06:28.038Z"
+    }
+  },
+  "locations": {
+    "2025-04-07": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight TG623: Osaka - BKK, departs 11:45am",
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "TG623",
+      "notes": "",
+      "place": ""
+    },
+    "2025-04-11": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight TG916: BKK - LHR, departs 12:50",
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "TG916",
+      "notes": "",
+      "place": ""
+    },
+    "2025-04-12": {
+      "autoBooking": true,
+      "bookingSource": "calendar: flights to ski",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-04-21": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Sheraton Milan Malpensa Airport Hotel & Conference Centre check in",
+      "city": "Sheraton Milan",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "& Conference Centre check in"
+    },
+    "2025-04-22": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Sheraton Milan Malpensa Airport Hotel & Conference Centre check out",
+      "city": "Sheraton Milan Malpensa Airport Hotel & Conference Centre",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "& Conference Centre check out"
+    },
+    "2025-05-12": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Your e-ticket receipt Z4CHJV: 22 May 2025 07:40",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-05-15": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Your booking confirmation ZTYPRP",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-05-16": {
+      "autoBooking": true,
+      "bookingSource": "calendar: VC Teams re Cernobbio ",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-05-22": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA2588: Gatwick - Verona, departs 07:40am",
+      "city": "",
+      "country": "",
+      "flights": "BA2588",
+      "notes": "",
+      "place": ""
+    },
+    "2025-05-24": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA0585: Malpensa - LHR, departs 08:10am",
+      "city": "London",
+      "country": "UK",
+      "flights": "BA0585",
+      "notes": "",
+      "place": ""
+    },
+    "2025-05-27": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Confirmation of your booking",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-05-29": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA570: LHR-LIN, departs 18:45",
+      "city": "Milan",
+      "country": "Italy",
+      "flights": "BA570",
+      "notes": "",
+      "place": ""
+    },
+    "2025-05-30": {
+      "autoBooking": true,
+      "bookingSource": "calendar: The Westin Palace, Milan check in",
+      "city": "The Westin",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "The Westin Palace, Milan"
+    },
+    "2025-05-31": {
+      "autoBooking": true,
+      "bookingSource": "calendar: The Westin Palace, Milan check out",
+      "city": "The Westin Palace, Milan",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "The Westin Palace, Milan"
+    },
+    "2025-06-02": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-03": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-04": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-05": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-06": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-07": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-08": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-09": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-10": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-11": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-12": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-13": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-14": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-15": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-16": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-17": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-18": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-19": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-20": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Thank you for booking with us | From London to Bangkok on 21 June 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-21": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight LX333: LHR - ZUR, departs 13:45",
+      "city": "London",
+      "country": "UK",
+      "flights": "LX333, LX180",
+      "notes": "",
+      "place": ""
+    },
+    "2025-06-30": {
+      "autoBooking": true,
+      "bookingSource": "calendar: The Westin Singapore check in",
+      "city": "The Westin",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "The Westin Singapore"
+    },
+    "2025-07-01": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight LH769: SIN - MUC, departs 23:25",
+      "city": "Singapore",
+      "country": "Singapore",
+      "flights": "LH769",
+      "notes": "",
+      "place": ""
+    },
+    "2025-07-02": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight LH2470: MUC - LHR, departs 07:10am",
+      "city": "Munich",
+      "country": "Germany",
+      "flights": "LH2470",
+      "notes": "",
+      "place": ""
+    },
+    "2025-07-06": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Sonder Atelier Apartments Porta Romana check in",
+      "city": "Sonder Atelier",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "s Porta Romana check in"
+    },
+    "2025-07-10": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Finance department review",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-07-11": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Sonder Atelier Apartments Porta Romana check out",
+      "city": "Sonder Atelier Apartments Porta Romana",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "s Porta Romana check out"
+    },
+    "2025-07-18": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Booking: 13 August",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-07-20": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Casa Brera, a Luxury Collection Hotel, Milan check out",
+      "city": "Casa Brera, a Luxury Collection Hotel, Milan",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ", Milan check out"
+    },
+    "2025-07-22": {
+      "autoBooking": true,
+      "bookingSource": "calendar: The Westin Palace, Milan check in",
+      "city": "The Westin",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "The Westin Palace, Milan"
+    },
+    "2025-07-23": {
+      "autoBooking": true,
+      "bookingSource": "calendar: The Westin Palace, Milan check out",
+      "city": "The Westin Palace, Milan",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "The Westin Palace, Milan"
+    },
+    "2025-07-24": {
+      "autoBooking": true,
+      "bookingSource": "calendar: The Westin Palace, Milan check out",
+      "city": "The Westin Palace, Milan",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "The Westin Palace, Milan"
+    },
+    "2025-08-01": {
+      "autoBooking": true,
+      "bookingSource": "calendar: British Airways flight 584 to Milan (Y6AZA3)",
+      "city": "London",
+      "country": "UK",
+      "flights": "AT20, AT23",
+      "notes": "",
+      "place": ""
+    },
+    "2025-08-02": {
+      "autoBooking": true,
+      "bookingSource": "calendar: British Airways flight 573 to London (Y6AZA3)",
+      "city": "Milan",
+      "country": "Italy",
+      "flights": "AT13, AT14",
+      "notes": "",
+      "place": ""
+    },
+    "2025-08-13": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Instyle: Home - Gatwick",
+      "city": "",
+      "country": "",
+      "flights": "AN11",
+      "notes": "",
+      "place": ""
+    },
+    "2025-08-14": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Booking confirmation | Wednesday, 15 October 2025 - Reference: PGGTXF",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-08-16": {
+      "autoBooking": true,
+      "bookingSource": "calendar: The St. Regis Rome check in",
+      "city": "The St",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "The St. Regis Rome"
+    },
+    "2025-08-17": {
+      "autoBooking": true,
+      "bookingSource": "calendar: The St. Regis Rome check out",
+      "city": "The St. Regis Rome",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "The St. Regis Rome"
+    },
+    "2025-08-24": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Hotel Grande Bretagne, a Luxury Collection Hotel, Athens check in",
+      "city": "Hotel Grande",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "Grande Bretagne"
+    },
+    "2025-08-26": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Hotel Grande Bretagne, a Luxury Collection Hotel, Athens check out",
+      "city": "Hotel Grande Bretagne, a Luxury Collection Hotel, Athens",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "Grande Bretagne"
+    },
+    "2025-08-29": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Your booking confirmation ZQ7388",
+      "city": "",
+      "country": "",
+      "flights": "ZQ7388, ON03",
+      "notes": "",
+      "place": ""
+    },
+    "2025-09-03": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight AF7551: LHR - Nice, departs 08:55am",
+      "city": "London",
+      "country": "UK",
+      "flights": "AF7551",
+      "notes": "",
+      "place": ""
+    },
+    "2025-09-04": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA343: Nice - London, departs 11:25am",
+      "city": "",
+      "country": "",
+      "flights": "BA343",
+      "notes": "",
+      "place": ""
+    },
+    "2025-09-09": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Preparation call: Mainstage - Lenovo 360 Accelerate EMEA 2025",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-09-12": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA354: LHR - NCE, departs 15:35",
+      "city": "London",
+      "country": "UK",
+      "flights": "BA354",
+      "notes": "",
+      "place": ""
+    },
+    "2025-09-13": {
+      "autoBooking": true,
+      "bookingSource": "calendar: La Bastide de Mougins, a Tribute Portfolio Hotel check in",
+      "city": "La Bastide",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "check in"
+    },
+    "2025-09-14": {
+      "autoBooking": true,
+      "bookingSource": "calendar: La Bastide de Mougins, a Tribute Portfolio Hotel check out",
+      "city": "La Bastide de Mougins, a Tribute Portfolio Hotel",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "check out"
+    },
+    "2025-09-17": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA357: NCE - LHR, departs 21:40",
+      "city": "London",
+      "country": "UK",
+      "flights": "BA357",
+      "notes": "",
+      "place": ""
+    },
+    "2025-09-19": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Confirmation of your booking",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-09-22": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA564: LHR - LIN, departs 07:10am",
+      "city": "Milan",
+      "country": "Italy",
+      "flights": "BA564",
+      "notes": "",
+      "place": ""
+    },
+    "2025-09-24": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Hotel Phoenix",
+      "city": "Bredgade 37, 1260 København, Denmark",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "Phoenix"
+    },
+    "2025-09-25": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA0813: Copenhagen - LHR, departs 10:50",
+      "city": "London",
+      "country": "UK",
+      "flights": "BA0813",
+      "notes": "",
+      "place": ""
+    },
+    "2025-09-29": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Your booking confirmation CM93FN -  MXP-BCN 06 October",
+      "city": "Barcelona",
+      "country": "Spain",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-09-30": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA564: LHR - LIN, departs 07:10am",
+      "city": "Milan",
+      "country": "Italy",
+      "flights": "BA564",
+      "notes": "",
+      "place": ""
+    },
+    "2025-10-01": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA565: LIN - LHR, departs 11:10am",
+      "city": "Milan",
+      "country": "Italy",
+      "flights": "BA565",
+      "notes": "",
+      "place": ""
+    },
+    "2025-10-04": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA580: LHR - MXP, departs 15:20",
+      "city": "Milan",
+      "country": "Italy",
+      "flights": "BA580",
+      "notes": "",
+      "place": ""
+    },
+    "2025-10-06": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Hotel: W Hotel",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "W Hotel"
+    },
+    "2025-10-08": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA483: BCN-LHR, departs 14:00",
+      "city": "Barcelona",
+      "country": "Spain",
+      "flights": "BA483",
+      "notes": "",
+      "place": ""
+    },
+    "2025-10-10": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Your booking confirmation YRRK9O",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-10-15": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Finance department review",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-10-16": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Eurostar: Brussels - London, departs 15:51",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": ""
+    },
+    "2025-10-18": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA584: LHR - MXP, departs 20:00",
+      "city": "Milan",
+      "country": "Italy",
+      "flights": "BA584",
+      "notes": "",
+      "place": ""
+    },
+    "2025-10-20": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA583: MXP - LHR, departs 20:25",
+      "city": "Milan",
+      "country": "Italy",
+      "flights": "BA583",
+      "notes": "",
+      "place": ""
+    },
+    "2025-10-21": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA1542: LHR - MXP",
+      "city": "Milan",
+      "country": "Italy",
+      "flights": "BA1542, AT09, AT11",
+      "notes": "",
+      "place": ""
+    },
+    "2025-10-22": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA294: Chicago - LHR, departs 16:55",
+      "city": "London",
+      "country": "UK",
+      "flights": "BA294",
+      "notes": "",
+      "place": ""
+    },
+    "2025-10-23": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Catalyst Europe 25",
+      "city": "",
+      "country": "",
+      "flights": "AF47, AB18",
+      "notes": "",
+      "place": ""
+    },
+    "2025-10-31": {
+      "city": "Alba",
+      "country": "Italy",
+      "flights": "Private, with Joe",
+      "notes": "",
+      "place": "Hotel - Villaggio Narrante - Le Case dei Conti Mirafiore"
+    },
+    "2025-11-01": {
+      "city": "Alba",
+      "country": "Italy",
+      "flights": "",
+      "notes": "",
+      "place": "Hotel - Villaggio Narrante - Le Case dei Conti Mirafiore"
+    },
+    "2025-11-02": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "BA569",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2025-11-03": {
+      "city": "Como",
+      "country": "Italy",
+      "flights": "",
+      "notes": "",
+      "place": "Hilton Hotel"
+    },
+    "2025-11-04": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2025-11-05": {
+      "city": "NA",
+      "country": "NA",
+      "flights": "TK 1998 and TK024",
+      "notes": "",
+      "place": "Overnight plane Taipei"
+    },
+    "2025-11-06": {
+      "city": "Taipei",
+      "country": "Taiwan",
+      "flights": "",
+      "notes": "",
+      "place": "Regent Hotel"
+    },
+    "2025-11-07": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "TG633",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-11-08": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-11-09": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Four Seasons Hotel"
+    },
+    "2025-11-10": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Four Seasons Hotel"
+    },
+    "2025-11-11": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Four Seasons Hotel"
+    },
+    "2025-11-12": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-11-13": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-11-14": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-11-15": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-11-16": {
+      "city": "Phuket",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "The Aquila Villa"
+    },
+    "2025-11-17": {
+      "city": "Phuket",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "The Aquila Villa"
+    },
+    "2025-11-18": {
+      "city": "Phuket",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "The Aquila Villa"
+    },
+    "2025-11-19": {
+      "city": "Phuket",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "The Aquila Villa"
+    },
+    "2025-11-20": {
+      "city": "Phuket",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "The Aquila Villa"
+    },
+    "2025-11-21": {
+      "city": "Phuket",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "The Aquila Villa"
+    },
+    "2025-11-22": {
+      "city": "Phuket",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "The Aquila Villa"
+    },
+    "2025-11-23": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-11-24": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-11-25": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-11-26": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-11-27": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-11-28": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-11-29": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-11-30": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-01": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-02": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-03": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-04": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-05": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-06": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-07": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-08": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-09": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-10": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-11": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-12": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-13": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-14": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-15": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-16": {
+      "city": "Phuket",
+      "country": "Thailand",
+      "flights": "FD3091",
+      "notes": "",
+      "place": "Villa Aquila"
+    },
+    "2025-12-17": {
+      "city": "Phuket",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Villa Aquila"
+    },
+    "2025-12-18": {
+      "city": "Phuket",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Villa Aquila"
+    },
+    "2025-12-19": {
+      "city": "Phuket",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Villa Aquila"
+    },
+    "2025-12-20": {
+      "city": "Phuket",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Villa Aquila"
+    },
+    "2025-12-21": {
+      "city": "Phuket",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Villa Aquila"
+    },
+    "2025-12-22": {
+      "city": "Phuket",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Villa Aquila"
+    },
+    "2025-12-23": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "FD3030",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-24": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-25": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-26": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-27": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-28": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-29": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-30": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2025-12-31": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2026-01-01": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2026-01-02": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2026-01-03": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2026-01-04": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2026-01-05": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2026-01-06": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2026-01-07": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2026-01-08": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2026-01-09": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2026-01-10": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2026-01-11": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2026-01-12": {
+      "city": "Niseko",
+      "country": "Japan",
+      "flights": "",
+      "notes": "",
+      "place": "Setsu Niseko Hotel"
+    },
+    "2026-01-13": {
+      "city": "Niseko",
+      "country": "Japan",
+      "flights": "`",
+      "notes": "",
+      "place": "Setsu Niseko Hotel"
+    },
+    "2026-01-14": {
+      "city": "Niseko",
+      "country": "Japan",
+      "flights": "",
+      "notes": "",
+      "place": "Setsu Niseko Hotel"
+    },
+    "2026-01-15": {
+      "city": "Niseko",
+      "country": "Japan",
+      "flights": "",
+      "notes": "",
+      "place": "Setsu Niseko Hotel"
+    },
+    "2026-01-16": {
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "TG671",
+      "notes": "",
+      "place": "Baan Sathorn Chaophraya"
+    },
+    "2026-01-17": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "TG916",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-01-18": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-01-19": {
+      "city": "Como",
+      "country": "Italy",
+      "flights": "BA588",
+      "notes": "",
+      "place": "Palazzo Venezia"
+    },
+    "2026-01-20": {
+      "city": "Milan",
+      "country": "Italy",
+      "flights": "",
+      "notes": "",
+      "place": "Westin Palace"
+    },
+    "2026-01-21": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "BA573",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-01-22": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-01-23": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-01-24": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-01-25": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-01-26": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-01-27": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-01-28": {
+      "city": "London",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "London Marriott Hotel, Grosvenor Square"
+    },
+    "2026-01-29": {
+      "city": "Milan",
+      "country": "Italy",
+      "flights": "BA576",
+      "notes": "",
+      "place": "Casa Brera Hotel, Milan"
+    },
+    "2026-01-30": {
+      "city": "Milan",
+      "country": "Italy",
+      "flights": "BA583",
+      "notes": "",
+      "place": "Casa Brera Hotel, Milan"
+    },
+    "2026-01-31": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-01": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-02": {
+      "city": "Geneva",
+      "country": "Switzerland",
+      "flights": "BA744",
+      "notes": "",
+      "place": "Hotel President Wilson"
+    },
+    "2026-02-03": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "BA737",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-04": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-05": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-06": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-07": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-08": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-09": {
+      "city": "Chennai",
+      "country": "India",
+      "flights": "BA35",
+      "notes": "",
+      "place": "ITC Grand Chola, Chennai"
+    },
+    "2026-02-10": {
+      "city": "Dehli",
+      "country": "India",
+      "flights": "IGO613",
+      "notes": "",
+      "place": "JW Marriot, Dehli"
+    },
+    "2026-02-11": {
+      "city": "Dehli",
+      "country": "India",
+      "flights": "",
+      "notes": "",
+      "place": "JW Marriot, Dehli"
+    },
+    "2026-02-12": {
+      "city": "Dehli",
+      "country": "India",
+      "flights": "",
+      "notes": "",
+      "place": "JW Marriot, Dehli"
+    },
+    "2026-02-13": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "BA256",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-14": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-15": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-16": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-17": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-18": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-19": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-20": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane",
+      "working": true
+    },
+    "2026-02-21": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-22": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-23": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-24": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-25": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-26": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-27": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-02-28": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-01": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-02": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-03": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-04": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-05": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-06": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-07": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-08": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-09": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-10": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-11": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-12": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-13": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-14": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-15": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-16": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-17": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-18": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-19": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-21": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-22": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-23": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-24": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-25": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-26": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-27": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-28": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-29": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-30": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-03-31": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-01": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-02": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-03": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-04": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-05": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-06": {
+      "city": "Cernobbio",
+      "country": "Italy",
+      "flights": "",
+      "notes": "",
+      "place": "Cernobbio"
+    },
+    "2026-04-07": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-08": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-09": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-10": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-11": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-12": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-13": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-14": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-15": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-16": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-17": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-18": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-19": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-20": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-21": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-22": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-23": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-24": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-25": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    },
+    "2026-04-26": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "417 Meadow Lane"
+    }
+  },
+  "presets": [
+    {
+      "city": "Cernobbio",
+      "country": "Italy",
+      "icon": "🇮🇹",
+      "id": "cernobbio",
+      "label": "Cernobbio",
+      "place": "Cernobbio",
+      "sub": "Italy",
+      "type": "hotel"
+    },
+    {
+      "city": "Oxford",
+      "country": "UK",
+      "icon": "🇬🇧",
+      "id": "oxford",
+      "label": "417 Meadow Lane",
+      "place": "Oxford",
+      "sub": "Oxford, UK",
+      "type": "fixed"
+    },
+    {
+      "city": "10600, Bangkok",
+      "country": "Thailand",
+      "icon": "🇹🇭",
+      "id": "bangkok",
+      "label": "Steve Brazier",
+      "place": "931/301 Baan Sathorn Chaophraya",
+      "sub": "10600, Bangkok, Thailand",
+      "type": "fixed"
+    }
+  ],
+  "settings": {
+    "lastBackfill": "2026-02-21T08:03:53.452Z",
+    "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
+  }
+}
