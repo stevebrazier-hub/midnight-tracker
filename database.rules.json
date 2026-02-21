@@ -28,6 +28,7 @@
         "autoGps": { ".validate": "newData.isBoolean()" },
         "unconfirmed": { ".validate": "newData.isBoolean()" },
         "autoBooking": { ".validate": "newData.isBoolean()" },
+        "gpsConfirmed": { ".validate": "newData.isBoolean()" },
         "countryConflict": { ".validate": "newData.isString()" }
       }
     }

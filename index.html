@@ -617,6 +617,7 @@ function syncEntry(date, entry) {
   if (entry.autoGps) data.autoGps = true;
   if (entry.unconfirmed) data.unconfirmed = true;
   if (entry.autoBooking) data.autoBooking = true;
+  if (entry.gpsConfirmed) data.gpsConfirmed = true;
   if (entry.countryConflict) data.countryConflict = entry.countryConflict;
   fbSet('locations/' + date, data);
   entry.synced = true;
@@ -706,9 +707,10 @@ function renderList() {
         (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') +
         '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">' +
         (entry?.lat ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">📍 ' + entry.lat.toFixed(4) + ', ' + entry.lon.toFixed(4) + '</div>' : '') +
-        (entry?.autoGps && !entry?.unconfirmed ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS VERIFIED</div>' : '') +
-        (entry && !entry.autoGps && !entry.autoBooking && entry.city ? '<div class="working-tag" style="background:#f3e8ff;color:#6b21a8;">MANUAL</div>' : '') +
-        (entry?.autoBooking ? '<div class="working-tag" style="background:#e8f0fe;color:#1a73e8;">BOOKING</div>' : '') +
+        (entry?.autoGps && !entry?.unconfirmed && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS</div>' : '') +
+        (entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS + MANUAL</div>' : '') +
+        (entry && !entry.autoGps && !entry.autoBooking && !entry.gpsConfirmed && entry.city ? '<div class="working-tag" style="background:#f3e8ff;color:#6b21a8;">MANUAL</div>' : '') +
+        (entry?.autoBooking && !entry?.autoGps && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f0fe;color:#1a73e8;">BOOKING</div>' : '') +
         (isUnconfirmed ? '<div class="working-tag" style="background:var(--err-bg);color:var(--err);">UNCONFIRMED</div>' : '') +
         (entry?.countryConflict ? '<div class="working-tag" style="background:#fff3cd;color:#856404;">⚠ COUNTRY MISMATCH</div>' : '') +
         (isWorking ? '<div class="working-tag">WORKING</div>' : '') +
@@ -1205,11 +1207,11 @@ function saveDay() {
     working: document.getElementById('editWorking').checked ? true : false,
     synced: false
   };
-  // Preserve GPS if it was already set
+  // Preserve GPS coordinates and flag if already captured
   if (existing?.lat) entry.lat = existing.lat;
   if (existing?.lon) entry.lon = existing.lon;
-  // Manual save clears auto-GPS flags
-  // (no autoGps, no unconfirmed = manually confirmed)
+  if (existing?.autoGps) entry.gpsConfirmed = true; // GPS was captured at some point
+  // Manual save clears unconfirmed and conflict flags
 
   if (entry.place || entry.city || entry.country) {
     entries[savedDate] = entry;
@@ -1658,7 +1660,7 @@ function exportCSV() {
   allDates.forEach(ds => {
     const e = entries[ds];
     const d = new Date(ds + 'T00:00:00');
-    csv += ds + ',' + daysFull[d.getDay()] + ',' + esc(e.place) + ',' + esc(e.city) + ',' + esc(e.country) + ',' + esc(e.flights) + ',' + esc(e.notes) + ',' + (e.lat||'') + ',' + (e.lon||'') + ',' + (e.working ? 'Yes' : '') + ',' + (e.autoBooking ? 'Booking' : e.autoGps ? 'GPS' : 'Manual') + ',' + esc(e.countryConflict || '') + '\n';
+    csv += ds + ',' + daysFull[d.getDay()] + ',' + esc(e.place) + ',' + esc(e.city) + ',' + esc(e.country) + ',' + esc(e.flights) + ',' + esc(e.notes) + ',' + (e.lat||'') + ',' + (e.lon||'') + ',' + (e.working ? 'Yes' : '') + ',' + (e.gpsConfirmed ? 'GPS + Manual' : e.autoBooking ? 'Booking' : e.autoGps ? 'GPS' : 'Manual') + ',' + esc(e.countryConflict || '') + '\n';
   });
   download(csv, 'midnight-tracker-export-' + fmtDate(new Date()) + '.csv', 'text/csv');
   toast('Exported CSV');
