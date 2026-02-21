@@ -5,6 +5,9 @@ on:
     - cron: '30 2 * * *'   # 02:30 UTC daily (after midnight CET)
   workflow_dispatch:         # manual trigger
 
+permissions:
+  contents: write
+
 jobs:
   backup:
     runs-on: ubuntu-latest
