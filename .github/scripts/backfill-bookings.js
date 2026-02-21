@@ -330,8 +330,9 @@ async function processCalendar(token) {
     }
 
     if (isHotel && evEnd) {
-      // Use subject first for cleaner extraction, fall back to full text
-      const hotelName = extractHotelName(subject) || extractHotelName(allText) || '';
+      // For "check in" / "check out" events, the hotel name is usually in the location field
+      // Try subject first, then location, then full text
+      const hotelName = extractHotelName(subject) || location || extractHotelName(allText) || '';
       const nights = dateRange(evStart, new Date(evEnd.getTime() - 86400000));
       const nightsInTaxYear = nights.filter(d => d >= TAX_YEAR_START);
 

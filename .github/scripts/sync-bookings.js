@@ -281,8 +281,8 @@ async function processCalendar(token) {
     }
 
     if (isHotel && endDate) {
-      // Use subject first for cleaner extraction, fall back to full text
-      const hotelName = extractHotelName(subject) || extractHotelName(allText) || '';
+      // For "check in" / "check out" events, the hotel name is usually in the location field
+      const hotelName = extractHotelName(subject) || location || extractHotelName(allText) || '';
       const nights = dateRange(startDate, new Date(endDate.getTime() - 86400000)); // Exclude checkout day
 
       for (const dateStr of nights) {
