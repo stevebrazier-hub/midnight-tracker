@@ -576,16 +576,22 @@ async function main() {
   console.log('Tax year start:', TAX_YEAR_START);
   console.log('Time:', new Date().toISOString());
 
-  // STEP 0: Clean slate — remove all autoBooking entries that have no GPS or manual confirmation
+  // STEP 0: Clean slate — remove auto-booking entries and fix bad data
   console.log('\nCleaning up previous auto-booking entries...');
   const cleanSnap = await db.ref('locations').once('value');
   const cleanData = cleanSnap.val() || {};
   const removals = {};
   let removeCount = 0;
   for (const [dateStr, entry] of Object.entries(cleanData)) {
+    // Remove pure auto-booking entries (no GPS or manual confirmation)
     if (entry.autoBooking && !entry.autoGps && !entry.gpsConfirmed) {
       removals['locations/' + dateStr] = null;
       removeCount++;
+    }
+    // Also clean up entries with bad place names from previous runs
+    else if (entry.place && /^(check.?in|check.?out|Fw:|Re:|FW:|RE:)/i.test(entry.place)) {
+      removals['locations/' + dateStr + '/place'] = '';
+      console.log(`  Cleaning bad place name on ${dateStr}: "${entry.place.slice(0, 40)}"`);
     }
   }
   if (removeCount > 0) {
