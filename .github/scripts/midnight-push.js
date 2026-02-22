@@ -50,7 +50,7 @@ async function sendMidnightPush() {
   const message = {
     notification: {
       title: '🌙 Midnight Location Check',
-      body: 'Tap to log where you are right now'
+      body: 'GPS captured automatically — tap only if you need to correct it'
     },
     data: {
       action: 'capture-gps',
