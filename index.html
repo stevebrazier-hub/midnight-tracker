@@ -745,6 +745,12 @@ function renderList() {
 
   container.innerHTML = html;
 
+  // Scroll today's row into view (centred on screen)
+  const todayEl = container.querySelector('.is-today');
+  if (todayEl) {
+    todayEl.scrollIntoView({ block: 'center', behavior: 'instant' });
+  }
+
   // Update range label
   let firstM = startM + scrollOffset;
   let firstY = startY;
