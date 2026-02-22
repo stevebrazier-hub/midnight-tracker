@@ -1,11 +1,12 @@
 name: Midnight GPS Push
 
-# Runs at 23:00 UTC (midnight CET / 00:00 Italy time)
-# Adjust if needed for summer time (22:00 UTC = midnight CEST)
+# Fires at UK midnight (what matters for HMRC)
+# GMT (winter): midnight UK = 00:00 UTC
+# BST (summer): midnight UK = 23:00 UTC
 on:
   schedule:
-    - cron: '0 23 * * *'   # midnight CET (winter)
-    - cron: '0 22 * * *'   # midnight CEST (summer)
+    - cron: '0 0 * * *'    # midnight GMT (winter: late Oct - late Mar)
+    - cron: '0 23 * * *'   # midnight BST (summer: late Mar - late Oct)
   workflow_dispatch:         # manual trigger for testing
 
 jobs:

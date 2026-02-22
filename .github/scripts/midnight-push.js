@@ -38,11 +38,14 @@ async function sendMidnightPush() {
     process.exit(0);
   }
 
-  // Determine today's date in CET/CEST
+  // Determine today's date in UK time (GMT/BST) — what matters for HMRC
   const now = new Date();
-  const cetOffset = now.getTimezoneOffset(); // UTC offset in minutes
-  // Just use UTC date since we fire at ~midnight CET
-  const dateStr = now.toISOString().slice(0, 10);
+  const ukDate = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(now);
+  const dateStr = ukDate.find(p => p.type === 'year').value + '-' +
+    ukDate.find(p => p.type === 'month').value + '-' +
+    ukDate.find(p => p.type === 'day').value;
 
   const message = {
     notification: {

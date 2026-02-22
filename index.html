@@ -1439,15 +1439,16 @@ async function sendTeamsAlert(message) {
 }
 
 // Core auto-GPS function
-async function autoGPSCapture(dateStr) {
+// force=true when triggered by push notification tap (always capture, even if entry exists)
+async function autoGPSCapture(dateStr, force) {
   if (!navigator.geolocation) {
     showGpsBanner('error', 'GPS not available on this device.');
     return;
   }
 
-  // Don't overwrite a manually-set entry (one that has a city but wasn't auto-captured)
+  // Don't overwrite a manually-set entry UNLESS forced by push notification
   const existing = entries[dateStr];
-  if (existing && existing.city && !existing.autoGps) {
+  if (!force && existing && existing.city && !existing.autoGps) {
     console.log('Skipping auto-GPS for ' + dateStr + ' — already manually set');
     return;
   }
@@ -1561,31 +1562,40 @@ function dismissGpsBanner() {
   document.getElementById('gpsBanner').style.display = 'none';
 }
 
-// Schedule GPS capture at midnight
+// Schedule GPS capture at UK midnight (GMT in winter, BST in summer)
 let midnightTimer = null;
 function scheduleMidnightCapture() {
   if (midnightTimer) clearTimeout(midnightTimer);
   const now = new Date();
-  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5); // 5 seconds past midnight
-  const ms = midnight - now;
-  console.log('Next midnight GPS capture in ' + Math.round(ms / 60000) + ' minutes');
+  // Calculate next UK midnight by checking the current UK date and finding when it changes
+  const currentUkDate = ukDateStr(now);
+  // Probe forward in 1-minute steps to find when UK date rolls over (max 25 hours)
+  let msToMidnight = 0;
+  for (let m = 1; m <= 1500; m++) {
+    const future = new Date(now.getTime() + m * 60000);
+    if (ukDateStr(future) !== currentUkDate) {
+      msToMidnight = m * 60000 + 5000; // 5 seconds past UK midnight
+      break;
+    }
+  }
+  if (msToMidnight === 0) msToMidnight = 24 * 60 * 60 * 1000; // fallback 24h
+  console.log('Next UK midnight GPS capture in ' + Math.round(msToMidnight / 60000) + ' minutes');
   midnightTimer = setTimeout(() => {
-    const dateStr = fmtDate(new Date());
-    console.log('Midnight! Auto-capturing GPS for ' + dateStr);
+    const dateStr = ukDateStr(new Date());
+    console.log('UK midnight! Auto-capturing GPS for ' + dateStr);
     autoGPSCapture(dateStr).then(() => {
-      // Schedule the next one
       scheduleMidnightCapture();
     });
-  }, ms);
+  }, msToMidnight);
 }
 
-// On app load, check if today needs auto-GPS
+// On app load, check if today (UK date) needs auto-GPS
 function checkTodayGPS() {
-  const todayStr = fmtDate(new Date());
+  const todayStr = ukDateStr(new Date());
   const existing = entries[todayStr];
   // If no entry for today, or entry was auto-GPS and unconfirmed, try capturing
   if (!existing || (!existing.city && !existing.place)) {
-    console.log('No entry for today, auto-capturing GPS...');
+    console.log('No entry for UK date ' + todayStr + ', auto-capturing GPS...');
     autoGPSCapture(todayStr);
   }
 }
@@ -1659,9 +1669,9 @@ async function initPushNotifications() {
     // Handle foreground messages
     messaging.onMessage(payload => {
       console.log('Push received (foreground):', payload);
-      // App is open — trigger GPS capture
-      const todayStr = fmtDate(new Date());
-      autoGPSCapture(todayStr);
+      // App is open — trigger GPS capture using UK date
+      const todayStr = ukDateStr(new Date());
+      autoGPSCapture(todayStr, true); // force=true from push notification
     });
 
   } catch(e) {
@@ -1703,11 +1713,8 @@ function loadVapidKey() {
 // Test button for settings
 function testMidnightGPS() {
   toast('Capturing GPS...');
-  const todayStr = fmtDate(new Date());
-  // Force capture even if already set
-  const existing = entries[todayStr];
-  if (existing) delete existing.autoGps; // Allow re-capture
-  autoGPSCapture(todayStr).then(ok => {
+  const todayStr = ukDateStr(new Date());
+  autoGPSCapture(todayStr, true).then(ok => {
     if (ok) toast('GPS captured — check today in the location tab');
   });
 }
@@ -1801,6 +1808,17 @@ function fmtDate(d) {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
 
+// Get current date string in UK time (GMT in winter, BST in summer)
+// This is the authoritative "what date is it at midnight UK" function
+function ukDateStr(d) {
+  const opts = { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' };
+  const parts = new Intl.DateTimeFormat('en-GB', opts).formatToParts(d || new Date());
+  const y = parts.find(p => p.type === 'year').value;
+  const m = parts.find(p => p.type === 'month').value;
+  const day = parts.find(p => p.type === 'day').value;
+  return y + '-' + m + '-' + day;
+}
+
 function formatDisplayDate(ds) {
   const d = new Date(ds + 'T00:00:00');
   return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -1837,10 +1855,8 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', event => {
     if (event.data?.type === 'midnight-gps-capture') {
       console.log('Push notification tapped — capturing GPS');
-      const todayStr = fmtDate(new Date());
-      const existing = entries[todayStr];
-      if (existing) delete existing.autoGps; // Force re-capture
-      autoGPSCapture(todayStr);
+      const todayStr = ukDateStr(new Date());
+      autoGPSCapture(todayStr, true); // force=true from push notification
     }
   });
 }
@@ -1851,10 +1867,9 @@ if (window.location.search.includes('capture=midnight')) {
   window.history.replaceState({}, '', window.location.pathname);
   // Delay to let auth + Firebase sync happen first
   setTimeout(() => {
-    const todayStr = fmtDate(new Date());
-    const existing = entries[todayStr];
-    if (existing) delete existing.autoGps;
-    autoGPSCapture(todayStr);
+    const todayStr = ukDateStr(new Date());
+    console.log('Opened from notification — capturing GPS for UK date ' + todayStr);
+    autoGPSCapture(todayStr, true); // force=true from push notification
   }, 4000);
 }
 </script>
