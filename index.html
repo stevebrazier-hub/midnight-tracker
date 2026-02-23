@@ -223,6 +223,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 [data-theme="dark"] .working-tag[style*="background:#e8f0fe"] { background: #172554 !important; color: #93c5fd !important; }
 [data-theme="dark"] .working-tag[style*="background:#fff3cd"] { background: #422006 !important; color: #fcd34d !important; }
 [data-theme="dark"] .working-tag[style*="background:#f5f5f5"] { background: #1e293b !important; color: #64748b !important; }
+[data-theme="dark"] .working-tag[style*="background:#fdf2f8"] { background: #500724 !important; color: #f9a8d4 !important; }
+[data-theme="dark"] #modalTransitWarning { background: #500724 !important; border-color: #9d174d !important; color: #f9a8d4 !important; }
 [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea {
   background: #0f172a; color: #e2e8f0; border-color: #334155;
 }
@@ -447,6 +449,10 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       </label>
     </div>
 
+    <div id="modalTransitWarning" style="display:none;margin-top:10px;padding:10px;background:#fdf2f8;border:1px solid #f9a8d4;border-radius:8px;font-size:12px;color:#be185d;">
+      ✈ <strong>Transit day</strong> — you flew and the country changed. Double-check that the location recorded is where you actually were at midnight (not the departure or arrival airport).
+    </div>
+
     <div id="modalMetaInfo" style="margin-top:10px;padding:10px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--text-light);">
       <div id="modalGpsCoords" style="margin-bottom:6px;display:none;">
         <span style="color:var(--text-light);">📍 GPS at midnight:</span> <span id="modalGpsText" style="font-family:monospace;font-size:11px;"></span>
@@ -597,6 +603,57 @@ function fbListen(path, cb) {
   if (db) db.ref(path).on('value', snap => { const v = snap.val(); cb(v); });
 }
 
+// ===== OFFLINE SYNC QUEUE (IndexedDB) =====
+// If Firebase sync fails (no connectivity), entries are queued and retried automatically.
+const SYNC_DB_NAME = 'mt-sync-queue';
+const SYNC_STORE = 'pending';
+
+function openSyncDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(SYNC_DB_NAME, 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore(SYNC_STORE, { keyPath: 'date' }); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function queueSync(date, data) {
+  try {
+    const idb = await openSyncDB();
+    const tx = idb.transaction(SYNC_STORE, 'readwrite');
+    tx.objectStore(SYNC_STORE).put({ date, data, timestamp: Date.now() });
+    await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+    console.log('Queued offline sync for ' + date);
+  } catch(e) { console.warn('IndexedDB queue failed:', e); }
+}
+
+async function flushSyncQueue() {
+  try {
+    const idb = await openSyncDB();
+    const tx = idb.transaction(SYNC_STORE, 'readonly');
+    const store = tx.objectStore(SYNC_STORE);
+    const all = await new Promise((res, rej) => { const r = store.getAll(); r.onsuccess = () => res(r.result); r.onerror = rej; });
+    if (!all.length) return;
+    console.log('Flushing ' + all.length + ' queued sync(s)...');
+    for (const item of all) {
+      try {
+        await db.ref('locations/' + item.date).set(item.data);
+        // Remove from queue on success
+        const dtx = idb.transaction(SYNC_STORE, 'readwrite');
+        dtx.objectStore(SYNC_STORE).delete(item.date);
+        await new Promise((res, rej) => { dtx.oncomplete = res; dtx.onerror = rej; });
+        console.log('Flushed sync for ' + item.date);
+      } catch(e) { console.warn('Flush failed for ' + item.date + ':', e); }
+    }
+  } catch(e) { console.warn('Flush sync queue error:', e); }
+}
+
+// Flush queue when we come back online
+window.addEventListener('online', () => {
+  console.log('Back online — flushing sync queue');
+  if (fbReady) flushSyncQueue();
+});
+
 // ===== STATE =====
 let HOME = { city: 'Cernobbio', country: 'Italy', place: 'Home' };
 let entries = {};
@@ -666,6 +723,8 @@ function initFirebaseSync() {
   db.ref('.info/connected').on('value', snap => {
     if (snap.val() === true) {
       setSyncStatus('ok', 'Connected');
+      // Flush any entries queued while offline
+      flushSyncQueue();
     } else {
       setSyncStatus('pending', 'Reconnecting...');
     }
@@ -673,7 +732,6 @@ function initFirebaseSync() {
 }
 
 function syncEntry(date, entry) {
-  if (!fbReady) return;
   const data = {
     place: entry.place || '', city: entry.city || '', country: entry.country || '',
     flights: entry.flights || '', notes: entry.notes || ''
@@ -687,9 +745,21 @@ function syncEntry(date, entry) {
   if (entry.gpsConfirmed) data.gpsConfirmed = true;
   if (entry.bookingSource) data.bookingSource = entry.bookingSource;
   if (entry.countryConflict) data.countryConflict = entry.countryConflict;
-  fbSet('locations/' + date, data);
-  entry.synced = true;
-  saveLocal();
+
+  if (!fbReady || !navigator.onLine) {
+    // Offline or Firebase not ready — queue for later
+    queueSync(date, data);
+    return;
+  }
+
+  // Try to sync, queue on failure
+  db.ref('locations/' + date).set(data).then(() => {
+    entry.synced = true;
+    saveLocal();
+  }).catch(err => {
+    console.warn('Firebase sync failed, queueing:', err.message);
+    queueSync(date, data);
+  });
 }
 
 function deleteEntry(date) {
@@ -769,6 +839,18 @@ function renderList() {
       if (hasData && isHome) cls += ' is-home';
       if (!hasData) cls += ' is-unrecorded';
 
+      // Travel day intelligence: flag if flights + country changed from yesterday
+      let transitFlag = '';
+      if (flights && hasData) {
+        const prevDs = fmtDate(new Date(y, m, d - 1));
+        const nextDs = fmtDate(new Date(y, m, d + 1));
+        const prevCountry = entries[prevDs]?.country || '';
+        const nextCountry = entries[nextDs]?.country || '';
+        if ((prevCountry && prevCountry !== country) || (nextCountry && nextCountry !== country)) {
+          transitFlag = '<div class="working-tag" style="background:#fdf2f8;color:#be185d;">✈ TRANSIT DAY</div>';
+        }
+      }
+
       const isWorking = entry?.working;
       const isUnconfirmed = entry?.unconfirmed;
       monthHtml += '<div class="' + cls + '" onclick="openDay(\'' + ds + '\')">' +
@@ -783,6 +865,7 @@ function renderList() {
         (entry?.autoBooking && !entry?.autoGps && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f0fe;color:#1a73e8;">BOOKING' + (entry.flights && entry.place ? ' ✈+🏨' : entry.flights ? ' ✈' : entry.place ? ' 🏨' : '') + '</div>' : '') +
         (isUnconfirmed ? '<div class="working-tag" style="background:var(--err-bg);color:var(--err);">UNCONFIRMED</div>' : '') +
         (entry?.countryConflict ? '<div class="working-tag" style="background:#fff3cd;color:#856404;">⚠ COUNTRY MISMATCH</div>' : '') +
+        transitFlag +
         (isWorking ? '<div class="working-tag">WORKING</div>' : '') +
         (!entry ? '<div class="working-tag" style="background:#f5f5f5;color:#999;">NO DATA</div>' : '') +
         '</div>' + '</div>' +
@@ -978,7 +1061,111 @@ function renderStats() {
   html += '<div style="font-size:11px;color:var(--text-light);margin-top:8px;">Tag UK working days in the edit modal (defaults to not working)</div>';
   html += '</div>';
 
+  // ── HMRC Tax Year Report button ──
+  html += '<div class="stat-card">';
+  html += '<h3>HMRC Tax Year Report</h3>';
+  html += '<p style="font-size:13px;color:var(--text-light);margin-bottom:12px;">Generate a comprehensive report for the selected tax year with the Statutory Residence Test results, country breakdown, and full day-by-day audit trail.</p>';
+  html += '<button class="btn btn-primary" onclick="exportHMRCReport()" style="width:100%;">Export HMRC Report (CSV)</button>';
+  html += '</div>';
+
   document.getElementById('statsContent').innerHTML = html;
+}
+
+// ===== HMRC TAX YEAR REPORT =====
+function exportHMRCReport() {
+  const startYear = parseInt(document.getElementById('statsYear').value);
+  const { start: taxStart, end: taxEnd } = taxYearDates(startYear);
+  const today = new Date();
+  const lastDay = taxEnd < today ? taxEnd : today;
+  const totalTaxDays = taxYearTotalDays(startYear);
+  const label = taxYearLabel(startYear);
+  const daysFull = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  // Accumulate stats
+  const countryCounts = {};
+  let ukNights = 0, italyDays = 0, ukWorkDays = 0, daysElapsed = 0;
+  let gapDates = [];
+  const dayRows = [];
+
+  for (let d = new Date(taxStart); d <= lastDay; d.setDate(d.getDate() + 1)) {
+    const ds = fmtDate(d);
+    const entry = entries[ds];
+    const country = entry?.country || '';
+    daysElapsed++;
+    if (country) {
+      countryCounts[country] = (countryCounts[country] || 0) + 1;
+      if (country === 'UK') ukNights++;
+      if (country === 'Italy') italyDays++;
+    } else {
+      countryCounts['Unrecorded'] = (countryCounts['Unrecorded'] || 0) + 1;
+      gapDates.push(ds);
+    }
+    if (entry?.working) ukWorkDays++;
+
+    // Build audit row
+    const source = entry ? (entry.gpsConfirmed ? 'GPS + Manual' : entry.autoBooking ? 'Booking' : entry.autoGps ? 'GPS' : entry.city ? 'Manual' : '') : '';
+    dayRows.push({
+      date: ds, day: daysFull[new Date(ds + 'T00:00:00').getDay()],
+      place: entry?.place || '', city: entry?.city || '', country: country || 'UNRECORDED',
+      flights: entry?.flights || '', working: entry?.working ? 'Yes' : '',
+      lat: entry?.lat ? entry.lat.toFixed(6) : '', lon: entry?.lon ? entry.lon.toFixed(6) : '',
+      source, conflict: entry?.countryConflict || '', notes: entry?.notes || ''
+    });
+  }
+
+  const daysRemaining = totalTaxDays - daysElapsed;
+  const italyProjected = daysElapsed > 0 ? Math.round((italyDays / daysElapsed) * totalTaxDays) : 0;
+  const ukProjected = daysElapsed > 0 ? Math.round((ukNights / daysElapsed) * totalTaxDays) : 0;
+  const ukWorkProjected = daysElapsed > 0 ? Math.round((ukWorkDays / daysElapsed) * totalTaxDays) : 0;
+  const sorted = Object.entries(countryCounts).sort((a, b) => b[1] - a[1]);
+
+  // Build CSV
+  let csv = '';
+  csv += 'HMRC Tax Year Report: ' + label + ' (6 April ' + startYear + ' to 5 April ' + (startYear + 1) + ')\n';
+  csv += 'Generated: ' + new Date().toISOString().slice(0, 10) + '\n\n';
+
+  csv += '=== STATUTORY RESIDENCE TEST SUMMARY ===\n';
+  csv += 'Days elapsed,' + daysElapsed + '\n';
+  csv += 'Days remaining,' + daysRemaining + '\n\n';
+
+  csv += 'Italy 183-day residency target\n';
+  csv += 'Actual nights in Italy,' + italyDays + '\n';
+  csv += 'Target,183\n';
+  csv += 'Projected (full year),' + italyProjected + '\n';
+  csv += 'Status,' + (italyDays >= 183 ? 'MET' : italyProjected >= 183 ? 'On track' : 'AT RISK — ' + (183 - italyDays) + ' more nights needed') + '\n\n';
+
+  csv += 'UK 90-night limit\n';
+  csv += 'Actual UK midnights,' + ukNights + '\n';
+  csv += 'Limit,90\n';
+  csv += 'Projected (full year),' + ukProjected + '\n';
+  csv += 'Status,' + (ukNights > 90 ? 'EXCEEDED by ' + (ukNights - 90) : ukProjected <= 90 ? 'Safe — ' + (90 - ukNights) + ' remaining' : 'AT RISK') + '\n\n';
+
+  csv += 'UK 30-day working limit\n';
+  csv += 'Actual UK working days,' + ukWorkDays + '\n';
+  csv += 'Limit,30\n';
+  csv += 'Projected (full year),' + ukWorkProjected + '\n';
+  csv += 'Status,' + (ukWorkDays > 30 ? 'EXCEEDED by ' + (ukWorkDays - 30) : ukWorkProjected <= 30 ? 'Safe — ' + (30 - ukWorkDays) + ' remaining' : 'AT RISK') + '\n\n';
+
+  csv += '=== COUNTRY BREAKDOWN ===\n';
+  csv += 'Country,Nights,Percentage\n';
+  sorted.forEach(([country, days]) => {
+    csv += esc(country) + ',' + days + ',' + ((days / daysElapsed) * 100).toFixed(1) + '%\n';
+  });
+
+  if (gapDates.length > 0) {
+    csv += '\n=== DATA GAPS (' + gapDates.length + ' days) ===\n';
+    csv += 'These dates have no location data and need attention:\n';
+    gapDates.forEach(d => { csv += d + ',' + daysFull[new Date(d + 'T00:00:00').getDay()] + '\n'; });
+  }
+
+  csv += '\n=== DAY-BY-DAY AUDIT TRAIL ===\n';
+  csv += 'Date,Day,Place,City,Country,Flights,Working,Lat,Lon,Source,Conflict,Notes\n';
+  dayRows.forEach(r => {
+    csv += r.date + ',' + r.day + ',' + esc(r.place) + ',' + esc(r.city) + ',' + esc(r.country) + ',' + esc(r.flights) + ',' + r.working + ',' + r.lat + ',' + r.lon + ',' + r.source + ',' + esc(r.conflict) + ',' + esc(r.notes) + '\n';
+  });
+
+  download(csv, 'HMRC-Tax-Report-' + label.replace('/', '-') + '.csv', 'text/csv');
+  toast('HMRC report exported');
 }
 
 document.getElementById('statsYear').addEventListener('change', renderStats);
@@ -1355,6 +1542,20 @@ function openDay(dateStr) {
     bsDetailDiv.style.display = '';
   } else {
     bsDetailDiv.style.display = 'none';
+  }
+
+  // Transit day warning — flights + country changed from adjacent days
+  const transitDiv = document.getElementById('modalTransitWarning');
+  if (entry.flights && entry.country) {
+    const d = new Date(dateStr + 'T00:00:00');
+    const prevDs = fmtDate(new Date(d.getTime() - 86400000));
+    const nextDs = fmtDate(new Date(d.getTime() + 86400000));
+    const prevCountry = entries[prevDs]?.country || '';
+    const nextCountry = entries[nextDs]?.country || '';
+    const isTransit = (prevCountry && prevCountry !== entry.country) || (nextCountry && nextCountry !== entry.country);
+    transitDiv.style.display = isTransit ? '' : 'none';
+  } else {
+    transitDiv.style.display = 'none';
   }
 
   document.getElementById('editModal').classList.add('open');
@@ -1954,22 +2155,27 @@ if ('serviceWorker' in navigator) {
   // Listen for messages from service worker (notification click while app is open)
   navigator.serviceWorker.addEventListener('message', event => {
     if (event.data?.type === 'midnight-gps-capture') {
-      console.log('Push notification tapped — capturing GPS');
-      const todayStr = ukDateStr(new Date());
-      autoGPSCapture(todayStr, true); // force=true from push notification
+      // Use the date from the push payload (the day that ended at midnight),
+      // NOT ukDateStr(new Date()) which gives the wrong day if tapped after midnight
+      const dateStr = event.data.date || ukDateStr(new Date());
+      console.log('Push notification tapped — capturing GPS for ' + dateStr);
+      autoGPSCapture(dateStr, true); // force=true from push notification
     }
   });
 }
 
 // Check URL params for capture flag (opened from notification)
 if (window.location.search.includes('capture=midnight')) {
-  // Remove the param from URL so it doesn't re-trigger on refresh
+  const params = new URLSearchParams(window.location.search);
+  const captureDate = params.get('date') || '';
+  // Remove the params from URL so it doesn't re-trigger on refresh
   window.history.replaceState({}, '', window.location.pathname);
   // Delay to let auth + Firebase sync happen first
   setTimeout(() => {
-    const todayStr = ukDateStr(new Date());
-    console.log('Opened from notification — capturing GPS for UK date ' + todayStr);
-    autoGPSCapture(todayStr, true); // force=true from push notification
+    // Use the date from the push payload if available
+    const dateStr = captureDate || ukDateStr(new Date());
+    console.log('Opened from notification — capturing GPS for ' + dateStr);
+    autoGPSCapture(dateStr, true); // force=true from push notification
   }, 4000);
 }
 </script>

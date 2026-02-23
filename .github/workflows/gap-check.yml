@@ -1,0 +1,29 @@
+name: Daily Gap Check
+
+# Runs at 08:00 UK time to check for missing midnight locations
+# GMT (winter): 08:00 UTC
+# BST (summer): 07:00 UTC
+on:
+  schedule:
+    - cron: '0 8 * * *'    # 08:00 UTC (winter)
+    - cron: '0 7 * * *'    # 08:00 BST (summer)
+  workflow_dispatch:         # manual trigger for testing
+
+jobs:
+  check-gaps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install firebase-admin@12
+
+      - name: Check for data gaps
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: node .github/scripts/gap-check.js

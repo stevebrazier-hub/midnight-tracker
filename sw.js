@@ -22,6 +22,9 @@ messaging.onBackgroundMessage(payload => {
   const title = payload.notification?.title || 'Midnight Tracker';
   const body = payload.notification?.body || 'Tap to log your midnight location';
 
+  // Forward the date from the push payload so the app captures against the correct day
+  const captureDate = payload.data?.date || '';
+
   return self.registration.showNotification(title, {
     body: body,
     icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%231b2838"/><text x="50" y="65" font-size="50" text-anchor="middle" fill="white">🌙</text></svg>',
@@ -29,13 +32,14 @@ messaging.onBackgroundMessage(payload => {
     tag: 'midnight-gps',
     renotify: true,
     requireInteraction: true,
-    data: { action: 'capture-gps', timestamp: Date.now() }
+    data: { action: 'capture-gps', date: captureDate, timestamp: Date.now() }
   });
 });
 
 // When user taps the notification — open the app with auto-capture flag
 self.addEventListener('notificationclick', event => {
   console.log('[SW] Notification clicked');
+  const captureDate = event.notification.data?.date || '';
   event.notification.close();
 
   event.waitUntil(
@@ -43,19 +47,24 @@ self.addEventListener('notificationclick', event => {
       // If app is already open, focus it and tell it to capture GPS
       for (const client of clients) {
         if (client.url.includes('midnight') && 'focus' in client) {
-          client.postMessage({ type: 'midnight-gps-capture' });
+          client.postMessage({ type: 'midnight-gps-capture', date: captureDate });
           return client.focus();
         }
       }
-      // Otherwise open the app with capture flag
-      return self.clients.openWindow('./?capture=midnight');
+      // Otherwise open the app with capture flag + date
+      const url = captureDate ? './?capture=midnight&date=' + captureDate : './?capture=midnight';
+      return self.clients.openWindow(url);
     })
   );
 });
 
 // ===== CACHING (PWA offline support) =====
-const CACHE_NAME = 'midnight-tracker-v2';
-const ASSETS = ['./index.html', './manifest.json'];
+const CACHE_NAME = 'midnight-tracker-v3';
+const ASSETS = [
+  './index.html',
+  './manifest.json',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
