@@ -189,6 +189,50 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 @media (min-width: 768px) {
   .modal { border-radius: 16px; margin-bottom: 20px; }
 }
+
+/* ===== DARK MODE ===== */
+/* Applied when <html> has data-theme="dark", or auto + OS dark preference */
+[data-theme="dark"] {
+  --primary: #00d4c3;
+  --primary-dark: #00b8a9;
+  --primary-light: #0d2e2b;
+  --navy: #0f1923;
+  --navy-light: #1a2a3a;
+  --text: #e2e8f0;
+  --text-light: #94a3b8;
+  --bg: #111827;
+  --white: #1e293b;
+  --border: #334155;
+  --warn: #f59e0b;
+  --warn-bg: #422006;
+  --err: #f87171;
+  --err-bg: #450a0a;
+  --ok: #34d399;
+  --ok-bg: #052e16;
+  --blue: #60a5fa;
+  --blue-bg: #172554;
+  --purple: #a78bfa;
+}
+[data-theme="dark"] .login-card { box-shadow: 0 4px 24px rgba(0,0,0,.3); }
+[data-theme="dark"] .modal { box-shadow: 0 -8px 30px rgba(0,0,0,.4); }
+[data-theme="dark"] .modal-bg { background: rgba(0,0,0,.6); }
+[data-theme="dark"] .list-item.is-home { opacity: .5; }
+[data-theme="dark"] .toast { background: #334155; }
+[data-theme="dark"] .working-tag[style*="background:#e8f5e9"] { background: #064e3b !important; color: #6ee7b7 !important; }
+[data-theme="dark"] .working-tag[style*="background:#f3e8ff"] { background: #2e1065 !important; color: #c4b5fd !important; }
+[data-theme="dark"] .working-tag[style*="background:#e8f0fe"] { background: #172554 !important; color: #93c5fd !important; }
+[data-theme="dark"] .working-tag[style*="background:#fff3cd"] { background: #422006 !important; color: #fcd34d !important; }
+[data-theme="dark"] .working-tag[style*="background:#f5f5f5"] { background: #1e293b !important; color: #64748b !important; }
+[data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea {
+  background: #0f172a; color: #e2e8f0; border-color: #334155;
+}
+[data-theme="dark"] .preset-btn .preset-icon { background: #0f172a; }
+[data-theme="dark"] .list-controls .month-nav button { background: #1e293b; border-color: #334155; color: #e2e8f0; }
+
+/* Theme toggle in settings */
+.theme-toggle { display: flex; gap: 4px; background: var(--bg); border-radius: 8px; padding: 3px; }
+.theme-toggle button { flex: 1; padding: 6px 12px; border-radius: 6px; background: none; font-size: 12px; font-weight: 500; color: var(--text-light); border: none; cursor: pointer; transition: all .15s; }
+.theme-toggle button.active { background: var(--white); color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,.1); border: 1px solid var(--border); }
 </style>
 </head>
 <body>
@@ -269,6 +313,16 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 <!-- SETTINGS VIEW -->
 <div id="settings" class="view">
   <div class="settings-section">
+
+    <div class="settings-card">
+      <h3>Appearance</h3>
+      <p style="margin-bottom:8px;">Choose light, dark, or auto (follows your device).</p>
+      <div class="theme-toggle" id="themeToggle">
+        <button onclick="setTheme('auto')" data-theme-btn="auto">Auto</button>
+        <button onclick="setTheme('light')" data-theme-btn="light">Light</button>
+        <button onclick="setTheme('dark')" data-theme-btn="dark">Dark</button>
+      </div>
+    </div>
 
     <div class="settings-card">
       <h3>Primary residence</h3>
@@ -722,7 +776,7 @@ function renderList() {
         '<div class="list-info"><div class="place">' + (place || (!hasData ? '<span style="color:var(--text-light);font-style:italic;">No data</span>' : '')) + '</div><div class="city-country">' + city + (country ? ', ' + country : '') + '</div>' +
         (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') +
         '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">' +
-        (entry?.lat ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">📍 ' + entry.lat.toFixed(4) + ', ' + entry.lon.toFixed(4) + '</div>' : '') +
+        (entry?.lat ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">📍 ' + entry.lat.toFixed(4) + ', ' + entry.lon.toFixed(4) + (entry.city ? ' · ' + entry.city : '') + '</div>' : '') +
         (entry?.autoGps && !entry?.unconfirmed && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS</div>' : '') +
         (entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS + MANUAL</div>' : '') +
         (entry && !entry.autoGps && !entry.autoBooking && !entry.gpsConfirmed && entry.city ? '<div class="working-tag" style="background:#f3e8ff;color:#6b21a8;">MANUAL</div>' : '') +
@@ -1260,7 +1314,7 @@ function openDay(dateStr) {
   const noGpsDiv = document.getElementById('modalNoGps');
   const gpsText = document.getElementById('modalGpsText');
   if (entry.lat && entry.lon) {
-    gpsText.textContent = entry.lat.toFixed(6) + ', ' + entry.lon.toFixed(6);
+    gpsText.textContent = entry.lat.toFixed(6) + ', ' + entry.lon.toFixed(6) + (entry.city ? '  →  ' + entry.city : '');
     gpsDiv.style.display = '';
     noGpsDiv.style.display = 'none';
   } else {
@@ -1587,9 +1641,11 @@ function scheduleMidnightCapture() {
   if (msToMidnight === 0) msToMidnight = 24 * 60 * 60 * 1000; // fallback 24h
   console.log('Next UK midnight GPS capture in ' + Math.round(msToMidnight / 60000) + ' minutes');
   midnightTimer = setTimeout(() => {
-    const dateStr = ukDateStr(new Date());
-    console.log('UK midnight! Auto-capturing GPS for ' + dateStr);
-    autoGPSCapture(dateStr).then(() => {
+    // Use currentUkDate (the day that just ended at midnight), NOT ukDateStr(new Date())
+    // which would return the new day. The midnight ping records where you slept,
+    // so it belongs to the day that just finished (e.g. Sunday 22nd, not Monday 23rd).
+    console.log('UK midnight! Auto-capturing GPS for ' + currentUkDate + ' (day just ended)');
+    autoGPSCapture(currentUkDate).then(() => {
       scheduleMidnightCapture();
     });
   }, msToMidnight);
@@ -1843,6 +1899,44 @@ function render() {
   else if (active === 'stats') renderStats();
   else if (active === 'settings') renderPresetsSettings();
 }
+
+// ===== THEME (DARK MODE) =====
+function applyTheme(pref) {
+  const html = document.documentElement;
+  if (pref === 'dark') {
+    html.setAttribute('data-theme', 'dark');
+  } else if (pref === 'light') {
+    html.removeAttribute('data-theme');
+  } else {
+    // Auto — follow OS preference
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      html.setAttribute('data-theme', 'dark');
+    } else {
+      html.removeAttribute('data-theme');
+    }
+  }
+  // Update toggle buttons
+  document.querySelectorAll('[data-theme-btn]').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-theme-btn') === pref);
+  });
+  // Update theme-color meta tag for mobile browser chrome
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', isDark ? '#0f1923' : '#1b2838');
+}
+
+function setTheme(pref) {
+  localStorage.setItem('mt-theme', pref);
+  applyTheme(pref);
+}
+
+// Apply theme immediately on load (before paint)
+applyTheme(localStorage.getItem('mt-theme') || 'auto');
+
+// Listen for OS preference changes when in auto mode
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  const pref = localStorage.getItem('mt-theme') || 'auto';
+  if (pref === 'auto') applyTheme('auto');
+});
 
 // ===== INIT =====
 const now = new Date();

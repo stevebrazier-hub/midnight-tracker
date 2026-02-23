@@ -38,11 +38,15 @@ async function sendMidnightPush() {
     process.exit(0);
   }
 
-  // Determine today's date in UK time (GMT/BST) — what matters for HMRC
+  // Determine the date that just ENDED at midnight in UK time (GMT/BST).
+  // The cron fires at or just after midnight, so new Date() gives the new day.
+  // Subtract 2 minutes to get the day that just finished — that's the day
+  // whose "midnight location" we're recording (e.g. Sunday 22nd, not Monday 23rd).
   const now = new Date();
+  const justBeforeMidnight = new Date(now.getTime() - 120000);
   const ukDate = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit'
-  }).formatToParts(now);
+  }).formatToParts(justBeforeMidnight);
   const dateStr = ukDate.find(p => p.type === 'year').value + '-' +
     ukDate.find(p => p.type === 'month').value + '-' +
     ukDate.find(p => p.type === 'day').value;
