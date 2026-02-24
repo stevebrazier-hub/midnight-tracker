@@ -2072,6 +2072,17 @@ function checkTodayGPS() {
     autoGPSCapture(todayStr);
   }
 
+  // Silent morning bracket capture: if opened between 6am-9am UK time and no
+  // morning bracket yet for today, capture one automatically (no push needed)
+  const ukHour = parseInt(new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hour12: false }));
+  if (ukHour >= 6 && ukHour < 9) {
+    const todayBrackets = entries[todayStr]?.brackets || {};
+    if (!todayBrackets.morning?.lat) {
+      console.log('Morning window (6-9am UK) — silently capturing morning bracket for ' + todayStr);
+      bracketGPSCapture(todayStr, 'morning');
+    }
+  }
+
   // Also check yesterday — if midnight push was missed (e.g. phone was off),
   // try to infer from bracket GPS data or capture now as a late backfill
   const yesterday = new Date();

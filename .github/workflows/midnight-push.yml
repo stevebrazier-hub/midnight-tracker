@@ -1,8 +1,9 @@
 name: Midnight GPS Push
 
-# Fires at UK midnight (what matters for HMRC) + bracket captures at 10pm and 7am
-# GMT (winter): midnight UK = 00:00 UTC, 10pm = 22:00 UTC, 7am = 07:00 UTC
-# BST (summer): midnight UK = 23:00 UTC, 10pm = 21:00 UTC, 7am = 06:00 UTC
+# Fires at UK midnight (what matters for HMRC) + evening bracket at 10pm
+# Morning bracket (7am) is captured silently when the app is opened — no push needed
+# GMT (winter): midnight UK = 00:00 UTC, 10pm = 22:00 UTC
+# BST (summer): midnight UK = 23:00 UTC, 10pm = 21:00 UTC
 on:
   schedule:
     # Midnight captures (the main HMRC one)
@@ -11,9 +12,6 @@ on:
     # Evening bracket (10pm UK)
     - cron: '0 22 * * *'   # 10pm GMT (winter)
     - cron: '0 21 * * *'   # 10pm BST (summer)
-    # Morning bracket (7am UK)
-    - cron: '0 7 * * *'    # 7am GMT (winter)
-    - cron: '0 6 * * *'    # 7am BST (summer)
   workflow_dispatch:         # manual trigger for testing
     inputs:
       capture_type:
@@ -47,7 +45,6 @@ jobs:
           case "$CRON" in
             "0 0 * * *"|"0 23 * * *")  echo "type=midnight" >> $GITHUB_OUTPUT ;;
             "0 22 * * *"|"0 21 * * *") echo "type=evening" >> $GITHUB_OUTPUT ;;
-            "0 7 * * *"|"0 6 * * *")   echo "type=morning" >> $GITHUB_OUTPUT ;;
             *)                          echo "type=midnight" >> $GITHUB_OUTPUT ;;
           esac
 

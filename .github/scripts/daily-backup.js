@@ -64,6 +64,8 @@ async function main() {
   const rows = Object.keys(locations).sort().map(dateStr => {
     const e = locations[dateStr];
     const d = new Date(dateStr + 'T00:00:00');
+    const ev = e.brackets?.evening;
+    const am = e.brackets?.morning;
     return {
       'Date': dateStr,
       'Day': dayNames[d.getDay()],
@@ -74,8 +76,18 @@ async function main() {
       'Notes': e.notes || '',
       'Latitude': e.lat || '',
       'Longitude': e.lon || '',
+      'GPS captured at': e.capturedAt || '',
       'Working': e.working ? 'Yes' : '',
-      'Source': e.gpsConfirmed ? 'GPS + Manual' : e.autoBooking ? 'Booking' : e.autoGps ? 'GPS' : (e.city ? 'Manual' : ''),
+      'Source': e.bracketInferred ? 'Bracket GPS' : e.gpsConfirmed ? 'GPS + Manual' : e.autoBooking ? 'Booking' : e.autoGps ? 'GPS' : (e.city ? 'Manual' : ''),
+      'Evening city': ev?.city || '',
+      'Evening country': ev?.country || '',
+      'Evening GPS': ev?.lat ? ev.lat.toFixed(5) + ', ' + ev.lon.toFixed(5) : '',
+      'Evening captured at': ev?.capturedAt || '',
+      'Morning city': am?.city || '',
+      'Morning country': am?.country || '',
+      'Morning GPS': am?.lat ? am.lat.toFixed(5) + ', ' + am.lon.toFixed(5) : '',
+      'Morning captured at': am?.capturedAt || '',
+      'Bracket inferred': e.bracketInferred ? 'Yes' : '',
       'Country conflict': e.countryConflict || '',
       'Booking source': e.bookingSource || '',
       'Auto GPS': e.autoGps ? 'Yes' : '',
@@ -98,8 +110,18 @@ async function main() {
       { wch: 20 }, // Notes
       { wch: 12 }, // Lat
       { wch: 12 }, // Lon
+      { wch: 24 }, // GPS captured at
       { wch: 8 },  // Working
       { wch: 14 }, // Source
+      { wch: 18 }, // Evening city
+      { wch: 14 }, // Evening country
+      { wch: 24 }, // Evening GPS
+      { wch: 24 }, // Evening captured at
+      { wch: 18 }, // Morning city
+      { wch: 14 }, // Morning country
+      { wch: 24 }, // Morning GPS
+      { wch: 24 }, // Morning captured at
+      { wch: 14 }, // Bracket inferred
       { wch: 30 }, // Conflict
       { wch: 50 }, // Booking source
       { wch: 8 },  // Auto GPS
