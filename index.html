@@ -456,9 +456,18 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
     <div id="modalMetaInfo" style="margin-top:10px;padding:10px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--text-light);">
       <div id="modalGpsCoords" style="margin-bottom:6px;display:none;">
         <span style="color:var(--text-light);">📍 GPS at midnight:</span> <span id="modalGpsText" style="font-family:monospace;font-size:11px;"></span>
+        <span id="modalCapturedAt" style="font-size:10px;color:#999;margin-left:6px;"></span>
       </div>
       <div id="modalNoGps" style="margin-bottom:6px;display:none;">
         <span style="color:var(--text-light);">📍 GPS at midnight:</span> <span style="font-style:italic;color:#999;">none</span>
+      </div>
+      <div id="modalBracketGps" style="margin-bottom:6px;display:none;font-size:11px;">
+        <div id="modalEveningBracket" style="display:none;margin-bottom:3px;">
+          <span style="color:var(--text-light);">🌆 Evening (10pm):</span> <span id="eveningBracketText" style="font-family:monospace;"></span>
+        </div>
+        <div id="modalMorningBracket" style="display:none;">
+          <span style="color:var(--text-light);">🌅 Morning (7am):</span> <span id="morningBracketText" style="font-family:monospace;"></span>
+        </div>
       </div>
       <div id="modalSources" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
       <div id="modalBookingSource" style="display:none;margin-top:6px;font-size:11px;">
@@ -839,15 +848,25 @@ function renderList() {
       if (hasData && isHome) cls += ' is-home';
       if (!hasData) cls += ' is-unrecorded';
 
-      // Travel day intelligence: flag if flights + country changed from yesterday
+      // Transit day intelligence: only flag if evidence suggests airborne at UK midnight.
+      // Criteria: flights exist AND country changed AND one of:
+      //   (a) no GPS was captured at midnight (suggesting phone was in flight mode / airborne), OR
+      //   (b) bracket GPS mismatch (evening in one country, morning in another), OR
+      //   (c) entry was not confirmed by GPS at all (no autoGps flag)
       let transitFlag = '';
       if (flights && hasData) {
         const prevDs = fmtDate(new Date(y, m, d - 1));
         const nextDs = fmtDate(new Date(y, m, d + 1));
         const prevCountry = entries[prevDs]?.country || '';
         const nextCountry = entries[nextDs]?.country || '';
-        if ((prevCountry && prevCountry !== country) || (nextCountry && nextCountry !== country)) {
-          transitFlag = '<div class="working-tag" style="background:#fdf2f8;color:#be185d;">✈ TRANSIT DAY</div>';
+        const countryChanged = (prevCountry && prevCountry !== country) || (nextCountry && nextCountry !== country);
+        if (countryChanged) {
+          const noMidnightGps = !entry?.autoGps || entry?.bracketInferred || entry?.lateBackfill;
+          const bracketMismatch = entry?.brackets?.evening && entry?.brackets?.morning &&
+            entry.brackets.evening.country !== entry.brackets.morning.country;
+          if (noMidnightGps || bracketMismatch) {
+            transitFlag = '<div class="working-tag" style="background:#fdf2f8;color:#be185d;">✈ TRANSIT DAY</div>';
+          }
         }
       }
 
@@ -1496,17 +1515,54 @@ function openDay(dateStr) {
   // Render presets and auto-match existing entry
   renderPresets(entry.city ? entry : null);
 
-  // GPS coordinates
+  // GPS coordinates + captured timestamp
   const gpsDiv = document.getElementById('modalGpsCoords');
   const noGpsDiv = document.getElementById('modalNoGps');
   const gpsText = document.getElementById('modalGpsText');
+  const capturedAtSpan = document.getElementById('modalCapturedAt');
   if (entry.lat && entry.lon) {
     gpsText.textContent = entry.lat.toFixed(6) + ', ' + entry.lon.toFixed(6) + (entry.city ? '  →  ' + entry.city : '');
+    // Show when GPS was actually captured (audit trail)
+    if (entry.capturedAt) {
+      capturedAtSpan.textContent = '(captured ' + entry.capturedAt + ')';
+      capturedAtSpan.style.display = '';
+    } else {
+      capturedAtSpan.style.display = 'none';
+    }
+    if (entry.bracketInferred) {
+      capturedAtSpan.textContent = '(inferred from evening/morning brackets)';
+      capturedAtSpan.style.display = '';
+      capturedAtSpan.style.color = '#d97706';
+    }
     gpsDiv.style.display = '';
     noGpsDiv.style.display = 'none';
   } else {
     gpsDiv.style.display = 'none';
     noGpsDiv.style.display = '';
+  }
+
+  // Bracket GPS data
+  const bracketDiv = document.getElementById('modalBracketGps');
+  const evDiv = document.getElementById('modalEveningBracket');
+  const amDiv = document.getElementById('modalMorningBracket');
+  if (entry.brackets) {
+    bracketDiv.style.display = '';
+    if (entry.brackets.evening) {
+      const ev = entry.brackets.evening;
+      const evTime = ev.capturedAt ? new Date(ev.capturedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
+      document.getElementById('eveningBracketText').textContent =
+        (ev.city || ev.lat?.toFixed(4)) + ', ' + (ev.country || '') + (evTime ? '  (' + evTime + ')' : '');
+      evDiv.style.display = '';
+    } else { evDiv.style.display = 'none'; }
+    if (entry.brackets.morning) {
+      const am = entry.brackets.morning;
+      const amTime = am.capturedAt ? new Date(am.capturedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
+      document.getElementById('morningBracketText').textContent =
+        (am.city || am.lat?.toFixed(4)) + ', ' + (am.country || '') + (amTime ? '  (' + amTime + ')' : '');
+      amDiv.style.display = '';
+    } else { amDiv.style.display = 'none'; }
+  } else {
+    bracketDiv.style.display = 'none';
   }
 
   // Source icons — show which inputs contributed
@@ -1519,8 +1575,14 @@ function openDay(dateStr) {
     sources.push({ icon: '✏️', label: 'Manual', color: '#f3e8ff', text: '#6b21a8' });
     sources.push({ icon: '📡', label: 'GPS', color: '#e8f5e9', text: '#2e7d32' });
   }
-  if (entry.autoGps && !entry.gpsConfirmed) {
+  if (entry.autoGps && !entry.gpsConfirmed && !entry.bracketInferred) {
     sources.push({ icon: '📡', label: 'GPS', color: '#e8f5e9', text: '#2e7d32' });
+  }
+  if (entry.bracketInferred) {
+    sources.push({ icon: '📐', label: 'Bracket GPS', color: '#fef9c3', text: '#92400e' });
+  }
+  if (entry.lateBackfill) {
+    sources.push({ icon: '⏰', label: 'Late backfill', color: '#fee2e2', text: '#991b1b' });
   }
   if (entry.autoBooking || entry.bookingSource) {
     const bs = entry.bookingSource || '';
@@ -1544,7 +1606,7 @@ function openDay(dateStr) {
     bsDetailDiv.style.display = 'none';
   }
 
-  // Transit day warning — flights + country changed from adjacent days
+  // Transit day warning — only show if evidence suggests airborne at UK midnight
   const transitDiv = document.getElementById('modalTransitWarning');
   if (entry.flights && entry.country) {
     const d = new Date(dateStr + 'T00:00:00');
@@ -1552,7 +1614,12 @@ function openDay(dateStr) {
     const nextDs = fmtDate(new Date(d.getTime() + 86400000));
     const prevCountry = entries[prevDs]?.country || '';
     const nextCountry = entries[nextDs]?.country || '';
-    const isTransit = (prevCountry && prevCountry !== entry.country) || (nextCountry && nextCountry !== entry.country);
+    const countryChanged = (prevCountry && prevCountry !== entry.country) || (nextCountry && nextCountry !== entry.country);
+    // Only flag transit if no reliable midnight GPS, or brackets show a country change
+    const noMidnightGps = !entry?.autoGps || entry?.bracketInferred || entry?.lateBackfill;
+    const bracketMismatch = entry?.brackets?.evening && entry?.brackets?.morning &&
+      entry.brackets.evening.country !== entry.brackets.morning.country;
+    const isTransit = countryChanged && (noMidnightGps || bracketMismatch);
     transitDiv.style.display = isTransit ? '' : 'none';
   } else {
     transitDiv.style.display = 'none';
@@ -1733,7 +1800,7 @@ async function autoGPSCapture(dateStr, force) {
             place: p.place || p.city, city: p.city, country: p.country,
             flights: existing?.flights || '', notes: existing?.notes || '',
             working: existing?.working || false,
-            lat, lon, autoGps: true, synced: false
+            lat, lon, autoGps: true, capturedAt: ukTimestamp(), synced: false
           };
           // Check for country conflict with existing booking data
           if (existing && existing.country && existing.autoBooking && existing.country !== p.country) {
@@ -1771,7 +1838,7 @@ async function autoGPSCapture(dateStr, force) {
             place: placeName, city, country,
             flights: existing?.flights || '', notes: existing?.notes || '',
             working: existing?.working || false,
-            lat, lon, autoGps: true, unconfirmed: true, synced: false
+            lat, lon, autoGps: true, capturedAt: ukTimestamp(), unconfirmed: true, synced: false
           };
           // Check for country conflict with existing booking data
           if (existing && existing.country && existing.autoBooking && country && existing.country !== country) {
@@ -1810,6 +1877,149 @@ async function autoGPSCapture(dateStr, force) {
       { enableHighAccuracy: true, timeout: 15000 }
     );
   });
+}
+
+// ===== BRACKET GPS CAPTURE (10pm evening, 7am morning) =====
+// Captures GPS at 10pm and 7am as corroborating evidence for HMRC.
+// If both brackets match (same country), we can infer midnight location.
+
+async function bracketGPSCapture(dateStr, bracketType) {
+  if (!navigator.geolocation) {
+    console.log('Bracket GPS: geolocation not available');
+    return;
+  }
+
+  const existing = entries[dateStr] || {};
+  const brackets = existing.brackets || {};
+
+  // Don't re-capture if we already have this bracket
+  if (brackets[bracketType]?.lat) {
+    console.log('Bracket ' + bracketType + ' already captured for ' + dateStr);
+    return;
+  }
+
+  console.log('Capturing ' + bracketType + ' bracket GPS for ' + dateStr + '...');
+  showGpsBanner('pending', 'Capturing ' + bracketType + ' GPS bracket...');
+
+  return new Promise(resolve => {
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        console.log('Bracket GPS (' + bracketType + '):', lat, lon);
+
+        // Try preset match
+        const match = matchLocationToPreset(lat, lon);
+        let city = '', country = '', place = '';
+        if (match) {
+          city = match.preset.city;
+          country = match.preset.country;
+          place = match.preset.place || match.preset.city;
+        } else {
+          // Reverse geocode
+          try {
+            const r = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json&accept-language=en');
+            const data = await r.json();
+            city = data.address?.city || data.address?.town || data.address?.village || '';
+            country = data.address?.country || '';
+            place = data.display_name?.split(',')[0] || '';
+          } catch(e) { console.warn('Bracket geocode failed', e); }
+        }
+
+        // Store bracket data
+        brackets[bracketType] = {
+          lat, lon, city, country, place,
+          capturedAt: ukTimestamp()
+        };
+
+        // Merge into entry
+        if (!entries[dateStr]) entries[dateStr] = {};
+        entries[dateStr].brackets = brackets;
+        syncEntry(dateStr, entries[dateStr]);
+        saveLocal();
+
+        const locDesc = place || city || (lat.toFixed(4) + ', ' + lon.toFixed(4));
+        showGpsBanner('ok', (bracketType === 'evening' ? '🌆' : '🌅') + ' ' +
+          bracketType.charAt(0).toUpperCase() + bracketType.slice(1) +
+          ' bracket: ' + locDesc + (country ? ', ' + country : ''));
+        setTimeout(dismissGpsBanner, 5000);
+
+        // If we now have both brackets, try to infer midnight location
+        if (brackets.evening && brackets.morning) {
+          inferMidnightFromBrackets(dateStr);
+        }
+
+        resolve(true);
+      },
+      err => {
+        console.warn('Bracket GPS error:', err.message);
+        showGpsBanner('error', 'Bracket GPS failed: ' + err.message);
+        setTimeout(dismissGpsBanner, 5000);
+        resolve(false);
+      },
+      { enableHighAccuracy: true, timeout: 15000 }
+    );
+  });
+}
+
+// Infer midnight location from evening + morning bracket GPS
+function inferMidnightFromBrackets(dateStr) {
+  const entry = entries[dateStr];
+  if (!entry?.brackets?.evening || !entry?.brackets?.morning) return;
+
+  const ev = entry.brackets.evening;
+  const am = entry.brackets.morning;
+
+  // If same country (and ideally same city), we can infer midnight location
+  if (ev.country && am.country && ev.country === am.country) {
+    const sameCity = ev.city && am.city && ev.city === am.city;
+
+    // Only infer if no existing GPS/manual entry, or entry is a late backfill
+    if (!entry.city || entry.lateBackfill || entry.unconfirmed) {
+      console.log('Bracket inference for ' + dateStr + ': ' +
+        (sameCity ? 'same city (' + ev.city + ')' : 'same country (' + ev.country + ')'));
+
+      entry.country = ev.country;
+      entry.city = sameCity ? ev.city : (ev.city || am.city); // prefer evening city
+      entry.place = sameCity ? (ev.place || am.place) : (ev.place || am.place);
+      entry.bracketInferred = true;
+      entry.autoGps = true;
+      // Use evening coords as the "midnight" location (closer to midnight than morning)
+      entry.lat = ev.lat;
+      entry.lon = ev.lon;
+      entry.notes = (entry.notes || '') +
+        (entry.notes ? ' | ' : '') +
+        'Inferred from GPS brackets: evening=' + ev.city + ' ' + ev.capturedAt +
+        ', morning=' + am.city + ' ' + am.capturedAt;
+      if (entry.lateBackfill) delete entry.lateBackfill;
+      if (entry.unconfirmed) delete entry.unconfirmed;
+
+      syncEntry(dateStr, entry);
+      saveLocal();
+      render();
+
+      showGpsBanner('ok', '📐 Midnight inferred from brackets: ' +
+        entry.city + ', ' + entry.country +
+        (sameCity ? ' (city match)' : ' (country match)'));
+      setTimeout(dismissGpsBanner, 6000);
+    }
+  } else if (ev.country && am.country) {
+    // Countries differ — might have crossed a border overnight!
+    console.log('Bracket mismatch for ' + dateStr + ': evening=' + ev.country + ', morning=' + am.country);
+    entry.notes = (entry.notes || '') +
+      (entry.notes ? ' | ' : '') +
+      'Bracket mismatch: evening=' + ev.city + ',' + ev.country + ' vs morning=' + am.city + ',' + am.country;
+    entry.unconfirmed = true;
+    syncEntry(dateStr, entry);
+    saveLocal();
+
+    sendTeamsAlert(
+      '**Bracket GPS mismatch** on ' + formatDisplayDate(dateStr) + '.<br><br>' +
+      'Evening (10pm): **' + ev.city + ', ' + ev.country + '**<br>' +
+      'Morning (7am): **' + am.city + ', ' + am.country + '**<br><br>' +
+      'Countries differ — please confirm where Steve was at midnight.'
+    );
+  }
 }
 
 function showGpsBanner(type, text) {
@@ -1852,7 +2062,7 @@ function scheduleMidnightCapture() {
   }, msToMidnight);
 }
 
-// On app load, check if today (UK date) needs auto-GPS
+// On app load, check if today (UK date) needs auto-GPS, and backfill yesterday if missed
 function checkTodayGPS() {
   const todayStr = ukDateStr(new Date());
   const existing = entries[todayStr];
@@ -1860,6 +2070,33 @@ function checkTodayGPS() {
   if (!existing || (!existing.city && !existing.place)) {
     console.log('No entry for UK date ' + todayStr + ', auto-capturing GPS...');
     autoGPSCapture(todayStr);
+  }
+
+  // Also check yesterday — if midnight push was missed (e.g. phone was off),
+  // try to infer from bracket GPS data or capture now as a late backfill
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = fmtDate(yesterday);
+  const yEntry = entries[yesterdayStr];
+  if (!yEntry || (!yEntry.city && !yEntry.place)) {
+    // Yesterday has no location — check if we have bracket data to infer from
+    if (yEntry?.brackets) {
+      console.log('Yesterday (' + yesterdayStr + ') missing — trying bracket inference...');
+      inferMidnightFromBrackets(yesterdayStr);
+    } else {
+      console.log('Yesterday (' + yesterdayStr + ') missing with no brackets — capturing GPS as late backfill');
+      // Capture current GPS and flag it as a late backfill (not ideal but better than nothing)
+      autoGPSCapture(yesterdayStr).then(() => {
+        if (entries[yesterdayStr]) {
+          entries[yesterdayStr].lateBackfill = true;
+          entries[yesterdayStr].notes = (entries[yesterdayStr].notes || '') +
+            (entries[yesterdayStr].notes ? ' | ' : '') +
+            'Late backfill: GPS captured ' + ukTimestamp() + ' (midnight push missed)';
+          syncEntry(yesterdayStr, entries[yesterdayStr]);
+          saveLocal();
+        }
+      });
+    }
   }
 }
 
@@ -1932,9 +2169,14 @@ async function initPushNotifications() {
     // Handle foreground messages
     messaging.onMessage(payload => {
       console.log('Push received (foreground):', payload);
-      // App is open — trigger GPS capture using UK date
-      const todayStr = ukDateStr(new Date());
-      autoGPSCapture(todayStr, true); // force=true from push notification
+      const captureType = payload.data?.captureType || 'midnight';
+      // Use date from payload (not current date) to avoid wrong-day logging
+      const dateStr = payload.data?.date || ukDateStr(new Date());
+      if (captureType === 'evening' || captureType === 'morning') {
+        bracketGPSCapture(dateStr, captureType);
+      } else {
+        autoGPSCapture(dateStr, true); // force=true from push notification
+      }
     });
 
   } catch(e) {
@@ -2071,6 +2313,15 @@ function fmtDate(d) {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
 
+// Get current UK timestamp string (e.g. "2026-02-24 22:03:15 GMT" or "BST")
+function ukTimestamp() {
+  const now = new Date();
+  const datePart = ukDateStr(now);
+  const timePart = now.toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  const tzAbbr = now.toLocaleString('en-GB', { timeZone: 'Europe/London', timeZoneName: 'short' }).split(' ').pop();
+  return datePart + ' ' + timePart + ' ' + tzAbbr;
+}
+
 // Get current date string in UK time (GMT in winter, BST in summer)
 // This is the authoritative "what date is it at midnight UK" function
 function ukDateStr(d) {
@@ -2155,27 +2406,34 @@ if ('serviceWorker' in navigator) {
   // Listen for messages from service worker (notification click while app is open)
   navigator.serviceWorker.addEventListener('message', event => {
     if (event.data?.type === 'midnight-gps-capture') {
-      // Use the date from the push payload (the day that ended at midnight),
-      // NOT ukDateStr(new Date()) which gives the wrong day if tapped after midnight
       const dateStr = event.data.date || ukDateStr(new Date());
-      console.log('Push notification tapped — capturing GPS for ' + dateStr);
-      autoGPSCapture(dateStr, true); // force=true from push notification
+      const captureType = event.data.captureType || 'midnight';
+      console.log('Push notification tapped — ' + captureType + ' capture for ' + dateStr);
+      if (captureType === 'evening' || captureType === 'morning') {
+        bracketGPSCapture(dateStr, captureType);
+      } else {
+        autoGPSCapture(dateStr, true); // force=true from push notification
+      }
     }
   });
 }
 
 // Check URL params for capture flag (opened from notification)
-if (window.location.search.includes('capture=midnight')) {
+if (window.location.search.includes('capture=')) {
   const params = new URLSearchParams(window.location.search);
+  const captureType = params.get('capture') || 'midnight';
   const captureDate = params.get('date') || '';
   // Remove the params from URL so it doesn't re-trigger on refresh
   window.history.replaceState({}, '', window.location.pathname);
   // Delay to let auth + Firebase sync happen first
   setTimeout(() => {
-    // Use the date from the push payload if available
     const dateStr = captureDate || ukDateStr(new Date());
-    console.log('Opened from notification — capturing GPS for ' + dateStr);
-    autoGPSCapture(dateStr, true); // force=true from push notification
+    console.log('Opened from notification — ' + captureType + ' capture for ' + dateStr);
+    if (captureType === 'evening' || captureType === 'morning') {
+      bracketGPSCapture(dateStr, captureType);
+    } else {
+      autoGPSCapture(dateStr, true); // force=true from push notification
+    }
   }, 4000);
 }
 </script>

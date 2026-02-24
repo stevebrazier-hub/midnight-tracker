@@ -20,6 +20,9 @@ admin.initializeApp({
 const db = admin.database();
 
 async function sendMidnightPush() {
+  // Capture type: 'midnight' (default), 'evening', or 'morning'
+  const captureType = process.env.CAPTURE_TYPE || 'midnight';
+  console.log(`Capture type: ${captureType}`);
   console.log('Fetching FCM tokens from Firebase...');
 
   const snapshot = await db.ref('fcmTokens').once('value');
@@ -38,37 +41,62 @@ async function sendMidnightPush() {
     process.exit(0);
   }
 
-  // Determine the date that just ENDED at midnight in UK time (GMT/BST).
-  // The cron fires at or just after midnight, so new Date() gives the new day.
-  // Subtract 2 minutes to get the day that just finished — that's the day
-  // whose "midnight location" we're recording (e.g. Sunday 22nd, not Monday 23rd).
+  // Determine the target date in UK time (GMT/BST).
   const now = new Date();
-  const justBeforeMidnight = new Date(now.getTime() - 120000);
-  const ukDate = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit'
-  }).formatToParts(justBeforeMidnight);
-  const dateStr = ukDate.find(p => p.type === 'year').value + '-' +
-    ukDate.find(p => p.type === 'month').value + '-' +
-    ukDate.find(p => p.type === 'day').value;
+
+  let dateStr;
+  if (captureType === 'midnight') {
+    // The cron fires at or just after midnight, so new Date() gives the new day.
+    // Subtract 2 minutes to get the day that just finished — that's the day
+    // whose "midnight location" we're recording (e.g. Sunday 22nd, not Monday 23rd).
+    const justBeforeMidnight = new Date(now.getTime() - 120000);
+    const ukDate = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(justBeforeMidnight);
+    dateStr = ukDate.find(p => p.type === 'year').value + '-' +
+      ukDate.find(p => p.type === 'month').value + '-' +
+      ukDate.find(p => p.type === 'day').value;
+  } else {
+    // For evening (10pm) and morning (7am) brackets, use current UK date
+    const ukDate = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(now);
+    dateStr = ukDate.find(p => p.type === 'year').value + '-' +
+      ukDate.find(p => p.type === 'month').value + '-' +
+      ukDate.find(p => p.type === 'day').value;
+  }
+
+  // Notification text varies by capture type
+  const titles = {
+    midnight: '🌙 Midnight Location Check',
+    evening: '🌆 Evening Location Bracket',
+    morning: '🌅 Morning Location Bracket'
+  };
+  const bodies = {
+    midnight: 'GPS captured automatically — tap only if you need to correct it',
+    evening: '10pm GPS bracket — confirms where you are before midnight',
+    morning: 'Morning GPS bracket — confirms where you woke up'
+  };
 
   const message = {
     notification: {
-      title: '🌙 Midnight Location Check',
-      body: 'GPS captured automatically — tap only if you need to correct it'
+      title: titles[captureType] || titles.midnight,
+      body: bodies[captureType] || bodies.midnight
     },
     data: {
       action: 'capture-gps',
+      captureType: captureType,
       date: dateStr,
       timestamp: String(Date.now())
     },
     webpush: {
       notification: {
-        tag: 'midnight-gps',
+        tag: captureType === 'midnight' ? 'midnight-gps' : 'bracket-gps-' + captureType,
         renotify: true,
-        requireInteraction: true
+        requireInteraction: captureType === 'midnight'
       },
       fcmOptions: {
-        link: 'https://midnight.cancomo.com/?capture=midnight'
+        link: 'https://midnight.cancomo.com/?capture=' + captureType + '&date=' + dateStr
       }
     }
   };
