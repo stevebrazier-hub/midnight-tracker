@@ -77,6 +77,7 @@ async function main() {
       'Latitude': e.lat || '',
       'Longitude': e.lon || '',
       'GPS captured at': e.capturedAt || '',
+      'GPS trigger': e.captureSource || '',
       'Working': e.working ? 'Yes' : '',
       'Source': e.bracketInferred ? 'Bracket GPS' : e.gpsConfirmed ? 'GPS + Manual' : e.autoBooking ? 'Booking' : e.autoGps ? 'GPS' : (e.city ? 'Manual' : ''),
       'Evening city': ev?.city || '',
@@ -111,6 +112,7 @@ async function main() {
       { wch: 12 }, // Lat
       { wch: 12 }, // Lon
       { wch: 24 }, // GPS captured at
+      { wch: 16 }, // GPS trigger
       { wch: 8 },  // Working
       { wch: 14 }, // Source
       { wch: 18 }, // Evening city
