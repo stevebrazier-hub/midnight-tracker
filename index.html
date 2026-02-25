@@ -455,18 +455,19 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
     <div id="modalMetaInfo" style="margin-top:10px;padding:10px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--text-light);">
       <div id="modalGpsCoords" style="margin-bottom:6px;display:none;">
-        <span style="color:var(--text-light);">📍 GPS at midnight:</span> <span id="modalGpsText" style="font-family:monospace;font-size:11px;"></span>
-        <span id="modalCapturedAt" style="font-size:10px;color:#999;margin-left:6px;"></span>
+        <span id="modalGpsLabel" style="color:var(--text-light);">📍 GPS:</span> <span id="modalGpsText" style="font-family:monospace;font-size:11px;"></span>
+        <div id="modalCapturedAt" style="font-size:10px;color:#999;margin-top:2px;"></div>
       </div>
       <div id="modalNoGps" style="margin-bottom:6px;display:none;">
-        <span style="color:var(--text-light);">📍 GPS at midnight:</span> <span style="font-style:italic;color:#999;">none</span>
+        <span style="color:var(--text-light);">📍 GPS:</span> <span style="font-style:italic;color:#999;">no reading</span>
       </div>
-      <div id="modalBracketGps" style="margin-bottom:6px;display:none;font-size:11px;">
+      <div id="modalBracketGps" style="margin-bottom:6px;display:none;font-size:11px;border-left:3px solid #e5e7eb;padding-left:8px;">
+        <div style="font-weight:600;color:var(--text-light);margin-bottom:4px;">GPS Brackets</div>
         <div id="modalEveningBracket" style="display:none;margin-bottom:3px;">
-          <span style="color:var(--text-light);">🌆 Evening (10pm):</span> <span id="eveningBracketText" style="font-family:monospace;"></span>
+          <span style="color:var(--text-light);">🌆 Evening:</span> <span id="eveningBracketText" style="font-family:monospace;"></span>
         </div>
         <div id="modalMorningBracket" style="display:none;">
-          <span style="color:var(--text-light);">🌅 Morning (7am):</span> <span id="morningBracketText" style="font-family:monospace;"></span>
+          <span style="color:var(--text-light);">🌅 Morning:</span> <span id="morningBracketText" style="font-family:monospace;"></span>
         </div>
       </div>
       <div id="modalSources" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
@@ -877,11 +878,15 @@ function renderList() {
         '<div class="list-info"><div class="place">' + (place || (!hasData ? '<span style="color:var(--text-light);font-style:italic;">No data</span>' : '')) + '</div><div class="city-country">' + city + (country ? ', ' + country : '') + '</div>' +
         (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') +
         '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">' +
-        (entry?.lat ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">📍 ' + entry.lat.toFixed(4) + ', ' + entry.lon.toFixed(4) + (entry.city ? ' · ' + entry.city : '') + '</div>' : '') +
-        (entry?.autoGps && !entry?.unconfirmed && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS</div>' : '') +
+        (entry?.lat ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">📍 ' + entry.lat.toFixed(4) + ', ' + entry.lon.toFixed(4) + (entry.city ? ' · ' + entry.city : '') + (entry.capturedAt ? ' @ ' + entry.capturedAt.split(' ').slice(1).join(' ') : '') + '</div>' : '') +
+        (entry?.brackets?.evening ? '<div class="working-tag" style="background:#fef3e8;color:#92400e;font-size:10px;">🌆 ' + (entry.brackets.evening.city || '') + ' ' + (entry.brackets.evening.capturedAt ? entry.brackets.evening.capturedAt.split(' ').slice(1).join(' ') : '') + '</div>' : '') +
+        (entry?.brackets?.morning ? '<div class="working-tag" style="background:#eff6ff;color:#1e40af;font-size:10px;">🌅 ' + (entry.brackets.morning.city || '') + ' ' + (entry.brackets.morning.capturedAt ? entry.brackets.morning.capturedAt.split(' ').slice(1).join(' ') : '') + '</div>' : '') +
+        (entry?.bracketInferred ? '<div class="working-tag" style="background:#fef9c3;color:#92400e;">📐 BRACKET INFERRED</div>' : '') +
+        (entry?.autoGps && !entry?.unconfirmed && !entry?.gpsConfirmed && !entry?.bracketInferred ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS</div>' : '') +
         (entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS + MANUAL</div>' : '') +
         (entry && !entry.autoGps && !entry.autoBooking && !entry.gpsConfirmed && entry.city ? '<div class="working-tag" style="background:#f3e8ff;color:#6b21a8;">MANUAL</div>' : '') +
         (entry?.autoBooking && !entry?.autoGps && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f0fe;color:#1a73e8;">BOOKING' + (entry.flights && entry.place ? ' ✈+🏨' : entry.flights ? ' ✈' : entry.place ? ' 🏨' : '') + '</div>' : '') +
+        (entry?.lateBackfill ? '<div class="working-tag" style="background:#fee2e2;color:#991b1b;font-size:10px;">⏰ LATE BACKFILL</div>' : '') +
         (isUnconfirmed ? '<div class="working-tag" style="background:var(--err-bg);color:var(--err);">UNCONFIRMED</div>' : '') +
         (entry?.countryConflict ? '<div class="working-tag" style="background:#fff3cd;color:#856404;">⚠ COUNTRY MISMATCH</div>' : '') +
         transitFlag +
@@ -1518,21 +1523,31 @@ function openDay(dateStr) {
   // GPS coordinates + captured timestamp
   const gpsDiv = document.getElementById('modalGpsCoords');
   const noGpsDiv = document.getElementById('modalNoGps');
+  const gpsLabel = document.getElementById('modalGpsLabel');
   const gpsText = document.getElementById('modalGpsText');
-  const capturedAtSpan = document.getElementById('modalCapturedAt');
+  const capturedAtDiv = document.getElementById('modalCapturedAt');
   if (entry.lat && entry.lon) {
     gpsText.textContent = entry.lat.toFixed(6) + ', ' + entry.lon.toFixed(6) + (entry.city ? '  →  ' + entry.city : '');
-    // Show when GPS was actually captured (audit trail)
-    if (entry.capturedAt) {
-      capturedAtSpan.textContent = '(captured ' + entry.capturedAt + ')';
-      capturedAtSpan.style.display = '';
-    } else {
-      capturedAtSpan.style.display = 'none';
-    }
+    // Set label based on how the GPS was obtained
     if (entry.bracketInferred) {
-      capturedAtSpan.textContent = '(inferred from evening/morning brackets)';
-      capturedAtSpan.style.display = '';
-      capturedAtSpan.style.color = '#d97706';
+      gpsLabel.textContent = '📐 Location (inferred from brackets):';
+      capturedAtDiv.textContent = 'Evening + morning GPS matched — midnight location inferred';
+      capturedAtDiv.style.color = '#d97706';
+      capturedAtDiv.style.display = '';
+    } else if (entry.lateBackfill) {
+      gpsLabel.textContent = '⏰ GPS (late backfill):';
+      capturedAtDiv.textContent = entry.capturedAt ? 'Captured: ' + entry.capturedAt + ' (midnight push was missed)' : 'Midnight push was missed';
+      capturedAtDiv.style.color = '#991b1b';
+      capturedAtDiv.style.display = '';
+    } else if (entry.capturedAt) {
+      gpsLabel.textContent = '📍 GPS:';
+      capturedAtDiv.textContent = 'Captured: ' + entry.capturedAt;
+      capturedAtDiv.style.color = '#999';
+      capturedAtDiv.style.display = '';
+    } else {
+      gpsLabel.textContent = '📍 GPS:';
+      capturedAtDiv.textContent = '';
+      capturedAtDiv.style.display = 'none';
     }
     gpsDiv.style.display = '';
     noGpsDiv.style.display = 'none';
@@ -1549,16 +1564,16 @@ function openDay(dateStr) {
     bracketDiv.style.display = '';
     if (entry.brackets.evening) {
       const ev = entry.brackets.evening;
-      const evTime = ev.capturedAt ? new Date(ev.capturedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
       document.getElementById('eveningBracketText').textContent =
-        (ev.city || ev.lat?.toFixed(4)) + ', ' + (ev.country || '') + (evTime ? '  (' + evTime + ')' : '');
+        (ev.city || ev.lat?.toFixed(4)) + ', ' + (ev.country || '') +
+        (ev.capturedAt ? '  —  ' + ev.capturedAt : '');
       evDiv.style.display = '';
     } else { evDiv.style.display = 'none'; }
     if (entry.brackets.morning) {
       const am = entry.brackets.morning;
-      const amTime = am.capturedAt ? new Date(am.capturedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
       document.getElementById('morningBracketText').textContent =
-        (am.city || am.lat?.toFixed(4)) + ', ' + (am.country || '') + (amTime ? '  (' + amTime + ')' : '');
+        (am.city || am.lat?.toFixed(4)) + ', ' + (am.country || '') +
+        (am.capturedAt ? '  —  ' + am.capturedAt : '');
       amDiv.style.display = '';
     } else { amDiv.style.display = 'none'; }
   } else {
