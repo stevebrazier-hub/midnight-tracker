@@ -1541,15 +1541,16 @@ function openDay(dateStr) {
       capturedAtDiv.style.display = '';
     } else if (entry.capturedAt) {
       const sourceLabels = {
-        'midnight-push': 'Midnight push notification',
-        'midnight-timer': 'Midnight timer (app was open)',
-        'app-opened': 'App opened (no entry existed)',
-        'manual-test': 'Manual test from settings',
-        'auto': 'Automatic'
+        'midnight-push': '00:00 push',
+        'midnight-timer': '00:00 timer',
+        'app-opened': 'App open',
+        'manual-test': 'Manual test',
+        'late-backfill': 'Late backfill',
+        'auto': 'Auto'
       };
-      const sourceLabel = sourceLabels[entry.captureSource] || entry.captureSource || 'Unknown';
+      const sourceLabel = sourceLabels[entry.captureSource] || entry.captureSource || '';
       gpsLabel.textContent = '📍 GPS:';
-      capturedAtDiv.textContent = 'Captured: ' + entry.capturedAt + '  ·  Trigger: ' + sourceLabel;
+      capturedAtDiv.textContent = entry.capturedAt + (sourceLabel ? '  ·  ' + sourceLabel : '');
       capturedAtDiv.style.color = '#999';
       capturedAtDiv.style.display = '';
     } else {
