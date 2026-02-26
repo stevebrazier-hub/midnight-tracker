@@ -26,6 +26,13 @@ jobs:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: node .github/scripts/daily-backup.js
 
+      - name: Upload to OneDrive
+        env:
+          MS_TENANT_ID: ${{ secrets.MS_TENANT_ID }}
+          MS_CLIENT_ID: ${{ secrets.MS_CLIENT_ID }}
+          MS_CLIENT_SECRET: ${{ secrets.MS_CLIENT_SECRET }}
+        run: node .github/scripts/onedrive-upload.js
+
       - name: Commit backup files
         run: |
           git config user.name "github-actions[bot]"
