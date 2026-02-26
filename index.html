@@ -755,6 +755,11 @@ function syncEntry(date, entry) {
   if (entry.gpsConfirmed) data.gpsConfirmed = true;
   if (entry.bookingSource) data.bookingSource = entry.bookingSource;
   if (entry.countryConflict) data.countryConflict = entry.countryConflict;
+  if (entry.capturedAt) data.capturedAt = entry.capturedAt;
+  if (entry.captureSource) data.captureSource = entry.captureSource;
+  if (entry.lateBackfill) data.lateBackfill = true;
+  if (entry.bracketInferred) data.bracketInferred = true;
+  if (entry.brackets) data.brackets = entry.brackets;
 
   if (!fbReady || !navigator.onLine) {
     // Offline or Firebase not ready — queue for later
@@ -1685,6 +1690,11 @@ function saveDay() {
   if (existing?.lon) entry.lon = existing.lon;
   if (existing?.autoGps) entry.gpsConfirmed = true; // GPS was captured at some point
   if (existing?.bookingSource) entry.bookingSource = existing.bookingSource; // Preserve audit trail
+  if (existing?.capturedAt) entry.capturedAt = existing.capturedAt; // Preserve GPS timestamp
+  if (existing?.captureSource) entry.captureSource = existing.captureSource; // Preserve capture source
+  if (existing?.brackets) entry.brackets = existing.brackets; // Preserve bracket GPS data
+  if (existing?.lateBackfill) entry.lateBackfill = existing.lateBackfill;
+  if (existing?.bracketInferred) entry.bracketInferred = existing.bracketInferred;
   // Manual save clears unconfirmed and conflict flags
 
   if (entry.place || entry.city || entry.country) {
@@ -2009,6 +2019,8 @@ function inferMidnightFromBrackets(dateStr) {
       entry.place = sameCity ? (ev.place || am.place) : (ev.place || am.place);
       entry.bracketInferred = true;
       entry.autoGps = true;
+      entry.capturedAt = ev.capturedAt || am.capturedAt || ukTimestamp();
+      entry.captureSource = 'bracket-inference';
       // Use evening coords as the "midnight" location (closer to midnight than morning)
       entry.lat = ev.lat;
       entry.lon = ev.lon;
