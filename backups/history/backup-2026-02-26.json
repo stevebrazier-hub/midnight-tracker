@@ -2,8 +2,8 @@
   "fcmTokens": {
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
-      "token": "c-t0zWnIrKCMEQD7kvGECC:APA91bGcNTI1tTXxmSFC97yMuMwM4eIMCYEIE0uv1EmCHnKc1z2CuEGyffXiz7Nc-10ijjax4iyaPl9UaBZ6K6cx9NJKxcqaX7TjxtXNQTdj-8c3xbwB13k",
-      "updatedAt": "2026-02-21T01:06:28.038Z"
+      "token": "f96lXcyYVJ4pbqLatuAdFn:APA91bGnj25dOtuws-T7YBU-Wi9OpFyHQ1I1eSFmHUMbPoTR8jEDzjQaCtbgEVTHuAorXv8hJ8kn31H5enp9W6EuO40k-bAwjj2wtEsTMsoVYfopMo_l09k",
+      "updatedAt": "2026-02-26T04:25:50.239Z"
     }
   },
   "locations": {
@@ -1529,21 +1529,30 @@
       "country": "UK",
       "flights": "",
       "notes": "",
-      "place": "417 Meadow Lane"
+      "place": "Oxford",
+      "working": true
     },
     "2026-02-24": {
       "city": "Oxford",
       "country": "UK",
       "flights": "",
+      "gpsConfirmed": true,
+      "lat": 51.73294285542534,
+      "lon": -1.2373467146427453,
       "notes": "",
-      "place": "417 Meadow Lane"
+      "place": "Oxford",
+      "working": true
     },
     "2026-02-25": {
       "city": "Oxford",
       "country": "UK",
       "flights": "",
+      "gpsConfirmed": true,
+      "lat": 51.7329714,
+      "lon": -1.2376777,
       "notes": "",
-      "place": "417 Meadow Lane"
+      "place": "Oxford",
+      "working": true
     },
     "2026-02-26": {
       "city": "Oxford",
@@ -1595,13 +1604,6 @@
       "place": "417 Meadow Lane"
     },
     "2026-03-05": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-06": {
       "city": "Oxford",
       "country": "UK",
       "flights": "",
@@ -1698,6 +1700,13 @@
       "flights": "",
       "notes": "",
       "place": "417 Meadow Lane"
+    },
+    "2026-03-20": {
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "notes": "",
+      "place": "Oxford"
     },
     "2026-03-21": {
       "city": "Oxford",
@@ -1993,6 +2002,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
+    "lastBookingSync": "2026-02-26T05:13:12.536Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
