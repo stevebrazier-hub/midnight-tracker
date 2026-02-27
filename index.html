@@ -883,15 +883,15 @@ function renderList() {
         '<div class="list-info"><div class="place">' + (place || (!hasData ? '<span style="color:var(--text-light);font-style:italic;">No data</span>' : '')) + '</div><div class="city-country">' + city + (country ? ', ' + country : '') + '</div>' +
         (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') +
         '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">' +
-        (entry?.lat ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;font-size:10px;">📍 ' + entry.lat.toFixed(4) + ', ' + entry.lon.toFixed(4) + (entry.city ? ' · ' + entry.city : '') + (entry.capturedAt ? ' @ ' + entry.capturedAt.split(' ').slice(1).join(' ') : '') + (entry.captureSource ? ' [' + entry.captureSource + ']' : '') + '</div>' : '') +
-        (entry?.brackets?.evening ? '<div class="working-tag" style="background:#fef3e8;color:#92400e;font-size:10px;">🌆 ' + (entry.brackets.evening.city || '') + ', ' + (entry.brackets.evening.country || '') + ' @ ' + (entry.brackets.evening.capturedAt ? entry.brackets.evening.capturedAt.split(' ').slice(1).join(' ') : '') + '</div>' : '') +
-        (entry?.brackets?.morning ? '<div class="working-tag" style="background:#eff6ff;color:#1e40af;font-size:10px;">🌅 ' + (entry.brackets.morning.city || '') + ', ' + (entry.brackets.morning.country || '') + ' @ ' + (entry.brackets.morning.capturedAt ? entry.brackets.morning.capturedAt.split(' ').slice(1).join(' ') : '') + '</div>' : '') +
-        (entry?.bracketInferred ? '<div class="working-tag" style="background:#fef9c3;color:#92400e;">📐 BRACKET INFERRED</div>' : '') +
+        (entry?.lat ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;font-size:10px;">📍 12am ' + (entry.city || entry.lat.toFixed(4) + ', ' + entry.lon.toFixed(4)) + (entry.capturedAt ? ' @ ' + entry.capturedAt.split(' ').slice(1).join(' ') : '') + '</div>' : '') +
+        (entry?.brackets?.evening ? '<div class="working-tag" style="background:#fef3e8;color:#92400e;font-size:10px;">🌆 10pm ' + (entry.brackets.evening.city || '') + (entry.brackets.evening.capturedAt ? ' @ ' + entry.brackets.evening.capturedAt.split(' ').slice(1).join(' ') : '') + '</div>' : '') +
+        (entry?.brackets?.morning ? '<div class="working-tag" style="background:#eff6ff;color:#1e40af;font-size:10px;">🌅 7am ' + (entry.brackets.morning.city || '') + (entry.brackets.morning.capturedAt ? ' @ ' + entry.brackets.morning.capturedAt.split(' ').slice(1).join(' ') : '') + '</div>' : '') +
+        (entry?.bracketInferred ? '<div class="working-tag" style="background:#fef9c3;color:#92400e;">📐 INFERRED</div>' : '') +
         (entry?.autoGps && !entry?.unconfirmed && !entry?.gpsConfirmed && !entry?.bracketInferred ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS</div>' : '') +
         (entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS + MANUAL</div>' : '') +
         (entry && !entry.autoGps && !entry.autoBooking && !entry.gpsConfirmed && entry.city ? '<div class="working-tag" style="background:#f3e8ff;color:#6b21a8;">MANUAL</div>' : '') +
         (entry?.autoBooking && !entry?.autoGps && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f0fe;color:#1a73e8;">BOOKING' + (entry.flights && entry.place ? ' ✈+🏨' : entry.flights ? ' ✈' : entry.place ? ' 🏨' : '') + '</div>' : '') +
-        (entry?.lateBackfill ? '<div class="working-tag" style="background:#fee2e2;color:#991b1b;font-size:10px;">⏰ LATE BACKFILL</div>' : '') +
+        (entry?.lateBackfill ? '<div class="working-tag" style="background:#fee2e2;color:#991b1b;font-size:10px;">⏰ BACKFILL</div>' : '') +
         (isUnconfirmed ? '<div class="working-tag" style="background:var(--err-bg);color:var(--err);">UNCONFIRMED</div>' : '') +
         (entry?.countryConflict ? '<div class="working-tag" style="background:#fff3cd;color:#856404;">⚠ COUNTRY MISMATCH</div>' : '') +
         transitFlag +
@@ -1540,17 +1540,16 @@ function openDay(dateStr) {
       capturedAtDiv.style.color = '#d97706';
       capturedAtDiv.style.display = '';
     } else if (entry.lateBackfill) {
-      gpsLabel.textContent = '⏰ GPS (late backfill):';
-      capturedAtDiv.textContent = entry.capturedAt ? 'Captured: ' + entry.capturedAt + ' (midnight push was missed)' : 'Midnight push was missed';
+      gpsLabel.textContent = '⏰ GPS (backfill):';
+      capturedAtDiv.textContent = entry.capturedAt ? entry.capturedAt + '  ·  Backfill' : 'Backfill';
       capturedAtDiv.style.color = '#991b1b';
       capturedAtDiv.style.display = '';
     } else if (entry.capturedAt) {
       const sourceLabels = {
-        'midnight-push': '00:00 push',
-        'midnight-timer': '00:00 timer',
-        'app-opened': 'App open',
-        'manual-test': 'Manual test',
-        'late-backfill': 'Late backfill',
+        '12am': '12am',
+        'app': 'App',
+        'test': 'Test',
+        'backfill': 'Backfill',
         'auto': 'Auto'
       };
       const sourceLabel = sourceLabels[entry.captureSource] || entry.captureSource || '';
@@ -2093,7 +2092,7 @@ function scheduleMidnightCapture() {
     // which would return the new day. The midnight ping records where you slept,
     // so it belongs to the day that just finished (e.g. Sunday 22nd, not Monday 23rd).
     console.log('UK midnight! Auto-capturing GPS for ' + currentUkDate + ' (day just ended)');
-    autoGPSCapture(currentUkDate, false, 'midnight-timer').then(() => {
+    autoGPSCapture(currentUkDate, false, '12am').then(() => {
       scheduleMidnightCapture();
     });
   }, msToMidnight);
@@ -2106,7 +2105,7 @@ function checkTodayGPS() {
   // If no entry for today, or entry was auto-GPS and unconfirmed, try capturing
   if (!existing || (!existing.city && !existing.place)) {
     console.log('No entry for UK date ' + todayStr + ', auto-capturing GPS...');
-    autoGPSCapture(todayStr, false, 'app-opened');
+    autoGPSCapture(todayStr, false, 'app');
   }
 
   // Silent morning bracket capture: if opened between 6am-9am UK time and no
@@ -2134,7 +2133,7 @@ function checkTodayGPS() {
     } else {
       console.log('Yesterday (' + yesterdayStr + ') missing with no brackets — capturing GPS as late backfill');
       // Capture current GPS and flag it as a late backfill (not ideal but better than nothing)
-      autoGPSCapture(yesterdayStr, false, 'late-backfill').then(() => {
+      autoGPSCapture(yesterdayStr, false, 'backfill').then(() => {
         if (entries[yesterdayStr]) {
           entries[yesterdayStr].lateBackfill = true;
           entries[yesterdayStr].notes = (entries[yesterdayStr].notes || '') +
@@ -2223,7 +2222,7 @@ async function initPushNotifications() {
       if (captureType === 'evening' || captureType === 'morning') {
         bracketGPSCapture(dateStr, captureType);
       } else {
-        autoGPSCapture(dateStr, true, 'midnight-push'); // force=true from push notification
+        autoGPSCapture(dateStr, true, '12am'); // force=true from push notification
       }
     });
 
@@ -2267,7 +2266,7 @@ function loadVapidKey() {
 function testMidnightGPS() {
   toast('Capturing GPS...');
   const todayStr = ukDateStr(new Date());
-  autoGPSCapture(todayStr, true, 'manual-test').then(ok => {
+  autoGPSCapture(todayStr, true, 'test').then(ok => {
     if (ok) toast('GPS captured — check today in the location tab');
   });
 }
@@ -2460,7 +2459,7 @@ if ('serviceWorker' in navigator) {
       if (captureType === 'evening' || captureType === 'morning') {
         bracketGPSCapture(dateStr, captureType);
       } else {
-        autoGPSCapture(dateStr, true, 'midnight-push');
+        autoGPSCapture(dateStr, true, '12am');
       }
     }
   });
@@ -2480,7 +2479,7 @@ if (window.location.search.includes('capture=')) {
     if (captureType === 'evening' || captureType === 'morning') {
       bracketGPSCapture(dateStr, captureType);
     } else {
-      autoGPSCapture(dateStr, true, 'midnight-push');
+      autoGPSCapture(dateStr, true, '12am');
     }
   }, 4000);
 }
