@@ -496,9 +496,26 @@ async function updateFirebase(bookings) {
     const dateStr = booking.date;
     const current = existing[dateStr];
 
-    // Don't overwrite manually-set entries
+    // For manually-set entries: don't overwrite city/country, but still merge flights
     if (current && current.city && !current.autoGps && !current.autoBooking) {
-      skippedCount++;
+      if (booking.flights && booking.flights !== current.flights) {
+        const merged = mergeFlights(current.flights, booking.flights);
+        if (merged !== (current.flights || '')) {
+          const sourceInfo = booking.source + ': ' + (booking.raw || '').slice(0, 120);
+          const existingSource = current.bookingSource || '';
+          const combinedSource = existingSource
+            ? (existingSource.includes(sourceInfo) ? existingSource : existingSource + ' | ' + sourceInfo)
+            : sourceInfo;
+          updates['locations/' + dateStr + '/flights'] = merged;
+          updates['locations/' + dateStr + '/bookingSource'] = combinedSource;
+          mergedCount++;
+          console.log(`  ✈ Merged flight ${booking.flights} into manual entry for ${dateStr}`);
+        } else {
+          skippedCount++;
+        }
+      } else {
+        skippedCount++;
+      }
       continue;
     }
 
