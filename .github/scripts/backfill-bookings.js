@@ -507,9 +507,18 @@ async function updateFirebase(bookings) {
     const dateStr = booking.date;
     const current = existing[dateStr];
 
-    // Don't overwrite manually-set entries (no autoGps, no autoBooking = manual)
-    if (current && current.city && !current.autoGps && !current.autoBooking) {
-      skippedCount++;
+    // Only protect GPS-confirmed entries — booking data can overwrite everything else
+    if (current && (current.autoGps || current.gpsConfirmed) && current.city) {
+      // GPS-confirmed: only merge flights, don't touch location
+      if (booking.flights) {
+        const merged = mergeFlights(current.flights, booking.flights);
+        if (merged !== (current.flights || '')) {
+          const sourceInfo = booking.source + ': ' + (booking.raw || '').slice(0, 120);
+          updates['locations/' + dateStr + '/flights'] = merged;
+          updates['locations/' + dateStr + '/bookingSource'] = sourceInfo;
+          mergedCount++;
+        } else { skippedCount++; }
+      } else { skippedCount++; }
       continue;
     }
 

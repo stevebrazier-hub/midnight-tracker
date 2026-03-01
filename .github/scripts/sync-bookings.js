@@ -496,9 +496,10 @@ async function updateFirebase(bookings) {
     const dateStr = booking.date;
     const current = existing[dateStr];
 
-    // For manually-set entries: don't overwrite city/country, but still merge flights
-    if (current && current.city && !current.autoGps && !current.autoBooking) {
-      if (booking.flights && booking.flights !== current.flights) {
+    // Only protect GPS-confirmed entries — booking data can overwrite everything else
+    if (current && (current.autoGps || current.gpsConfirmed) && current.city) {
+      // GPS-confirmed: only merge flights, don't touch location
+      if (booking.flights) {
         const merged = mergeFlights(current.flights, booking.flights);
         if (merged !== (current.flights || '')) {
           const sourceInfo = booking.source + ': ' + (booking.raw || '').slice(0, 120);
@@ -509,7 +510,7 @@ async function updateFirebase(bookings) {
           updates['locations/' + dateStr + '/flights'] = merged;
           updates['locations/' + dateStr + '/bookingSource'] = combinedSource;
           mergedCount++;
-          console.log(`  ✈ Merged flight ${booking.flights} into manual entry for ${dateStr}`);
+          console.log(`  ✈ Merged flight ${booking.flights} into GPS-confirmed entry for ${dateStr}`);
         } else {
           skippedCount++;
         }
@@ -519,7 +520,7 @@ async function updateFirebase(bookings) {
       continue;
     }
 
-    // Merge: existing data takes priority, booking data fills gaps
+    // Non-GPS entries: booking data can freely populate/overwrite
     // Build booking source audit trail
     const sourceInfo = booking.source + ': ' + (booking.raw || '').slice(0, 120);
     const existingSource = current?.bookingSource || '';
