@@ -1532,7 +1532,7 @@ function openDay(dateStr) {
   const gpsText = document.getElementById('modalGpsText');
   const capturedAtDiv = document.getElementById('modalCapturedAt');
   if (entry.lat && entry.lon) {
-    gpsText.textContent = entry.lat.toFixed(6) + ', ' + entry.lon.toFixed(6) + (entry.city ? '  →  ' + entry.city : '');
+    gpsText.textContent = entry.lat.toFixed(6) + ', ' + entry.lon.toFixed(6) + (entry.city ? '  →  ' + entry.city + (entry.country ? ', ' + entry.country : '') : '');
     // Set label based on how the GPS was obtained
     if (entry.bracketInferred) {
       gpsLabel.textContent = '📐 Location (inferred from brackets):';
