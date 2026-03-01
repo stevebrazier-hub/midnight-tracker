@@ -883,9 +883,9 @@ function renderList() {
         '<div class="list-info"><div class="place">' + (place || (!hasData ? '<span style="color:var(--text-light);font-style:italic;">No data</span>' : '')) + '</div><div class="city-country">' + city + (country ? ', ' + country : '') + '</div>' +
         (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') +
         '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">' +
-        (entry?.lat ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;font-size:10px;">📍 12am ' + (entry.city || entry.lat.toFixed(4) + ', ' + entry.lon.toFixed(4)) + (entry.capturedAt ? ' @ ' + entry.capturedAt.split(' ').slice(1).join(' ') : '') + '</div>' : '') +
-        (entry?.brackets?.evening ? '<div class="working-tag" style="background:#fef3e8;color:#92400e;font-size:10px;">🌆 10pm ' + (entry.brackets.evening.city || '') + (entry.brackets.evening.capturedAt ? ' @ ' + entry.brackets.evening.capturedAt.split(' ').slice(1).join(' ') : '') + '</div>' : '') +
-        (entry?.brackets?.morning ? '<div class="working-tag" style="background:#eff6ff;color:#1e40af;font-size:10px;">🌅 7am ' + (entry.brackets.morning.city || '') + (entry.brackets.morning.capturedAt ? ' @ ' + entry.brackets.morning.capturedAt.split(' ').slice(1).join(' ') : '') + '</div>' : '') +
+        (entry?.lat || entry?.city ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;font-size:10px;">📍 12am ' + (entry.city ? entry.city + (entry.country ? ', ' + entry.country : '') : entry.lat.toFixed(4) + ', ' + entry.lon.toFixed(4)) + (entry.capturedAt ? ' @ ' + entry.capturedAt.split(' ').slice(1).join(' ') : '') + '</div>' : '') +
+        (entry?.brackets?.evening ? '<div class="working-tag" style="background:#fef3e8;color:#92400e;font-size:10px;">🌆 10pm ' + (entry.brackets.evening.city ? entry.brackets.evening.city + (entry.brackets.evening.country ? ', ' + entry.brackets.evening.country : '') : (entry.brackets.evening.lat ? entry.brackets.evening.lat.toFixed(4) + ', ' + entry.brackets.evening.lon.toFixed(4) : 'pending')) + (entry.brackets.evening.capturedAt ? ' @ ' + entry.brackets.evening.capturedAt.split(' ').slice(1).join(' ') : '') + '</div>' : '') +
+        (entry?.brackets?.morning ? '<div class="working-tag" style="background:#eff6ff;color:#1e40af;font-size:10px;">🌅 7am ' + (entry.brackets.morning.city ? entry.brackets.morning.city + (entry.brackets.morning.country ? ', ' + entry.brackets.morning.country : '') : (entry.brackets.morning.lat ? entry.brackets.morning.lat.toFixed(4) + ', ' + entry.brackets.morning.lon.toFixed(4) : 'pending')) + (entry.brackets.morning.capturedAt ? ' @ ' + entry.brackets.morning.capturedAt.split(' ').slice(1).join(' ') : '') + '</div>' : '') +
         (entry?.bracketInferred ? '<div class="working-tag" style="background:#fef9c3;color:#92400e;">📐 INFERRED</div>' : '') +
         (entry?.autoGps && !entry?.unconfirmed && !entry?.gpsConfirmed && !entry?.bracketInferred ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS</div>' : '') +
         (entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS + MANUAL</div>' : '') +
@@ -1577,16 +1577,16 @@ function openDay(dateStr) {
     bracketDiv.style.display = '';
     if (entry.brackets.evening) {
       const ev = entry.brackets.evening;
+      const evLoc = ev.city ? ev.city + (ev.country ? ', ' + ev.country : '') : (ev.lat ? ev.lat.toFixed(5) + ', ' + ev.lon.toFixed(5) : 'pending');
       document.getElementById('eveningBracketText').textContent =
-        (ev.city || ev.lat?.toFixed(4)) + ', ' + (ev.country || '') +
-        (ev.capturedAt ? '  —  ' + ev.capturedAt : '');
+        evLoc + (ev.capturedAt ? '  —  ' + ev.capturedAt : '');
       evDiv.style.display = '';
     } else { evDiv.style.display = 'none'; }
     if (entry.brackets.morning) {
       const am = entry.brackets.morning;
+      const amLoc = am.city ? am.city + (am.country ? ', ' + am.country : '') : (am.lat ? am.lat.toFixed(5) + ', ' + am.lon.toFixed(5) : 'pending');
       document.getElementById('morningBracketText').textContent =
-        (am.city || am.lat?.toFixed(4)) + ', ' + (am.country || '') +
-        (am.capturedAt ? '  —  ' + am.capturedAt : '');
+        amLoc + (am.capturedAt ? '  —  ' + am.capturedAt : '');
       amDiv.style.display = '';
     } else { amDiv.style.display = 'none'; }
   } else {
