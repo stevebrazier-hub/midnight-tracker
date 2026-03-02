@@ -355,6 +355,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
     <div class="settings-card">
       <h3>Account</h3>
       <p id="loggedInAs" style="margin-bottom:8px;"></p>
+      <p id="appVersion" style="font-size:11px;color:var(--text-light);margin-bottom:8px;"></p>
       <button class="btn btn-outline" onclick="doLogout()" style="width:100%">Sign out</button>
     </div>
 
@@ -472,7 +473,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       </div>
       <div id="modalSources" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
       <div id="modalBookingSource" style="display:none;margin-top:6px;font-size:11px;">
-        <span style="color:var(--text-light);">Booking detail:</span> <span id="bookingSourceText"></span>
+        <span id="bookingSourceText"></span>
       </div>
     </div>
 
@@ -488,6 +489,9 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 <div class="toast" id="toast"></div>
 
 <script>
+// ===== APP VERSION =====
+const APP_VERSION = '2026-03-02a';
+
 // ===== FIREBASE CONFIG =====
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyAjZaVwXku1n1niJtkxvcKjXDHibSHHIRc",
@@ -571,6 +575,7 @@ function showApp(user) {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appWrap').classList.add('authed');
   document.getElementById('loggedInAs').textContent = 'Signed in as ' + user.email;
+  document.getElementById('appVersion').textContent = 'Version: ' + APP_VERSION;
   loadLocal();
   loadPresets();
   loadHomeSettings();
@@ -1628,7 +1633,13 @@ function openDay(dateStr) {
   const bsDetailDiv = document.getElementById('modalBookingSource');
   const bsText = document.getElementById('bookingSourceText');
   if (entry.bookingSource) {
-    bsText.textContent = entry.bookingSource;
+    // Capitalise source prefix (calendar: → Calendar:, email: → Email:)
+    const displaySource = entry.bookingSource.replace(/^(calendar|email):/i, function(m) {
+      return m.charAt(0).toUpperCase() + m.slice(1);
+    }).replace(/\| (calendar|email):/gi, function(m) {
+      return '| ' + m.charAt(2).toUpperCase() + m.slice(3);
+    });
+    bsText.textContent = displaySource;
     bsDetailDiv.style.display = '';
   } else {
     bsDetailDiv.style.display = 'none';

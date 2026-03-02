@@ -61,7 +61,7 @@ self.addEventListener('notificationclick', event => {
 });
 
 // ===== CACHING (PWA offline support) =====
-const CACHE_NAME = 'midnight-tracker-v4';
+const CACHE_NAME = 'midnight-tracker-v5';
 const ASSETS = [
   './index.html',
   './manifest.json',
