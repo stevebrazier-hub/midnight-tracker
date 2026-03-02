@@ -493,7 +493,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-02f';
+const APP_VERSION = '2026-03-02g';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -661,7 +661,7 @@ async function flushSyncQueue() {
     console.log('Flushing ' + all.length + ' queued sync(s)...');
     for (const item of all) {
       try {
-        await db.ref('locations/' + item.date).set(item.data);
+        await db.ref('locations/' + item.date).update(item.data);
         // Remove from queue on success
         const dtx = idb.transaction(SYNC_STORE, 'readwrite');
         dtx.objectStore(SYNC_STORE).delete(item.date);
@@ -781,8 +781,8 @@ function syncEntry(date, entry) {
     return;
   }
 
-  // Try to sync, queue on failure
-  db.ref('locations/' + date).set(data).then(() => {
+  // Try to sync — use update() to preserve any fields not in data
+  db.ref('locations/' + date).update(data).then(() => {
     entry.synced = true;
     saveLocal();
   }).catch(err => {
