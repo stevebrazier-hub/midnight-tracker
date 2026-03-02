@@ -493,7 +493,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-02e';
+const APP_VERSION = '2026-03-02f';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -1696,6 +1696,7 @@ function saveDay() {
 
   const existing = entries[savedDate];
   const entry = {
+    ...(existing || {}),
     place: place,
     city: document.getElementById('editCity').value.trim(),
     country: document.getElementById('editCountry').value.trim(),
@@ -1704,17 +1705,11 @@ function saveDay() {
     working: document.getElementById('editWorking').checked ? true : false,
     synced: false
   };
-  // Preserve GPS coordinates and flag if already captured
-  if (existing?.lat) entry.lat = existing.lat;
-  if (existing?.lon) entry.lon = existing.lon;
-  if (existing?.autoGps) entry.gpsConfirmed = true; // GPS was captured at some point
-  if (existing?.bookingSource) entry.bookingSource = existing.bookingSource; // Preserve audit trail
-  if (existing?.capturedAt) entry.capturedAt = existing.capturedAt; // Preserve GPS timestamp
-  if (existing?.captureSource) entry.captureSource = existing.captureSource; // Preserve capture source
-  if (existing?.brackets) entry.brackets = existing.brackets; // Preserve bracket GPS data
-  if (existing?.lateBackfill) entry.lateBackfill = existing.lateBackfill;
-  if (existing?.bracketInferred) entry.bracketInferred = existing.bracketInferred;
+  // GPS was captured at some point — mark as confirmed by manual save
+  if (existing?.autoGps) entry.gpsConfirmed = true;
   // Manual save clears unconfirmed and conflict flags
+  delete entry.unconfirmed;
+  delete entry.countryConflict;
 
   if (entry.place || entry.city || entry.country) {
     entries[savedDate] = entry;
@@ -1848,14 +1843,16 @@ async function autoGPSCapture(dateStr, force, source) {
         const match = matchLocationToPreset(lat, lon);
 
         if (match) {
-          // Recognised location — auto-fill from preset
+          // Recognised location — auto-fill from preset, preserving all existing data
           const p = match.preset;
           const entry = {
+            ...(existing || {}),
             place: p.place || p.city, city: p.city, country: p.country,
-            flights: existing?.flights || '', notes: existing?.notes || '',
-            working: existing?.working || false,
             lat, lon, autoGps: true, capturedAt: ukTimestamp(), captureSource: source || 'auto', synced: false
           };
+          // Preserve flights/notes/working from existing if not already set
+          if (!entry.flights) entry.flights = '';
+          if (!entry.notes) entry.notes = '';
           // Check for country conflict with existing booking data
           if (existing && existing.country && existing.autoBooking && existing.country !== p.country) {
             entry.countryConflict = 'GPS says ' + p.country + ', booking says ' + existing.country;
@@ -1866,8 +1863,6 @@ async function autoGPSCapture(dateStr, force, source) {
               'Please check <a href="https://midnight.cancomo.com">midnight.cancomo.com</a> and confirm the correct country.'
             );
           }
-          // Preserve flight info from booking
-          if (existing?.flights && !entry.flights) entry.flights = existing.flights;
           entries[dateStr] = entry;
           syncEntry(dateStr, entry);
           saveLocal();
@@ -1887,13 +1882,14 @@ async function autoGPSCapture(dateStr, force, source) {
             placeName = data.display_name?.split(',')[0] || '';
           } catch(e) { console.warn('Geocode failed', e); }
 
-          // Save with what we have, flagged as unconfirmed
+          // Save with what we have, flagged as unconfirmed, preserving all existing data
           const entry = {
+            ...(existing || {}),
             place: placeName, city, country,
-            flights: existing?.flights || '', notes: existing?.notes || '',
-            working: existing?.working || false,
             lat, lon, autoGps: true, capturedAt: ukTimestamp(), captureSource: source || 'auto', unconfirmed: true, synced: false
           };
+          if (!entry.flights) entry.flights = '';
+          if (!entry.notes) entry.notes = '';
           // Check for country conflict with existing booking data
           if (existing && existing.country && existing.autoBooking && country && existing.country !== country) {
             entry.countryConflict = 'GPS says ' + country + ', booking says ' + existing.country;
