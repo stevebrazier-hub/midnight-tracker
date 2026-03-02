@@ -446,7 +446,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
     <div class="field" id="workingField">
       <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
         <input type="checkbox" id="editWorking" style="width:18px;height:18px;accent-color:var(--primary);flex:none;" />
-        <span>Worked in the UK this day</span>
+        <span>UK working day</span>
       </label>
     </div>
 
@@ -489,7 +489,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-02a';
+const APP_VERSION = '2026-03-02b';
 
 // ===== FIREBASE CONFIG =====
 const FIREBASE_CONFIG = {
@@ -2118,13 +2118,14 @@ function checkTodayGPS() {
     autoGPSCapture(todayStr, false, 'app');
   }
 
-  // Silent morning bracket capture: if opened between 6am-9am UK time and no
-  // morning bracket yet for today, capture one automatically (no push needed)
+  // Silent morning bracket capture: if opened between 6am-10am UK time and no
+  // complete morning bracket yet, capture one automatically (no push needed).
+  // Also re-captures if a previous capture is missing GPS coordinates.
   const ukHour = parseInt(new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hour12: false }));
-  if (ukHour >= 6 && ukHour < 9) {
+  if (ukHour >= 6 && ukHour < 10) {
     const todayBrackets = entries[todayStr]?.brackets || {};
     if (!todayBrackets.morning?.lat) {
-      console.log('Morning window (6-9am UK) — silently capturing morning bracket for ' + todayStr);
+      console.log('Morning window (6-10am UK) — capturing morning bracket for ' + todayStr);
       bracketGPSCapture(todayStr, 'morning');
     }
   }
