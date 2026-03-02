@@ -489,7 +489,13 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-02b';
+const APP_VERSION = '2026-03-02c';
+
+// Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
+function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
+
+// Short GPS for display (2dp), full precision stays in DB/export
+function shortGps(lat, lon) { return lat.toFixed(2) + ', ' + lon.toFixed(2); }
 
 // ===== FIREBASE CONFIG =====
 const FIREBASE_CONFIG = {
@@ -887,9 +893,9 @@ function renderList() {
         '<div class="list-info"><div class="place">' + (place || (!hasData ? '<span style="color:var(--text-light);font-style:italic;">No data</span>' : '')) + '</div><div class="city-country">' + city + (country ? ', ' + country : '') + '</div>' +
         (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') +
         '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">' +
-        (ds <= todayStr && (entry?.lat || entry?.city) ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;font-size:10px;">📍 12am ' + (entry.city ? entry.city + (entry.country ? ', ' + entry.country : '') : entry.lat.toFixed(4) + ', ' + entry.lon.toFixed(4)) + (entry.capturedAt ? ' @ ' + entry.capturedAt.split(' ').slice(1).join(' ') : '') + '</div>' : '') +
-        (ds <= todayStr && entry?.brackets?.evening ? '<div class="working-tag" style="background:#fef3e8;color:#92400e;font-size:10px;">🌆 10pm ' + (entry.brackets.evening.city ? entry.brackets.evening.city + (entry.brackets.evening.country ? ', ' + entry.brackets.evening.country : '') : (entry.brackets.evening.lat ? entry.brackets.evening.lat.toFixed(4) + ', ' + entry.brackets.evening.lon.toFixed(4) : 'pending')) + (entry.brackets.evening.capturedAt ? ' @ ' + entry.brackets.evening.capturedAt.split(' ').slice(1).join(' ') : '') + '</div>' : '') +
-        (ds <= todayStr && entry?.brackets?.morning ? '<div class="working-tag" style="background:#eff6ff;color:#1e40af;font-size:10px;">🌅 7am ' + (entry.brackets.morning.city ? entry.brackets.morning.city + (entry.brackets.morning.country ? ', ' + entry.brackets.morning.country : '') : (entry.brackets.morning.lat ? entry.brackets.morning.lat.toFixed(4) + ', ' + entry.brackets.morning.lon.toFixed(4) : 'pending')) + (entry.brackets.morning.capturedAt ? ' @ ' + entry.brackets.morning.capturedAt.split(' ').slice(1).join(' ') : '') + '</div>' : '') +
+        (ds <= todayStr && (entry?.lat || entry?.city) ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;font-size:10px;">📍 12am ' + (entry.city ? entry.city + (entry.country ? ', ' + entry.country : '') : shortGps(entry.lat, entry.lon)) + (entry.capturedAt ? ' @ ' + shortTs(entry.capturedAt).split(' ').slice(1).join(' ') : '') + '</div>' : '') +
+        (ds <= todayStr && entry?.brackets?.evening ? '<div class="working-tag" style="background:#fef3e8;color:#92400e;font-size:10px;">🌆 10pm ' + (entry.brackets.evening.city ? entry.brackets.evening.city + (entry.brackets.evening.country ? ', ' + entry.brackets.evening.country : '') : (entry.brackets.evening.lat ? shortGps(entry.brackets.evening.lat, entry.brackets.evening.lon) : 'pending')) + (entry.brackets.evening.capturedAt ? ' @ ' + shortTs(entry.brackets.evening.capturedAt).split(' ').slice(1).join(' ') : '') + '</div>' : '') +
+        (ds <= todayStr && entry?.brackets?.morning ? '<div class="working-tag" style="background:#eff6ff;color:#1e40af;font-size:10px;">🌅 7am ' + (entry.brackets.morning.city ? entry.brackets.morning.city + (entry.brackets.morning.country ? ', ' + entry.brackets.morning.country : '') : (entry.brackets.morning.lat ? shortGps(entry.brackets.morning.lat, entry.brackets.morning.lon) : 'pending')) + (entry.brackets.morning.capturedAt ? ' @ ' + shortTs(entry.brackets.morning.capturedAt).split(' ').slice(1).join(' ') : '') + '</div>' : '') +
         (ds <= todayStr && entry?.bracketInferred ? '<div class="working-tag" style="background:#fef9c3;color:#92400e;">📐 INFERRED</div>' : '') +
         (entry?.autoGps && !entry?.unconfirmed && !entry?.gpsConfirmed && !entry?.bracketInferred ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS</div>' : '') +
         (entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS + MANUAL</div>' : '') +
@@ -1536,7 +1542,7 @@ function openDay(dateStr) {
   const gpsText = document.getElementById('modalGpsText');
   const capturedAtDiv = document.getElementById('modalCapturedAt');
   if (entry.lat && entry.lon) {
-    gpsText.textContent = entry.lat.toFixed(6) + ', ' + entry.lon.toFixed(6) + (entry.city ? '  →  ' + entry.city + (entry.country ? ', ' + entry.country : '') : '');
+    gpsText.textContent = shortGps(entry.lat, entry.lon) + (entry.city ? '  →  ' + entry.city + (entry.country ? ', ' + entry.country : '') : '');
     // Set label based on how the GPS was obtained
     if (entry.bracketInferred) {
       gpsLabel.textContent = '📐 Location (inferred from brackets):';
@@ -1545,7 +1551,7 @@ function openDay(dateStr) {
       capturedAtDiv.style.display = '';
     } else if (entry.lateBackfill) {
       gpsLabel.textContent = '⏰ GPS (backfill):';
-      capturedAtDiv.textContent = entry.capturedAt ? entry.capturedAt + '  ·  Backfill' : 'Backfill';
+      capturedAtDiv.textContent = entry.capturedAt ? shortTs(entry.capturedAt) + '  ·  Backfill' : 'Backfill';
       capturedAtDiv.style.color = '#991b1b';
       capturedAtDiv.style.display = '';
     } else if (entry.capturedAt) {
@@ -1558,7 +1564,7 @@ function openDay(dateStr) {
       };
       const sourceLabel = sourceLabels[entry.captureSource] || entry.captureSource || '';
       gpsLabel.textContent = '📍 GPS:';
-      capturedAtDiv.textContent = entry.capturedAt + (sourceLabel ? '  ·  ' + sourceLabel : '');
+      capturedAtDiv.textContent = shortTs(entry.capturedAt) + (sourceLabel ? '  ·  ' + sourceLabel : '');
       capturedAtDiv.style.color = '#999';
       capturedAtDiv.style.display = '';
     } else {
@@ -1581,16 +1587,16 @@ function openDay(dateStr) {
     bracketDiv.style.display = '';
     if (entry.brackets.evening) {
       const ev = entry.brackets.evening;
-      const evLoc = ev.city ? ev.city + (ev.country ? ', ' + ev.country : '') : (ev.lat ? ev.lat.toFixed(5) + ', ' + ev.lon.toFixed(5) : 'pending');
+      const evLoc = ev.city ? ev.city + (ev.country ? ', ' + ev.country : '') : (ev.lat ? shortGps(ev.lat, ev.lon) : 'pending');
       document.getElementById('eveningBracketText').textContent =
-        evLoc + (ev.capturedAt ? '  —  ' + ev.capturedAt : '');
+        evLoc + (ev.capturedAt ? '  —  ' + shortTs(ev.capturedAt) : '');
       evDiv.style.display = '';
     } else { evDiv.style.display = 'none'; }
     if (entry.brackets.morning) {
       const am = entry.brackets.morning;
-      const amLoc = am.city ? am.city + (am.country ? ', ' + am.country : '') : (am.lat ? am.lat.toFixed(5) + ', ' + am.lon.toFixed(5) : 'pending');
+      const amLoc = am.city ? am.city + (am.country ? ', ' + am.country : '') : (am.lat ? shortGps(am.lat, am.lon) : 'pending');
       document.getElementById('morningBracketText').textContent =
-        amLoc + (am.capturedAt ? '  —  ' + am.capturedAt : '');
+        amLoc + (am.capturedAt ? '  —  ' + shortTs(am.capturedAt) : '');
       amDiv.style.display = '';
     } else { amDiv.style.display = 'none'; }
   } else {
@@ -1893,14 +1899,14 @@ async function autoGPSCapture(dateStr, force, source) {
           saveLocal();
           render();
 
-          const locDesc = (city ? city + ', ' : '') + (country || lat.toFixed(4) + ', ' + lon.toFixed(4));
+          const locDesc = (city ? city + ', ' : '') + (country || shortGps(lat, lon));
           showGpsBanner('error', 'Unknown location: ' + locDesc + '. Please confirm where you were.');
 
           // Send Teams alert
           const dateDisplay = formatDisplayDate(dateStr);
           sendTeamsAlert(
             '**Unrecognised midnight location** on ' + dateDisplay + '.<br><br>' +
-            'GPS: ' + lat.toFixed(5) + ', ' + lon.toFixed(5) + '<br>' +
+            'GPS: ' + shortGps(lat, lon) + '<br>' +
             'Detected: **' + locDesc + '**<br><br>' +
             'Please open <a href="https://midnight.cancomo.com">midnight.cancomo.com</a> and confirm where Steve was at midnight.'
           );
@@ -1982,7 +1988,7 @@ async function bracketGPSCapture(dateStr, bracketType) {
         syncEntry(dateStr, entries[dateStr]);
         saveLocal();
 
-        const locDesc = place || city || (lat.toFixed(4) + ', ' + lon.toFixed(4));
+        const locDesc = place || city || shortGps(lat, lon);
         showGpsBanner('ok', (bracketType === 'evening' ? '🌆' : '🌅') + ' ' +
           bracketType.charAt(0).toUpperCase() + bracketType.slice(1) +
           ' bracket: ' + locDesc + (country ? ', ' + country : ''));
