@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "f96lXcyYVJ4pbqLatuAdFn:APA91bGnj25dOtuws-T7YBU-Wi9OpFyHQ1I1eSFmHUMbPoTR8jEDzjQaCtbgEVTHuAorXv8hJ8kn31H5enp9W6EuO40k-bAwjj2wtEsTMsoVYfopMo_l09k",
-      "updatedAt": "2026-02-26T04:25:50.239Z"
+      "updatedAt": "2026-03-03T04:10:28.148Z"
     }
   },
   "locations": {
@@ -1533,10 +1533,11 @@
       "working": true
     },
     "2026-02-24": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Your booking confirmation Z9VFXQ",
       "city": "Oxford",
       "country": "UK",
       "flights": "",
-      "gpsConfirmed": true,
       "lat": 51.73294285542534,
       "lon": -1.2373467146427453,
       "notes": "",
@@ -1547,425 +1548,74 @@
       "city": "Oxford",
       "country": "UK",
       "flights": "",
-      "gpsConfirmed": true,
       "lat": 51.7329714,
       "lon": -1.2376777,
       "notes": "",
       "place": "Oxford",
       "working": true
     },
-    "2026-02-26": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-02-27": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
     "2026-02-28": {
+      "captureSource": "app",
+      "capturedAt": "2026-02-28 22:59:01 GMT",
       "city": "Oxford",
       "country": "UK",
       "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-01": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-02": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-03": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-04": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-05": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-07": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-08": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-09": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-10": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-11": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-12": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-13": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-14": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-15": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-16": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-17": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-18": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-19": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-20": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
+      "gpsConfirmed": true,
+      "lat": 51.7329666,
+      "lon": -1.2372956,
       "notes": "",
       "place": "Oxford"
     },
-    "2026-03-21": {
+    "2026-03-01": {
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-03-01 22:56:17 GMT",
+          "city": "Oxford",
+          "country": "UK",
+          "lat": 51.7329767,
+          "lon": -1.237283,
+          "place": "Oxford"
+        }
+      },
+      "captureSource": "12am",
+      "capturedAt": "2026-03-01 07:28:23 GMT",
       "city": "Oxford",
       "country": "UK",
       "flights": "",
+      "lat": 51.73297,
+      "lon": -1.2373507,
       "notes": "",
-      "place": "417 Meadow Lane"
+      "place": "Oxford"
     },
-    "2026-03-22": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
+    "2026-03-02": {
+      "autoGps": true,
+      "city": "Cernobbio",
+      "country": "Italy",
+      "flights": "BA574",
+      "lat": 45.4786567,
+      "lon": 9.1993005,
+      "notes": "Bracket mismatch: evening=Cernobbio,Italy vs morning=Oxford,UK",
+      "place": "Cernobbio",
+      "unconfirmed": true
     },
-    "2026-03-23": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-24": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-25": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-26": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-27": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-28": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-29": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-30": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-03-31": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-01": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-02": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-03": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-04": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-05": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-06": {
+    "2026-03-03": {
+      "autoGps": true,
       "city": "Cernobbio",
       "country": "Italy",
       "flights": "",
+      "lat": 45.4786558,
+      "lon": 9.1993042,
       "notes": "",
       "place": "Cernobbio"
     },
-    "2026-04-07": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
+    "2026-03-04": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA579: LIN - LHR, departs 15:30",
+      "city": "Milan",
+      "country": "Italy",
+      "flights": "BA579",
       "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-08": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-09": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-10": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-11": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-12": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-13": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-14": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-15": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-16": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-17": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-18": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-19": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-20": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-21": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-22": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-23": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-24": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-25": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
-    },
-    "2026-04-26": {
-      "city": "Oxford",
-      "country": "UK",
-      "flights": "",
-      "notes": "",
-      "place": "417 Meadow Lane"
+      "place": ""
     }
   },
   "presets": [
@@ -2002,7 +1652,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-02-26T05:13:12.536Z",
+    "lastBookingSync": "2026-03-03T05:07:22.580Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
