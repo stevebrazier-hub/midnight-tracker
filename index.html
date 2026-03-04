@@ -493,7 +493,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-02g';
+const APP_VERSION = '2026-03-04a';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -1736,9 +1736,9 @@ function clearDay() {
 
 // Known location coordinates for preset matching (lat, lon, radius in km)
 const KNOWN_LOCATIONS = [
-  { lat: 45.8472, lon: 9.0853, radius: 50, preset: 'cernobbio' },    // Cernobbio, Italy
-  { lat: 51.7520, lon: -1.2577, radius: 50, preset: 'oxford' },  // Oxford, UK
-  { lat: 13.7235, lon: 100.4925, radius: 50, preset: 'bangkok' }, // Klongsan/Bangkok
+  { lat: 45.8472, lon: 9.0853, radius: 5, preset: 'cernobbio' },    // Cernobbio, Italy
+  { lat: 51.7520, lon: -1.2577, radius: 5, preset: 'oxford' },  // Oxford, UK
+  { lat: 13.7235, lon: 100.4925, radius: 5, preset: 'bangkok' }, // Klongsan/Bangkok
 ];
 
 // Haversine distance in km
