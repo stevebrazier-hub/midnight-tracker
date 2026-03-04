@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "f96lXcyYVJ4pbqLatuAdFn:APA91bGnj25dOtuws-T7YBU-Wi9OpFyHQ1I1eSFmHUMbPoTR8jEDzjQaCtbgEVTHuAorXv8hJ8kn31H5enp9W6EuO40k-bAwjj2wtEsTMsoVYfopMo_l09k",
-      "updatedAt": "2026-03-03T04:10:28.148Z"
+      "updatedAt": "2026-03-03T22:12:04.415Z"
     }
   },
   "locations": {
@@ -1589,22 +1589,41 @@
     },
     "2026-03-02": {
       "autoGps": true,
-      "city": "Cernobbio",
+      "city": "Milan",
       "country": "Italy",
       "flights": "BA574",
+      "gpsConfirmed": true,
       "lat": 45.4786567,
       "lon": 9.1993005,
       "notes": "Bracket mismatch: evening=Cernobbio,Italy vs morning=Oxford,UK",
-      "place": "Cernobbio",
+      "place": "Milan",
       "unconfirmed": true
     },
     "2026-03-03": {
       "autoGps": true,
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-03-03 22:12:03 GMT",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "lat": 45.8180178,
+          "lon": 9.0656823,
+          "place": "Cernobbio"
+        },
+        "morning": {
+          "capturedAt": "2026-03-03 07:12:31 GMT",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "lat": 45.4786481,
+          "lon": 9.1992832,
+          "place": "Cernobbio"
+        }
+      },
       "city": "Cernobbio",
       "country": "Italy",
       "flights": "",
-      "lat": 45.4786558,
-      "lon": 9.1993042,
+      "lat": 45.4786514,
+      "lon": 9.1993028,
       "notes": "",
       "place": "Cernobbio"
     },
@@ -1652,7 +1671,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-03-03T05:07:22.580Z",
+    "lastBookingSync": "2026-03-04T04:59:01.800Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
