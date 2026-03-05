@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "f96lXcyYVJ4pbqLatuAdFn:APA91bGnj25dOtuws-T7YBU-Wi9OpFyHQ1I1eSFmHUMbPoTR8jEDzjQaCtbgEVTHuAorXv8hJ8kn31H5enp9W6EuO40k-bAwjj2wtEsTMsoVYfopMo_l09k",
-      "updatedAt": "2026-03-03T22:12:04.415Z"
+      "updatedAt": "2026-03-04T19:04:19.503Z"
     }
   },
   "locations": {
@@ -1629,12 +1629,36 @@
     },
     "2026-03-04": {
       "autoBooking": true,
+      "autoGps": true,
       "bookingSource": "calendar: Flight BA579: LIN - LHR, departs 15:30",
-      "city": "Milan",
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-03-04 22:37:28 GMT",
+          "city": "Oxford",
+          "country": "UK",
+          "lat": 51.7329661,
+          "lon": -1.2373031,
+          "place": "Oxford"
+        },
+        "morning": {
+          "capturedAt": "2026-03-04 07:04:59 GMT",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "lat": 45.8165779,
+          "lon": 9.0639638,
+          "place": "Cernobbio"
+        }
+      },
+      "captureSource": "12am",
+      "capturedAt": "2026-03-04 07:04:52 GMT",
+      "city": "Cernobbio",
       "country": "Italy",
       "flights": "BA579",
-      "notes": "",
-      "place": ""
+      "lat": 45.816591,
+      "lon": 9.0639415,
+      "notes": "Bracket mismatch: evening=Oxford,UK vs morning=Cernobbio,Italy",
+      "place": "Cernobbio",
+      "unconfirmed": true
     }
   },
   "presets": [
@@ -1671,7 +1695,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-03-04T04:59:01.800Z",
+    "lastBookingSync": "2026-03-05T05:05:46.002Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
