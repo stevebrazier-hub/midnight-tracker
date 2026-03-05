@@ -104,29 +104,46 @@ async function main() {
   console.log('=== OneDrive Backup Upload ===');
   console.log('Date:', today);
   console.log('Target folder:', FOLDER);
+  console.log('User:', USER_EMAIL);
+  console.log('Client ID:', process.env.MS_CLIENT_ID ? process.env.MS_CLIENT_ID.slice(0, 8) + '...' : 'MISSING');
+  console.log('Tenant ID:', process.env.MS_TENANT_ID ? process.env.MS_TENANT_ID.slice(0, 8) + '...' : 'MISSING');
+  console.log('Client Secret:', process.env.MS_CLIENT_SECRET ? '***set***' : 'MISSING');
 
   const token = await getGraphToken();
-  console.log('Authenticated with Graph API\n');
+  console.log('Authenticated with Graph API');
+  console.log('Token preview:', token.slice(0, 20) + '...\n');
 
   // Upload latest.json as dated file + latest
   const jsonFile = path.join(BACKUP_DIR, 'latest.json');
   const xlsxFile = path.join(BACKUP_DIR, 'latest.xlsx');
 
+  let uploaded = 0;
+
   if (fs.existsSync(jsonFile)) {
+    console.log('Found latest.json (' + (fs.statSync(jsonFile).size / 1024).toFixed(1) + ' KB)');
     await uploadFile(token, jsonFile, `backup-${today}.json`);
+    uploaded++;
     await uploadFile(token, jsonFile, 'latest.json');
+    uploaded++;
   } else {
-    console.log('No latest.json found — skipping');
+    console.log('WARNING: No latest.json found at ' + jsonFile);
   }
 
   if (fs.existsSync(xlsxFile)) {
+    console.log('Found latest.xlsx (' + (fs.statSync(xlsxFile).size / 1024).toFixed(1) + ' KB)');
     await uploadFile(token, xlsxFile, `midnight-tracker-${today}.xlsx`);
+    uploaded++;
     await uploadFile(token, xlsxFile, 'latest.xlsx');
+    uploaded++;
   } else {
-    console.log('No latest.xlsx found — skipping');
+    console.log('WARNING: No latest.xlsx found at ' + xlsxFile);
   }
 
-  console.log('\nDone.');
+  console.log('\nDone. ' + uploaded + ' files uploaded to OneDrive/' + FOLDER);
+  if (uploaded === 0) {
+    console.error('ERROR: No files were uploaded!');
+    process.exit(1);
+  }
   process.exit(0);
 }
 
