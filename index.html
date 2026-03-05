@@ -493,7 +493,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-05a';
+const APP_VERSION = '2026-03-05b';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -1858,7 +1858,7 @@ async function autoGPSCapture(dateStr, force, source) {
             entry.countryConflict = 'GPS says ' + p.country + ', booking says ' + existing.country;
             sendTeamsAlert(
               '**Country mismatch** on ' + formatDisplayDate(dateStr) + '.<br><br>' +
-              'GPS location: **' + p.city + ', ' + p.country + '**<br>' +
+              'GPS location: **' + shortGps(lat, lon) + ' → ' + p.city + ', ' + p.country + '**<br>' +
               'Booking expected: **' + existing.city + ', ' + existing.country + '**<br><br>' +
               'Please check <a href="https://midnight.cancomo.com">midnight.cancomo.com</a> and confirm the correct country.'
             );
@@ -1867,7 +1867,7 @@ async function autoGPSCapture(dateStr, force, source) {
           syncEntry(dateStr, entry);
           saveLocal();
           render();
-          showGpsBanner('ok', 'Auto-logged: ' + p.label + ' (' + match.distance.toFixed(1) + 'km away)' +
+          showGpsBanner('ok', 'Auto-logged: ' + shortGps(lat, lon) + ' → ' + p.label + ' (' + match.distance.toFixed(1) + 'km away)' +
             (entry.countryConflict ? ' ⚠ Country mismatch with booking!' : ''));
           setTimeout(dismissGpsBanner, entry.countryConflict ? 10000 : 5000);
           resolve(true);
@@ -1899,15 +1899,14 @@ async function autoGPSCapture(dateStr, force, source) {
           saveLocal();
           render();
 
-          const locDesc = (city ? city + ', ' : '') + (country || shortGps(lat, lon));
+          const locDesc = shortGps(lat, lon) + (city ? ' → ' + city + (country ? ', ' + country : '') : (country ? ' → ' + country : ''));
           showGpsBanner('error', 'Unknown location: ' + locDesc + '. Please confirm where you were.');
 
           // Send Teams alert
           const dateDisplay = formatDisplayDate(dateStr);
           sendTeamsAlert(
             '**Unrecognised midnight location** on ' + dateDisplay + '.<br><br>' +
-            'GPS: ' + shortGps(lat, lon) + '<br>' +
-            'Detected: **' + locDesc + '**<br><br>' +
+            'GPS: **' + locDesc + '**<br><br>' +
             'Please open <a href="https://midnight.cancomo.com">midnight.cancomo.com</a> and confirm where Steve was at midnight.'
           );
           resolve(false);
@@ -1988,10 +1987,10 @@ async function bracketGPSCapture(dateStr, bracketType) {
         syncEntry(dateStr, entries[dateStr]);
         saveLocal();
 
-        const locDesc = place || city || shortGps(lat, lon);
+        const locDesc = shortGps(lat, lon) + (city ? ' → ' + city + (country ? ', ' + country : '') : (country ? ' → ' + country : ''));
         showGpsBanner('ok', (bracketType === 'evening' ? '🌆' : '🌅') + ' ' +
           bracketType.charAt(0).toUpperCase() + bracketType.slice(1) +
-          ' bracket: ' + locDesc + (country ? ', ' + country : ''));
+          ' bracket: ' + locDesc);
         setTimeout(dismissGpsBanner, 5000);
 
         // If we now have both brackets, try to infer midnight location
@@ -2067,8 +2066,8 @@ function inferMidnightFromBrackets(dateStr) {
 
     sendTeamsAlert(
       '**Bracket GPS mismatch** on ' + formatDisplayDate(dateStr) + '.<br><br>' +
-      'Evening (10pm): **' + ev.city + ', ' + ev.country + '**<br>' +
-      'Morning (7am): **' + am.city + ', ' + am.country + '**<br><br>' +
+      'Evening (10pm): **' + (ev.lat ? shortGps(ev.lat, ev.lon) + ' → ' : '') + ev.city + ', ' + ev.country + '**<br>' +
+      'Morning (7am): **' + (am.lat ? shortGps(am.lat, am.lon) + ' → ' : '') + am.city + ', ' + am.country + '**<br><br>' +
       'Countries differ — please confirm where Steve was at midnight.'
     );
   }
