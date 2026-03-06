@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "f96lXcyYVJ4pbqLatuAdFn:APA91bGnj25dOtuws-T7YBU-Wi9OpFyHQ1I1eSFmHUMbPoTR8jEDzjQaCtbgEVTHuAorXv8hJ8kn31H5enp9W6EuO40k-bAwjj2wtEsTMsoVYfopMo_l09k",
-      "updatedAt": "2026-03-05T16:27:46.977Z"
+      "updatedAt": "2026-03-06T07:34:11.642Z"
     }
   },
   "locations": {
@@ -1655,6 +1655,7 @@
       "country": "UK",
       "countryConflict": "GPS says UK, booking says Italy",
       "flights": "BA579",
+      "gpsConfirmed": true,
       "lat": 51.7329525,
       "lon": -1.2376135,
       "notes": "Bracket mismatch: evening=Oxford,UK vs morning=Cernobbio,Italy",
@@ -1664,14 +1665,6 @@
     "2026-03-05": {
       "autoGps": true,
       "brackets": {
-        "evening": {
-          "capturedAt": "2026-03-05 23:00:53 GMT",
-          "city": "Oxford",
-          "country": "UK",
-          "lat": 51.7329494,
-          "lon": -1.237674,
-          "place": "Oxford"
-        },
         "morning": {
           "capturedAt": "2026-03-05 08:07:29 GMT",
           "city": "Oxford",
@@ -1682,12 +1675,34 @@
         }
       },
       "captureSource": "12am",
-      "capturedAt": "2026-03-05 07:29:48 GMT",
+      "capturedAt": "2026-03-06 09:08:06 GMT",
       "city": "Oxford",
       "country": "UK",
       "flights": "",
-      "lat": 51.7329525,
-      "lon": -1.2376135,
+      "lat": 51.732967382090834,
+      "lon": -1.2372750225652596,
+      "notes": "",
+      "place": "Oxford"
+    },
+    "2026-03-06": {
+      "autoGps": true,
+      "brackets": {
+        "morning": {
+          "capturedAt": "2026-03-06 07:33:48 GMT",
+          "city": "Oxford",
+          "country": "UK",
+          "lat": 51.733070371868266,
+          "lon": -1.2373609492558466,
+          "place": "Oxford"
+        }
+      },
+      "captureSource": "12am",
+      "capturedAt": "2026-03-06 07:34:13 GMT",
+      "city": "Oxford",
+      "country": "UK",
+      "flights": "",
+      "lat": 51.7329759,
+      "lon": -1.2373195,
       "notes": "",
       "place": "Oxford"
     }
@@ -1726,7 +1741,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-03-06T05:01:29.770Z",
+    "lastBookingSync": "2026-03-06T07:54:04.849Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
