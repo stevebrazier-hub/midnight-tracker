@@ -493,7 +493,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-06b';
+const APP_VERSION = '2026-03-06c';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -903,7 +903,7 @@ function renderList() {
         (entry?.autoBooking && !entry?.autoGps && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f0fe;color:#1a73e8;">BOOKING' + (entry.flights && entry.place ? ' ✈+🏨' : entry.flights ? ' ✈' : entry.place ? ' 🏨' : '') + '</div>' : '') +
         (entry?.lateBackfill ? '<div class="working-tag" style="background:#fee2e2;color:#991b1b;font-size:10px;">⏰ BACKFILL</div>' : '') +
         (isUnconfirmed && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#fff3cd;color:#92400e;">📌 CHECK</div>' : '') +
-        (entry?.countryConflict ? '<div class="working-tag" style="background:#fff3cd;color:#856404;">CTRY</div>' : '') +
+        (entry?.countryConflict && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#fff3cd;color:#856404;">CTRY</div>' : '') +
         transitFlag +
         (isWorking ? '<div class="working-tag">WORKING</div>' : '') +
         (!entry ? '<div class="working-tag" style="background:#f5f5f5;color:#999;">NO DATA</div>' : '') +
@@ -1846,8 +1846,8 @@ async function autoGPSCapture(dateStr, force, source) {
           // Preserve flights/notes/working from existing if not already set
           if (!entry.flights) entry.flights = '';
           if (!entry.notes) entry.notes = '';
-          // Check for country conflict with existing booking data
-          if (existing && existing.country && existing.autoBooking && existing.country !== p.country) {
+          // Check for country conflict with existing booking data (skip if manually confirmed)
+          if (existing && existing.country && existing.autoBooking && !existing.gpsConfirmed && existing.country !== p.country) {
             entry.countryConflict = 'GPS says ' + p.country + ', booking says ' + existing.country;
             sendTeamsAlert(
               '**Country mismatch** on ' + formatDisplayDate(dateStr) + '.<br><br>' +
@@ -1883,8 +1883,8 @@ async function autoGPSCapture(dateStr, force, source) {
           };
           if (!entry.flights) entry.flights = '';
           if (!entry.notes) entry.notes = '';
-          // Check for country conflict with existing booking data
-          if (existing && existing.country && existing.autoBooking && country && existing.country !== country) {
+          // Check for country conflict with existing booking data (skip if manually confirmed)
+          if (existing && existing.country && existing.autoBooking && !existing.gpsConfirmed && country && existing.country !== country) {
             entry.countryConflict = 'GPS says ' + country + ', booking says ' + existing.country;
           }
           entries[dateStr] = entry;
