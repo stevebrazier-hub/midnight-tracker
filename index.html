@@ -493,7 +493,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-05b';
+const APP_VERSION = '2026-03-06a';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -868,25 +868,21 @@ function renderList() {
       if (hasData && isHome) cls += ' is-home';
       if (!hasData) cls += ' is-unrecorded';
 
-      // Transit day intelligence: only flag if evidence suggests airborne at UK midnight.
-      // Criteria: flights exist AND country changed AND one of:
-      //   (a) no GPS was captured at midnight (suggesting phone was in flight mode / airborne), OR
-      //   (b) bracket GPS mismatch (evening in one country, morning in another), OR
-      //   (c) entry was not confirmed by GPS at all (no autoGps flag)
+      // Flight/transit day intelligence
+      // TRANSIT = airborne at UK midnight (no reliable GPS capture at midnight)
+      // FLIGHT = flew that day but have reliable midnight GPS (we know where they were)
       let transitFlag = '';
       if (flights && hasData) {
+        const reliableMidnightGps = entry?.autoGps && !entry?.bracketInferred && !entry?.lateBackfill;
         const prevDs = fmtDate(new Date(y, m, d - 1));
         const nextDs = fmtDate(new Date(y, m, d + 1));
         const prevCountry = entries[prevDs]?.country || '';
         const nextCountry = entries[nextDs]?.country || '';
         const countryChanged = (prevCountry && prevCountry !== country) || (nextCountry && nextCountry !== country);
-        if (countryChanged) {
-          const noMidnightGps = !entry?.autoGps || entry?.bracketInferred || entry?.lateBackfill;
-          const bracketMismatch = entry?.brackets?.evening && entry?.brackets?.morning &&
-            entry.brackets.evening.country !== entry.brackets.morning.country;
-          if (noMidnightGps || bracketMismatch) {
-            transitFlag = '<div class="working-tag" style="background:#fdf2f8;color:#be185d;">✈ TRANSIT DAY</div>';
-          }
+        if (countryChanged && !reliableMidnightGps) {
+          transitFlag = '<div class="working-tag" style="background:#fdf2f8;color:#be185d;">✈ TRANSIT</div>';
+        } else {
+          transitFlag = '<div class="working-tag" style="background:#eff6ff;color:#1e40af;">✈ FLIGHT</div>';
         }
       }
 
@@ -906,8 +902,8 @@ function renderList() {
         (entry && !entry.autoGps && !entry.autoBooking && !entry.gpsConfirmed && !entry.bracketInferred && !entry.brackets && entry.city ? '<div class="working-tag" style="background:#f3e8ff;color:#6b21a8;">MANUAL</div>' : '') +
         (entry?.autoBooking && !entry?.autoGps && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f0fe;color:#1a73e8;">BOOKING' + (entry.flights && entry.place ? ' ✈+🏨' : entry.flights ? ' ✈' : entry.place ? ' 🏨' : '') + '</div>' : '') +
         (entry?.lateBackfill ? '<div class="working-tag" style="background:#fee2e2;color:#991b1b;font-size:10px;">⏰ BACKFILL</div>' : '') +
-        (isUnconfirmed ? '<div class="working-tag" style="background:var(--err-bg);color:var(--err);">UNCONFIRMED</div>' : '') +
-        (entry?.countryConflict ? '<div class="working-tag" style="background:#fff3cd;color:#856404;">⚠ CTRY</div>' : '') +
+        (isUnconfirmed ? '<div class="working-tag" style="background:#fff3cd;color:#92400e;">📌 CHECK</div>' : '') +
+        (entry?.countryConflict ? '<div class="working-tag" style="background:#fff3cd;color:#856404;">CTRY</div>' : '') +
         transitFlag +
         (isWorking ? '<div class="working-tag">WORKING</div>' : '') +
         (!entry ? '<div class="working-tag" style="background:#f5f5f5;color:#999;">NO DATA</div>' : '') +
@@ -1663,11 +1659,8 @@ function openDay(dateStr) {
     const prevCountry = entries[prevDs]?.country || '';
     const nextCountry = entries[nextDs]?.country || '';
     const countryChanged = (prevCountry && prevCountry !== entry.country) || (nextCountry && nextCountry !== entry.country);
-    // Only flag transit if no reliable midnight GPS, or brackets show a country change
-    const noMidnightGps = !entry?.autoGps || entry?.bracketInferred || entry?.lateBackfill;
-    const bracketMismatch = entry?.brackets?.evening && entry?.brackets?.morning &&
-      entry.brackets.evening.country !== entry.brackets.morning.country;
-    const isTransit = countryChanged && (noMidnightGps || bracketMismatch);
+    const reliableMidnightGps = entry?.autoGps && !entry?.bracketInferred && !entry?.lateBackfill;
+    const isTransit = countryChanged && !reliableMidnightGps;
     transitDiv.style.display = isTransit ? '' : 'none';
   } else {
     transitDiv.style.display = 'none';

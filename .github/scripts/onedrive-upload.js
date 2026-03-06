@@ -121,20 +121,28 @@ async function main() {
 
   if (fs.existsSync(jsonFile)) {
     console.log('Found latest.json (' + (fs.statSync(jsonFile).size / 1024).toFixed(1) + ' KB)');
-    await uploadFile(token, jsonFile, `backup-${today}.json`);
-    uploaded++;
-    await uploadFile(token, jsonFile, 'latest.json');
-    uploaded++;
+    try {
+      await uploadFile(token, jsonFile, `backup-${today}.json`);
+      uploaded++;
+    } catch(e) { console.error('JSON dated upload error:', e.message); }
+    try {
+      await uploadFile(token, jsonFile, 'latest.json');
+      uploaded++;
+    } catch(e) { console.error('JSON latest upload error:', e.message); }
   } else {
     console.log('WARNING: No latest.json found at ' + jsonFile);
   }
 
   if (fs.existsSync(xlsxFile)) {
     console.log('Found latest.xlsx (' + (fs.statSync(xlsxFile).size / 1024).toFixed(1) + ' KB)');
-    await uploadFile(token, xlsxFile, `midnight-tracker-${today}.xlsx`);
-    uploaded++;
-    await uploadFile(token, xlsxFile, 'latest.xlsx');
-    uploaded++;
+    try {
+      await uploadFile(token, xlsxFile, `midnight-tracker-${today}.xlsx`);
+      uploaded++;
+    } catch(e) { console.error('XLSX dated upload error:', e.message); }
+    try {
+      await uploadFile(token, xlsxFile, 'latest.xlsx');
+      uploaded++;
+    } catch(e) { console.error('XLSX latest upload error:', e.message); }
   } else {
     console.log('WARNING: No latest.xlsx found at ' + xlsxFile);
   }
