@@ -44,6 +44,7 @@ jobs:
 
       - name: Commit backup files
         run: |
+          set -e
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           mkdir -p backups/history
@@ -51,5 +52,22 @@ jobs:
           cp -f /tmp/backups-staging/*.xlsx backups/
           cp -f /tmp/backups-staging/history/*.json backups/history/
           git add backups/
-          git diff --staged --quiet || git commit -m "Daily backup $(date -u +%Y-%m-%d)"
-          git push
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Daily backup $(date -u +%Y-%m-%d)"
+          # Retry push up to 3 times (in case of race with other pushes)
+          for i in 1 2 3; do
+            if git push; then
+              echo "Push succeeded on attempt $i"
+              exit 0
+            fi
+            echo "Push failed (attempt $i), fetching latest and retrying..."
+            git fetch origin main
+            git rebase origin/main --strategy-option=theirs || true
+            git add backups/
+            git diff --staged --quiet || git commit --amend --no-edit
+          done
+          echo "ERROR: Push failed after 3 attempts"
+          exit 1
