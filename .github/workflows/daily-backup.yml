@@ -33,14 +33,23 @@ jobs:
           MS_CLIENT_SECRET: ${{ secrets.MS_CLIENT_SECRET }}
         run: node .github/scripts/onedrive-upload.js
 
+      - name: Save backup files
+        run: cp -r backups/ /tmp/backups-staging
+
+      - name: Re-checkout latest main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          clean: true
+
       - name: Commit backup files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          cp -r backups/ /tmp/backups-fresh
-          git fetch origin main
-          git reset --hard origin/main
-          cp -r /tmp/backups-fresh/* backups/
+          mkdir -p backups/history
+          cp -f /tmp/backups-staging/*.json backups/
+          cp -f /tmp/backups-staging/*.xlsx backups/
+          cp -f /tmp/backups-staging/history/*.json backups/history/
           git add backups/
           git diff --staged --quiet || git commit -m "Daily backup $(date -u +%Y-%m-%d)"
           git push
