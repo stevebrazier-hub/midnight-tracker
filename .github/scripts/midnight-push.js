@@ -56,8 +56,18 @@ async function sendMidnightPush() {
     dateStr = ukDate.find(p => p.type === 'year').value + '-' +
       ukDate.find(p => p.type === 'month').value + '-' +
       ukDate.find(p => p.type === 'day').value;
+  } else if (captureType === 'morning') {
+    // Morning bracket (7am) corroborates YESTERDAY's midnight, so use yesterday's UK date
+    const yesterday = new Date(now.getTime() - 2 * 60000); // subtract 2 min for safety
+    yesterday.setDate(yesterday.getDate() - 1);
+    const ukDate = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(yesterday);
+    dateStr = ukDate.find(p => p.type === 'year').value + '-' +
+      ukDate.find(p => p.type === 'month').value + '-' +
+      ukDate.find(p => p.type === 'day').value;
   } else {
-    // For evening (10pm) and morning (7am) brackets, use current UK date
+    // Evening bracket (10pm) belongs to current UK date
     const ukDate = new Intl.DateTimeFormat('en-GB', {
       timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit'
     }).formatToParts(now);

@@ -459,21 +459,20 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
     </div>
 
     <div id="modalMetaInfo" style="margin-top:10px;padding:10px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--text-light);">
-      <div id="modalGpsCoords" style="margin-bottom:6px;display:none;">
-        <span id="modalGpsLabel" style="color:var(--text-light);">📍 GPS:</span> <span id="modalGpsText" style="font-family:monospace;font-size:11px;"></span>
+      <div id="modalBracketEvening" style="margin-bottom:2px;display:none;font-size:11px;border-left:3px solid #e5e7eb;padding-left:8px;">
+        <span style="color:var(--text-light);">🌆 10pm:</span> <span id="eveningBracketText" style="font-family:monospace;"></span>
+      </div>
+      <div id="modalGpsCoords" style="margin-bottom:2px;display:none;">
+        <span id="modalGpsLabel" style="color:var(--text-light);">📍 12am:</span> <span id="modalGpsText" style="font-family:monospace;font-size:11px;"></span>
         <div id="modalCapturedAt" style="font-size:10px;color:#999;margin-top:2px;"></div>
       </div>
-      <div id="modalNoGps" style="margin-bottom:6px;display:none;">
-        <span style="color:var(--text-light);">📍 GPS:</span> <span style="font-style:italic;color:#999;">no reading</span>
+      <div id="modalNoGps" style="margin-bottom:2px;display:none;">
+        <span style="color:var(--text-light);">📍 12am:</span> <span style="font-style:italic;color:#999;">no reading</span>
       </div>
-      <div id="modalBracketGps" style="margin-bottom:6px;display:none;font-size:11px;border-left:3px solid #e5e7eb;padding-left:8px;">
-        <div id="modalEveningBracket" style="display:none;margin-bottom:2px;">
-          <span style="color:var(--text-light);">🌆 Evening:</span> <span id="eveningBracketText" style="font-family:monospace;"></span>
-        </div>
-        <div id="modalMorningBracket" style="display:none;">
-          <span style="color:var(--text-light);">🌅 Morning:</span> <span id="morningBracketText" style="font-family:monospace;"></span>
-        </div>
+      <div id="modalBracketMorning" style="margin-bottom:6px;display:none;font-size:11px;border-left:3px solid #e5e7eb;padding-left:8px;">
+        <span style="color:var(--text-light);">🌅 7am:</span> <span id="morningBracketText" style="font-family:monospace;"></span>
       </div>
+      <div id="modalBracketGps" style="display:none;"></div>
       <div id="modalSources" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
       <div id="modalBookingSource" style="display:none;margin-top:6px;font-size:11px;">
         <span id="bookingSourceText"></span>
@@ -493,7 +492,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-06c';
+const APP_VERSION = '2026-03-07a';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -893,8 +892,8 @@ function renderList() {
         '<div class="list-info"><div class="place">' + (place || (!hasData ? '<span style="color:var(--text-light);font-style:italic;">No data</span>' : '')) + '</div><div class="city-country">' + city + (country ? ', ' + country : '') + '</div>' +
         (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') +
         '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">' +
-        (ds <= todayStr && (entry?.lat || entry?.city) ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;font-size:10px;">📍 12am ' + (entry.lat ? shortGps(entry.lat, entry.lon) + (entry.city ? ' → ' + entry.city + (entry.country ? ', ' + entry.country : '') : '') : (entry.city ? entry.city + (entry.country ? ', ' + entry.country : '') : '')) + (entry.capturedAt ? ' @ ' + shortTs(entry.capturedAt).split(' ').slice(1).join(' ') : '') + '</div>' : '') +
         (ds <= todayStr && entry?.brackets?.evening ? '<div class="working-tag" style="background:#fef3e8;color:#92400e;font-size:10px;">🌆 10pm ' + (entry.brackets.evening.lat ? shortGps(entry.brackets.evening.lat, entry.brackets.evening.lon) + (entry.brackets.evening.city ? ' → ' + entry.brackets.evening.city + (entry.brackets.evening.country ? ', ' + entry.brackets.evening.country : '') : '') : (entry.brackets.evening.city ? entry.brackets.evening.city + (entry.brackets.evening.country ? ', ' + entry.brackets.evening.country : '') : 'pending')) + (entry.brackets.evening.capturedAt ? ' @ ' + shortTs(entry.brackets.evening.capturedAt).split(' ').slice(1).join(' ') : '') + '</div>' : '') +
+        (ds <= todayStr && (entry?.lat || entry?.city) ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;font-size:10px;">📍 12am ' + (entry.lat ? shortGps(entry.lat, entry.lon) + (entry.city ? ' → ' + entry.city + (entry.country ? ', ' + entry.country : '') : '') : (entry.city ? entry.city + (entry.country ? ', ' + entry.country : '') : '')) + (entry.capturedAt ? ' @ ' + shortTs(entry.capturedAt).split(' ').slice(1).join(' ') : '') + '</div>' : '') +
         (ds <= todayStr && entry?.brackets?.morning ? '<div class="working-tag" style="background:#eff6ff;color:#1e40af;font-size:10px;">🌅 7am ' + (entry.brackets.morning.lat ? shortGps(entry.brackets.morning.lat, entry.brackets.morning.lon) + (entry.brackets.morning.city ? ' → ' + entry.brackets.morning.city + (entry.brackets.morning.country ? ', ' + entry.brackets.morning.country : '') : '') : (entry.brackets.morning.city ? entry.brackets.morning.city + (entry.brackets.morning.country ? ', ' + entry.brackets.morning.country : '') : 'pending')) + (entry.brackets.morning.capturedAt ? ' @ ' + shortTs(entry.brackets.morning.capturedAt).split(' ').slice(1).join(' ') : '') + '</div>' : '') +
         (ds <= todayStr && entry?.bracketInferred ? '<div class="working-tag" style="background:#fef9c3;color:#92400e;">📐 INFERRED</div>' : '') +
         (entry?.autoGps && !entry?.unconfirmed && !entry?.gpsConfirmed && !entry?.bracketInferred ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS</div>' : '') +
@@ -1579,29 +1578,23 @@ function openDay(dateStr) {
     noGpsDiv.style.display = '';
   }
 
-  // Bracket GPS data
-  const bracketDiv = document.getElementById('modalBracketGps');
-  const evDiv = document.getElementById('modalEveningBracket');
-  const amDiv = document.getElementById('modalMorningBracket');
-  if (entry.brackets) {
-    bracketDiv.style.display = '';
-    if (entry.brackets.evening) {
-      const ev = entry.brackets.evening;
-      const evLoc = ev.lat ? shortGps(ev.lat, ev.lon) + (ev.city ? '  →  ' + ev.city + (ev.country ? ', ' + ev.country : '') : '') : (ev.city ? ev.city + (ev.country ? ', ' + ev.country : '') : 'pending');
-      document.getElementById('eveningBracketText').textContent =
-        evLoc + (ev.capturedAt ? '  —  ' + shortTs(ev.capturedAt) : '');
-      evDiv.style.display = '';
-    } else { evDiv.style.display = 'none'; }
-    if (entry.brackets.morning) {
-      const am = entry.brackets.morning;
-      const amLoc = am.lat ? shortGps(am.lat, am.lon) + (am.city ? '  →  ' + am.city + (am.country ? ', ' + am.country : '') : '') : (am.city ? am.city + (am.country ? ', ' + am.country : '') : 'pending');
-      document.getElementById('morningBracketText').textContent =
-        amLoc + (am.capturedAt ? '  —  ' + shortTs(am.capturedAt) : '');
-      amDiv.style.display = '';
-    } else { amDiv.style.display = 'none'; }
-  } else {
-    bracketDiv.style.display = 'none';
-  }
+  // Bracket GPS data — displayed in chronological order: 10pm, 12am, 7am
+  const evDiv = document.getElementById('modalBracketEvening');
+  const amDiv = document.getElementById('modalBracketMorning');
+  if (entry.brackets?.evening) {
+    const ev = entry.brackets.evening;
+    const evLoc = ev.lat ? shortGps(ev.lat, ev.lon) + (ev.city ? '  →  ' + ev.city + (ev.country ? ', ' + ev.country : '') : '') : (ev.city ? ev.city + (ev.country ? ', ' + ev.country : '') : 'pending');
+    document.getElementById('eveningBracketText').textContent =
+      evLoc + (ev.capturedAt ? '  —  ' + shortTs(ev.capturedAt) : '');
+    evDiv.style.display = '';
+  } else { evDiv.style.display = 'none'; }
+  if (entry.brackets?.morning) {
+    const am = entry.brackets.morning;
+    const amLoc = am.lat ? shortGps(am.lat, am.lon) + (am.city ? '  →  ' + am.city + (am.country ? ', ' + am.country : '') : '') : (am.city ? am.city + (am.country ? ', ' + am.country : '') : 'pending');
+    document.getElementById('morningBracketText').textContent =
+      amLoc + (am.capturedAt ? '  —  ' + shortTs(am.capturedAt) : '');
+    amDiv.style.display = '';
+  } else { amDiv.style.display = 'none'; }
 
   // Source icons — show which inputs contributed
   const sourcesDiv = document.getElementById('modalSources');
@@ -2118,13 +2111,16 @@ function checkTodayGPS() {
 
   // Silent morning bracket capture: if opened between 6am-10am UK time and no
   // complete morning bracket yet, capture one automatically (no push needed).
+  // Morning bracket belongs to YESTERDAY's entry (corroborates yesterday's midnight).
   // Also re-captures if a previous capture is missing GPS coordinates.
   const ukHour = parseInt(new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hour12: false }));
   if (ukHour >= 6 && ukHour < 10) {
-    const todayBrackets = entries[todayStr]?.brackets || {};
-    if (!todayBrackets.morning?.lat) {
-      console.log('Morning window (6-10am UK) — capturing morning bracket for ' + todayStr);
-      bracketGPSCapture(todayStr, 'morning');
+    const yday = new Date(); yday.setDate(yday.getDate() - 1);
+    const ydayStr = ukDateStr(yday);
+    const ydayBrackets = entries[ydayStr]?.brackets || {};
+    if (!ydayBrackets.morning?.lat) {
+      console.log('Morning window (6-10am UK) — capturing morning bracket for ' + ydayStr + ' (yesterday)');
+      bracketGPSCapture(ydayStr, 'morning');
     }
   }
 
