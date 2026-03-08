@@ -492,7 +492,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-07a';
+const APP_VERSION = '2026-03-08a';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -2099,45 +2099,35 @@ function scheduleMidnightCapture() {
   }, msToMidnight);
 }
 
-// On app load, check if today (UK date) needs auto-GPS, and backfill yesterday if missed
+// On app load, check if yesterday's entry needs backfilling and capture brackets.
+// KEY RULE: Today's entry = tonight's midnight (hasn't happened yet).
+// We only ever capture/backfill for YESTERDAY's entry on app open.
+// The only thing that creates today's entry is the actual midnight push at 00:00.
 function checkTodayGPS() {
-  const todayStr = ukDateStr(new Date());
-  const existing = entries[todayStr];
-  // If no entry for today, or entry was auto-GPS and unconfirmed, try capturing
-  if (!existing || (!existing.city && !existing.place)) {
-    console.log('No entry for UK date ' + todayStr + ', auto-capturing GPS...');
-    autoGPSCapture(todayStr, false, 'app');
-  }
-
-  // Silent morning bracket capture: if opened between 6am-10am UK time and no
-  // complete morning bracket yet, capture one automatically (no push needed).
-  // Morning bracket belongs to YESTERDAY's entry (corroborates yesterday's midnight).
-  // Also re-captures if a previous capture is missing GPS coordinates.
   const ukHour = parseInt(new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hour12: false }));
+
+  // Yesterday's midnight entry (the most recent one that has passed)
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = ukDateStr(yesterday);
+  const yEntry = entries[yesterdayStr];
+
+  // 1. Morning bracket (6-10am): corroborates yesterday's midnight
   if (ukHour >= 6 && ukHour < 10) {
-    const yday = new Date(); yday.setDate(yday.getDate() - 1);
-    const ydayStr = ukDateStr(yday);
-    const ydayBrackets = entries[ydayStr]?.brackets || {};
+    const ydayBrackets = yEntry?.brackets || {};
     if (!ydayBrackets.morning?.lat) {
-      console.log('Morning window (6-10am UK) — capturing morning bracket for ' + ydayStr + ' (yesterday)');
-      bracketGPSCapture(ydayStr, 'morning');
+      console.log('Morning window (6-10am UK) — capturing morning bracket for ' + yesterdayStr);
+      bracketGPSCapture(yesterdayStr, 'morning');
     }
   }
 
-  // Also check yesterday — if midnight push was missed (e.g. phone was off),
-  // try to infer from bracket GPS data or capture now as a late backfill
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = fmtDate(yesterday);
-  const yEntry = entries[yesterdayStr];
+  // 2. If yesterday's midnight was missed entirely, try to backfill
   if (!yEntry || (!yEntry.city && !yEntry.place)) {
-    // Yesterday has no location — check if we have bracket data to infer from
     if (yEntry?.brackets) {
       console.log('Yesterday (' + yesterdayStr + ') missing — trying bracket inference...');
       inferMidnightFromBrackets(yesterdayStr);
     } else {
       console.log('Yesterday (' + yesterdayStr + ') missing with no brackets — capturing GPS as late backfill');
-      // Capture current GPS and flag it as a late backfill (not ideal but better than nothing)
       autoGPSCapture(yesterdayStr, false, 'backfill').then(() => {
         if (entries[yesterdayStr]) {
           entries[yesterdayStr].lateBackfill = true;
@@ -2148,6 +2138,16 @@ function checkTodayGPS() {
           saveLocal();
         }
       });
+    }
+  }
+
+  // 3. Evening bracket (10pm+): belongs to TODAY's entry (tonight's midnight)
+  const todayStr = ukDateStr(new Date());
+  if (ukHour >= 22) {
+    const todayBrackets = entries[todayStr]?.brackets || {};
+    if (!todayBrackets.evening?.lat) {
+      console.log('Evening window (10pm+ UK) — capturing evening bracket for ' + todayStr);
+      bracketGPSCapture(todayStr, 'evening');
     }
   }
 }
