@@ -34,24 +34,53 @@ jobs:
       - name: Install dependencies
         run: npm install firebase-admin@12
 
-      - name: Determine capture type from schedule
+      - name: Determine capture type and check BST/GMT season
         id: capture-type
         run: |
-          # Manual dispatch uses the input
+          # Manual dispatch — always run
           if [ -n "${{ github.event.inputs.capture_type }}" ]; then
             echo "type=${{ github.event.inputs.capture_type }}" >> $GITHUB_OUTPUT
+            echo "skip=false" >> $GITHUB_OUTPUT
             exit 0
           fi
-          # Determine from cron schedule (CRON field in github.event.schedule)
+
+          # Check if UK is currently in BST (UTC+1) or GMT (UTC+0)
+          UK_OFFSET=$(TZ=Europe/London date +%z)   # +0000 = GMT, +0100 = BST
+          if [ "$UK_OFFSET" = "+0100" ]; then
+            IS_BST=true
+          else
+            IS_BST=false
+          fi
+          echo "UK offset: $UK_OFFSET (BST=$IS_BST)"
+
+          # Map cron → capture type + expected season
           CRON="${{ github.event.schedule }}"
           case "$CRON" in
-            "0 0 * * *"|"0 23 * * *")  echo "type=midnight" >> $GITHUB_OUTPUT ;;
-            "0 22 * * *"|"0 21 * * *") echo "type=evening" >> $GITHUB_OUTPUT ;;
-            "0 7 * * *"|"0 6 * * *")   echo "type=morning" >> $GITHUB_OUTPUT ;;
-            *)                          echo "type=midnight" >> $GITHUB_OUTPUT ;;
+            "0 0 * * *")   TYPE=midnight; EXPECTS_BST=false ;;
+            "0 23 * * *")  TYPE=midnight; EXPECTS_BST=true  ;;
+            "0 22 * * *")  TYPE=evening;  EXPECTS_BST=false ;;
+            "0 21 * * *")  TYPE=evening;  EXPECTS_BST=true  ;;
+            "0 7 * * *")   TYPE=morning;  EXPECTS_BST=false ;;
+            "0 6 * * *")   TYPE=morning;  EXPECTS_BST=true  ;;
+            *)              TYPE=midnight; EXPECTS_BST=false ;;
           esac
 
+          echo "type=$TYPE" >> $GITHUB_OUTPUT
+
+          # Skip if this cron is for the wrong season
+          if [ "$EXPECTS_BST" = "true" ] && [ "$IS_BST" = "false" ]; then
+            echo "Skipping: BST cron fired but UK is in GMT"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          elif [ "$EXPECTS_BST" = "false" ] && [ "$IS_BST" = "true" ]; then
+            echo "Skipping: GMT cron fired but UK is in BST"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "Correct season — proceeding with $TYPE capture"
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Send push notification (${{ steps.capture-type.outputs.type }})
+        if: steps.capture-type.outputs.skip != 'true'
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           CAPTURE_TYPE: ${{ steps.capture-type.outputs.type }}
