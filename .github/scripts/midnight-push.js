@@ -76,6 +76,26 @@ async function sendMidnightPush() {
       ukDate.find(p => p.type === 'day').value;
   }
 
+  // Dedup check: if this capture already exists in Firebase, skip silently.
+  // This lets both GMT and BST crons fire safely — first one wins, second is a no-op.
+  console.log(`Checking Firebase for existing ${captureType} data on ${dateStr}...`);
+  const entrySnap = await db.ref('entries/' + dateStr).once('value');
+  const entry = entrySnap.val();
+
+  if (captureType === 'midnight' && entry && entry.autoGps) {
+    console.log(`Midnight GPS already captured for ${dateStr} — skipping push.`);
+    process.exit(0);
+  }
+  if (captureType === 'evening' && entry?.brackets?.evening?.lat) {
+    console.log(`Evening bracket already captured for ${dateStr} — skipping push.`);
+    process.exit(0);
+  }
+  if (captureType === 'morning' && entry?.brackets?.morning?.lat) {
+    console.log(`Morning bracket already captured for ${dateStr} — skipping push.`);
+    process.exit(0);
+  }
+  console.log(`No existing ${captureType} data found — sending push.`);
+
   // Notification text varies by capture type
   const titles = {
     midnight: '🌙 Midnight Location Check',
