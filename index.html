@@ -492,7 +492,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-08a';
+const APP_VERSION = '2026-03-09a';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -900,7 +900,6 @@ function renderList() {
         (entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS + MANUAL</div>' : '') +
         (entry && !entry.autoGps && !entry.autoBooking && !entry.gpsConfirmed && !entry.bracketInferred && !entry.brackets && entry.city ? '<div class="working-tag" style="background:#f3e8ff;color:#6b21a8;">MANUAL</div>' : '') +
         (entry?.autoBooking && !entry?.autoGps && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f0fe;color:#1a73e8;">BOOKING' + (entry.flights && entry.place ? ' ✈+🏨' : entry.flights ? ' ✈' : entry.place ? ' 🏨' : '') + '</div>' : '') +
-        (entry?.lateBackfill ? '<div class="working-tag" style="background:#fee2e2;color:#991b1b;font-size:10px;">⏰ BACKFILL</div>' : '') +
         (isUnconfirmed && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#fff3cd;color:#92400e;">📌 CHECK</div>' : '') +
         (entry?.countryConflict && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#fff3cd;color:#856404;">CTRY</div>' : '') +
         transitFlag +
@@ -1548,17 +1547,12 @@ function openDay(dateStr) {
       capturedAtDiv.textContent = 'Evening + morning GPS matched — midnight location inferred';
       capturedAtDiv.style.color = '#d97706';
       capturedAtDiv.style.display = '';
-    } else if (entry.lateBackfill) {
-      gpsLabel.textContent = '⏰ GPS (backfill):';
-      capturedAtDiv.textContent = entry.capturedAt ? shortTs(entry.capturedAt) + '  ·  Backfill' : 'Backfill';
-      capturedAtDiv.style.color = '#991b1b';
-      capturedAtDiv.style.display = '';
     } else if (entry.capturedAt) {
       const sourceLabels = {
         '12am': '12am',
         'app': 'App',
         'test': 'Test',
-        'backfill': 'Backfill',
+        'backfill': 'Auto',
         'auto': 'Auto'
       };
       const sourceLabel = sourceLabels[entry.captureSource] || entry.captureSource || '';
@@ -1611,9 +1605,6 @@ function openDay(dateStr) {
   }
   if (entry.bracketInferred) {
     sources.push({ icon: '📐', label: 'Bracket GPS', color: '#fef9c3', text: '#92400e' });
-  }
-  if (entry.lateBackfill) {
-    sources.push({ icon: '⏰', label: 'Late backfill', color: '#fee2e2', text: '#991b1b' });
   }
   if (entry.autoBooking || entry.bookingSource) {
     const bs = entry.bookingSource || '';
