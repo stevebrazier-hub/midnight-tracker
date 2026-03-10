@@ -41,28 +41,14 @@ async function sendMidnightPush() {
     process.exit(0);
   }
 
-  // Season check: verify the current UK hour is close to the target time.
-  // Both GMT and BST crons fire for each capture type. The wrong-season cron
-  // will be ~1 hour off target; we allow ±90 min to handle GitHub delays.
+  // Both GMT and BST crons fire for each capture type.
+  // No season check — GitHub Actions delays crons by hours (5h+ observed),
+  // making time-based filtering unreliable. Firebase dedup below ensures
+  // only one push is sent per capture type per day.
   const now = new Date();
   const ukHour = parseInt(now.toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hour12: false }));
   const ukMin = parseInt(now.toLocaleTimeString('en-GB', { timeZone: 'Europe/London', minute: '2-digit' }));
-  const ukTotalMins = ukHour * 60 + ukMin;
-
-  const targetMins = { midnight: 0, evening: 22 * 60, morning: 7 * 60 };
-  const target = targetMins[captureType] ?? 0;
-
-  // Distance in minutes, wrapping around midnight (e.g. 23:30 is 30 mins from 00:00)
-  let diff = Math.abs(ukTotalMins - target);
-  if (diff > 720) diff = 1440 - diff; // wrap around midnight
-
-  console.log(`UK time: ${ukHour}:${String(ukMin).padStart(2, '0')} (${ukTotalMins} mins). Target: ${target} mins. Diff: ${diff} mins.`);
-
-  if (diff > 90) {
-    console.log(`Wrong season — UK time is ${diff} mins from target ${captureType}. Skipping.`);
-    process.exit(0);
-  }
-  console.log(`Season check passed — within ${diff} mins of target.`);
+  console.log(`UK time: ${ukHour}:${String(ukMin).padStart(2, '0')}. Capture type: ${captureType}.`);
 
   // Determine the target date in UK time (GMT/BST).
 
