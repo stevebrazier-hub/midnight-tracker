@@ -16,13 +16,14 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 // Handle background push messages (when app is not in foreground)
+// Handle ALL push messages (data-only messages always trigger this handler)
 messaging.onBackgroundMessage(payload => {
   console.log('[SW] Background push received:', payload);
 
-  const title = payload.notification?.title || 'Midnight Tracker';
-  const body = payload.notification?.body || 'Tap to log your midnight location';
-
-  // Forward the date and capture type from the push payload
+  // Read title/body from data field (not notification field — we use data-only messages
+  // so this handler always fires, even when the app is backgrounded)
+  const title = payload.data?.title || payload.notification?.title || 'Midnight Tracker';
+  const body = payload.data?.body || payload.notification?.body || 'Tap to log your midnight location';
   const captureDate = payload.data?.date || '';
   const captureType = payload.data?.captureType || 'midnight';
 
@@ -61,7 +62,7 @@ self.addEventListener('notificationclick', event => {
 });
 
 // ===== CACHING (PWA offline support) =====
-const CACHE_NAME = 'midnight-tracker-v21';
+const CACHE_NAME = 'midnight-tracker-v22';
 const ASSETS = [
   './index.html',
   './manifest.json',

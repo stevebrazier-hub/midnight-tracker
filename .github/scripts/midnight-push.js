@@ -116,23 +116,19 @@ async function sendMidnightPush() {
     morning: 'Morning GPS bracket — confirms where you woke up'
   };
 
+  // Data-only message (no 'notification' field) so the service worker's
+  // onBackgroundMessage always fires and controls the notification display.
+  // If 'notification' is present, FCM auto-displays it and skips the SW handler.
   const message = {
-    notification: {
-      title: titles[captureType] || titles.midnight,
-      body: bodies[captureType] || bodies.midnight
-    },
     data: {
       action: 'capture-gps',
       captureType: captureType,
       date: dateStr,
-      timestamp: String(Date.now())
+      timestamp: String(Date.now()),
+      title: titles[captureType] || titles.midnight,
+      body: bodies[captureType] || bodies.midnight
     },
     webpush: {
-      notification: {
-        tag: captureType === 'midnight' ? 'midnight-gps' : 'bracket-gps-' + captureType,
-        renotify: true,
-        requireInteraction: captureType === 'midnight'
-      },
       fcmOptions: {
         link: 'https://midnight.cancomo.com/?capture=' + captureType + '&date=' + dateStr
       }
