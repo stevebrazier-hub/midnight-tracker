@@ -1,27 +1,9 @@
-// Import Firebase Messaging for background push handling
-importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js');
+// ===== PUSH NOTIFICATION HANDLING =====
+// No Firebase SDK needed here — FCM tokens are managed by the app (index.html).
+// Push events arrive as standard Web Push; we handle them directly.
 
-// Firebase config (must match the app)
-firebase.initializeApp({
-  apiKey: "AIzaSyAjZaVwXku1n1niJtkxvcKjXDHibSHHIRc",
-  authDomain: "midnight-tracker-steve.firebaseapp.com",
-  databaseURL: "https://midnight-tracker-steve-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "midnight-tracker-steve",
-  storageBucket: "midnight-tracker-steve.firebasestorage.app",
-  messagingSenderId: "860824921259",
-  appId: "1:860824921259:web:b1c462b04dc3bf18ae03ee"
-});
-
-const messaging = firebase.messaging();
-
-// Raw push event listener — this ALWAYS fires for every push, regardless of
-// whether Firebase's onBackgroundMessage handles it. We use this as the primary
-// handler to guarantee notification display.
-let pushHandled = false;
 self.addEventListener('push', event => {
   console.log('[SW] Push event received');
-  pushHandled = true;
 
   let data = {};
   try {
@@ -50,28 +32,6 @@ self.addEventListener('push', event => {
   );
 });
 
-// Keep Firebase onBackgroundMessage as backup (may not fire for data-only messages)
-messaging.onBackgroundMessage(payload => {
-  console.log('[SW] onBackgroundMessage received (pushHandled=' + pushHandled + ')');
-  // If our push handler already showed the notification, skip
-  if (pushHandled) { pushHandled = false; return; }
-
-  const title = payload.data?.title || payload.notification?.title || 'Midnight Tracker';
-  const body = payload.data?.body || payload.notification?.body || 'Tap to log your midnight location';
-  const captureDate = payload.data?.date || '';
-  const captureType = payload.data?.captureType || 'midnight';
-
-  return self.registration.showNotification(title, {
-    body: body,
-    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%231b2838"/><text x="50" y="65" font-size="50" text-anchor="middle" fill="white">🌙</text></svg>',
-    badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%2300b8a9"/></svg>',
-    tag: captureType === 'midnight' ? 'midnight-gps' : 'bracket-gps-' + captureType,
-    renotify: true,
-    requireInteraction: captureType === 'midnight',
-    data: { action: 'capture-gps', captureType: captureType, date: captureDate, timestamp: Date.now() }
-  });
-});
-
 // When user taps the notification — open the app with auto-capture flag
 self.addEventListener('notificationclick', event => {
   console.log('[SW] Notification clicked');
@@ -96,7 +56,7 @@ self.addEventListener('notificationclick', event => {
 });
 
 // ===== CACHING (PWA offline support) =====
-const CACHE_NAME = 'midnight-tracker-v23';
+const CACHE_NAME = 'midnight-tracker-v24';
 const ASSETS = [
   './index.html',
   './manifest.json',
