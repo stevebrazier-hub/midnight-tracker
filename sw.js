@@ -1,7 +1,40 @@
 // ===== PUSH NOTIFICATION HANDLING =====
-// Chrome auto-displays notifications from FCM messages that include a
-// webpush.notification field. No push event listener needed.
-// The notificationclick handler below runs when the user taps the notification.
+// FCM messages with a top-level notification field are auto-displayed by Chrome.
+// This push listener is a safety net: if auto-display doesn't fire for any
+// reason, we show the notification ourselves so Chrome never falls back to
+// the generic "Tap to copy the URL" message.
+self.addEventListener('push', event => {
+  console.log('[SW] Push event received');
+
+  let data = {};
+  let title = 'Midnight Tracker';
+  let body = 'Tap to log your midnight location';
+
+  try {
+    const payload = event.data?.json();
+    // FCM puts auto-display fields in notification, custom fields in data
+    if (payload.notification) {
+      title = payload.notification.title || title;
+      body = payload.notification.body || body;
+    }
+    data = payload.data || {};
+  } catch(e) {
+    try { body = event.data?.text() || body; } catch(e2) {}
+  }
+
+  const captureType = data.captureType || 'midnight';
+  const captureDate = data.date || '';
+
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: body,
+      tag: captureType === 'midnight' ? 'midnight-gps' : 'bracket-gps-' + captureType,
+      renotify: true,
+      requireInteraction: captureType === 'midnight',
+      data: { action: 'capture-gps', captureType: captureType, date: captureDate, timestamp: Date.now() }
+    })
+  );
+});
 
 // When user taps the notification — open the app with auto-capture flag
 self.addEventListener('notificationclick', event => {
@@ -27,7 +60,7 @@ self.addEventListener('notificationclick', event => {
 });
 
 // ===== CACHING (PWA offline support) =====
-const CACHE_NAME = 'midnight-tracker-v25';
+const CACHE_NAME = 'midnight-tracker-v26';
 const ASSETS = [
   './index.html',
   './manifest.json',
