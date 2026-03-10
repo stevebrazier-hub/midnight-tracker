@@ -4,7 +4,7 @@
  * Sends a push notification via FCM to all registered devices,
  * prompting the app to capture GPS for the midnight location.
  *
- * Triggered by GitHub Actions at midnight CET/CEST.
+ * Triggered by GitHub Actions at midnight, 10pm, and 7am UK time.
  */
 
 const admin = require('firebase-admin');
@@ -87,7 +87,7 @@ async function sendMidnightPush() {
   // Dedup check: if this capture already exists in Firebase, skip silently.
   // This lets both GMT and BST crons fire safely — first one wins, second is a no-op.
   console.log(`Checking Firebase for existing ${captureType} data on ${dateStr}...`);
-  const entrySnap = await db.ref('entries/' + dateStr).once('value');
+  const entrySnap = await db.ref('locations/' + dateStr).once('value');
   const entry = entrySnap.val();
 
   if (captureType === 'midnight' && entry && entry.autoGps) {
