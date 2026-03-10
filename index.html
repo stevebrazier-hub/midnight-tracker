@@ -492,7 +492,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-10d';
+const APP_VERSION = '2026-03-10e';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -2445,13 +2445,13 @@ if (!auth) {
 }
 
 if ('serviceWorker' in navigator) {
-  // One-time migration: purge old Firebase-based SW, install clean one.
-  // Sets a flag so it only runs once. After migration, normal updates work.
+  // One-time migration: purge old SW, install clean one with Firebase SDK.
+  // Bumped to v27 to force re-registration after Firebase SDK was restored.
   window._swReady = (async () => {
     try {
-      const migrated = localStorage.getItem('sw_migrated_v25');
+      const migrated = localStorage.getItem('sw_migrated_v27');
       if (!migrated) {
-        console.log('[App] Migrating service worker (one-time)...');
+        console.log('[App] Migrating service worker to v27...');
         const regs = await navigator.serviceWorker.getRegistrations();
         for (const reg of regs) {
           await reg.unregister();
@@ -2462,7 +2462,7 @@ if ('serviceWorker' in navigator) {
           await caches.delete(name);
           console.log('[App] Deleted cache:', name);
         }
-        localStorage.setItem('sw_migrated_v25', '1');
+        localStorage.setItem('sw_migrated_v27', '1');
       }
       // Register (fresh after migration, or normal update check)
       const reg = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });

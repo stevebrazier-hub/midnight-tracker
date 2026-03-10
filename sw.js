@@ -1,8 +1,7 @@
 // ===== PUSH NOTIFICATION HANDLING =====
-// FCM messages with a top-level notification field are auto-displayed by Chrome.
-// This push listener is a safety net: if auto-display doesn't fire for any
-// reason, we show the notification ourselves so Chrome never falls back to
-// the generic "Tap to copy the URL" message.
+// IMPORTANT: Register our push listener BEFORE importing Firebase.
+// Firebase's messaging SDK also registers a push listener, and we need
+// ours to fire first to guarantee notification display.
 self.addEventListener('push', event => {
   console.log('[SW] Push event received');
 
@@ -12,12 +11,18 @@ self.addEventListener('push', event => {
 
   try {
     const payload = event.data?.json();
-    // FCM puts auto-display fields in notification, custom fields in data
+    // FCM messages with top-level notification field
     if (payload.notification) {
       title = payload.notification.title || title;
       body = payload.notification.body || body;
     }
+    // FCM data payload
     data = payload.data || {};
+    // Fallback: data-only messages might have title/body in data
+    if (!payload.notification) {
+      title = data.title || title;
+      body = data.body || body;
+    }
   } catch(e) {
     try { body = event.data?.text() || body; } catch(e2) {}
   }
@@ -59,8 +64,28 @@ self.addEventListener('notificationclick', event => {
   );
 });
 
+// ===== FIREBASE MESSAGING SDK =====
+// Required by firebase.messaging().getToken() in the app — without this,
+// FCM token registration fails and no pushes are delivered.
+importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+  apiKey: "AIzaSyAjZaVwXku1n1niJtkxvcKjXDHibSHHIRc",
+  authDomain: "midnight-tracker-steve.firebaseapp.com",
+  databaseURL: "https://midnight-tracker-steve-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "midnight-tracker-steve",
+  storageBucket: "midnight-tracker-steve.firebasestorage.app",
+  messagingSenderId: "860824921259",
+  appId: "1:860824921259:web:b1c462b04dc3bf18ae03ee"
+});
+
+// Initialize messaging — this registers Firebase's own push handler,
+// but our listener above was registered first so it runs first.
+firebase.messaging();
+
 // ===== CACHING (PWA offline support) =====
-const CACHE_NAME = 'midnight-tracker-v26';
+const CACHE_NAME = 'midnight-tracker-v27';
 const ASSETS = [
   './index.html',
   './manifest.json',
