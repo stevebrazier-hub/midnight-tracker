@@ -492,7 +492,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-10b';
+const APP_VERSION = '2026-03-10c';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -2444,9 +2444,28 @@ if (!auth) {
 }
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
-    .then(reg => { reg.update(); })
-    .catch(e => console.warn('SW registration failed', e));
+  // Force clean SW install: unregister old, clear caches, re-register
+  // This block can be removed after all clients have updated past v24
+  (async () => {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const reg of regs) {
+        await reg.unregister();
+        console.log('[App] Unregistered old service worker');
+      }
+      const cacheNames = await caches.keys();
+      for (const name of cacheNames) {
+        await caches.delete(name);
+        console.log('[App] Deleted cache:', name);
+      }
+    } catch(e) { console.warn('[App] SW cleanup error', e); }
+
+    // Now register fresh
+    try {
+      const reg = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
+      console.log('[App] Fresh SW registered, scope:', reg.scope);
+    } catch(e) { console.warn('[App] SW registration failed', e); }
+  })();
 
   // Listen for messages from service worker (notification click while app is open)
   navigator.serviceWorker.addEventListener('message', event => {
