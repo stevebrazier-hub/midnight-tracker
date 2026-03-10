@@ -15,13 +15,47 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Handle background push messages (when app is not in foreground)
-// Handle ALL push messages (data-only messages always trigger this handler)
-messaging.onBackgroundMessage(payload => {
-  console.log('[SW] Background push received:', payload);
+// Raw push event listener — this ALWAYS fires for every push, regardless of
+// whether Firebase's onBackgroundMessage handles it. We use this as the primary
+// handler to guarantee notification display.
+let pushHandled = false;
+self.addEventListener('push', event => {
+  console.log('[SW] Push event received');
+  pushHandled = true;
 
-  // Read title/body from data field (not notification field — we use data-only messages
-  // so this handler always fires, even when the app is backgrounded)
+  let data = {};
+  try {
+    const payload = event.data?.json();
+    // FCM wraps data-only messages: payload.data contains our fields
+    data = payload?.data || payload || {};
+  } catch(e) {
+    try { data = { body: event.data?.text() || '' }; } catch(e2) {}
+  }
+
+  const title = data.title || 'Midnight Tracker';
+  const body = data.body || 'Tap to log your midnight location';
+  const captureDate = data.date || '';
+  const captureType = data.captureType || 'midnight';
+
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: body,
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%231b2838"/><text x="50" y="65" font-size="50" text-anchor="middle" fill="white">🌙</text></svg>',
+      badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%2300b8a9"/></svg>',
+      tag: captureType === 'midnight' ? 'midnight-gps' : 'bracket-gps-' + captureType,
+      renotify: true,
+      requireInteraction: captureType === 'midnight',
+      data: { action: 'capture-gps', captureType: captureType, date: captureDate, timestamp: Date.now() }
+    })
+  );
+});
+
+// Keep Firebase onBackgroundMessage as backup (may not fire for data-only messages)
+messaging.onBackgroundMessage(payload => {
+  console.log('[SW] onBackgroundMessage received (pushHandled=' + pushHandled + ')');
+  // If our push handler already showed the notification, skip
+  if (pushHandled) { pushHandled = false; return; }
+
   const title = payload.data?.title || payload.notification?.title || 'Midnight Tracker';
   const body = payload.data?.body || payload.notification?.body || 'Tap to log your midnight location';
   const captureDate = payload.data?.date || '';
@@ -62,7 +96,7 @@ self.addEventListener('notificationclick', event => {
 });
 
 // ===== CACHING (PWA offline support) =====
-const CACHE_NAME = 'midnight-tracker-v22';
+const CACHE_NAME = 'midnight-tracker-v23';
 const ASSETS = [
   './index.html',
   './manifest.json',
