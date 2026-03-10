@@ -492,7 +492,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-10a';
+const APP_VERSION = '2026-03-10b';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -2444,7 +2444,9 @@ if (!auth) {
 }
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW registration failed', e));
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+    .then(reg => { reg.update(); })
+    .catch(e => console.warn('SW registration failed', e));
 
   // Listen for messages from service worker (notification click while app is open)
   navigator.serviceWorker.addEventListener('message', event => {
