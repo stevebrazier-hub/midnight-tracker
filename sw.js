@@ -1,36 +1,7 @@
 // ===== PUSH NOTIFICATION HANDLING =====
-// No Firebase SDK needed here — FCM tokens are managed by the app (index.html).
-// Push events arrive as standard Web Push; we handle them directly.
-
-self.addEventListener('push', event => {
-  console.log('[SW] Push event received');
-
-  let data = {};
-  try {
-    const payload = event.data?.json();
-    // FCM wraps data-only messages: payload.data contains our fields
-    data = payload?.data || payload || {};
-  } catch(e) {
-    try { data = { body: event.data?.text() || '' }; } catch(e2) {}
-  }
-
-  const title = data.title || 'Midnight Tracker';
-  const body = data.body || 'Tap to log your midnight location';
-  const captureDate = data.date || '';
-  const captureType = data.captureType || 'midnight';
-
-  event.waitUntil(
-    self.registration.showNotification(title, {
-      body: body,
-      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%231b2838"/><text x="50" y="65" font-size="50" text-anchor="middle" fill="white">🌙</text></svg>',
-      badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%2300b8a9"/></svg>',
-      tag: captureType === 'midnight' ? 'midnight-gps' : 'bracket-gps-' + captureType,
-      renotify: true,
-      requireInteraction: captureType === 'midnight',
-      data: { action: 'capture-gps', captureType: captureType, date: captureDate, timestamp: Date.now() }
-    })
-  );
-});
+// Chrome auto-displays notifications from FCM messages that include a
+// webpush.notification field. No push event listener needed.
+// The notificationclick handler below runs when the user taps the notification.
 
 // When user taps the notification — open the app with auto-capture flag
 self.addEventListener('notificationclick', event => {
@@ -56,7 +27,7 @@ self.addEventListener('notificationclick', event => {
 });
 
 // ===== CACHING (PWA offline support) =====
-const CACHE_NAME = 'midnight-tracker-v24';
+const CACHE_NAME = 'midnight-tracker-v25';
 const ASSETS = [
   './index.html',
   './manifest.json',

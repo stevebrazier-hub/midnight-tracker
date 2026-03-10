@@ -492,7 +492,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-10c';
+const APP_VERSION = '2026-03-10d';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -2188,7 +2188,8 @@ async function initPushNotifications() {
       return;
     }
 
-    // Register service worker for FCM
+    // Wait for SW migration/registration to complete before getting token
+    if (window._swReady) await window._swReady;
     const swReg = await navigator.serviceWorker.ready;
 
     // Get FCM token
@@ -2444,27 +2445,33 @@ if (!auth) {
 }
 
 if ('serviceWorker' in navigator) {
-  // Force clean SW install: unregister old, clear caches, re-register
-  // This block can be removed after all clients have updated past v24
-  (async () => {
+  // One-time migration: purge old Firebase-based SW, install clean one.
+  // Sets a flag so it only runs once. After migration, normal updates work.
+  window._swReady = (async () => {
     try {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      for (const reg of regs) {
-        await reg.unregister();
-        console.log('[App] Unregistered old service worker');
+      const migrated = localStorage.getItem('sw_migrated_v25');
+      if (!migrated) {
+        console.log('[App] Migrating service worker (one-time)...');
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const reg of regs) {
+          await reg.unregister();
+          console.log('[App] Unregistered old service worker');
+        }
+        const cacheNames = await caches.keys();
+        for (const name of cacheNames) {
+          await caches.delete(name);
+          console.log('[App] Deleted cache:', name);
+        }
+        localStorage.setItem('sw_migrated_v25', '1');
       }
-      const cacheNames = await caches.keys();
-      for (const name of cacheNames) {
-        await caches.delete(name);
-        console.log('[App] Deleted cache:', name);
-      }
-    } catch(e) { console.warn('[App] SW cleanup error', e); }
-
-    // Now register fresh
-    try {
+      // Register (fresh after migration, or normal update check)
       const reg = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
-      console.log('[App] Fresh SW registered, scope:', reg.scope);
-    } catch(e) { console.warn('[App] SW registration failed', e); }
+      await reg.update();
+      console.log('[App] SW registered, scope:', reg.scope);
+      // Wait for SW to be ready
+      await navigator.serviceWorker.ready;
+      console.log('[App] SW is active and ready');
+    } catch(e) { console.warn('[App] SW setup error', e); }
   })();
 
   // Listen for messages from service worker (notification click while app is open)
