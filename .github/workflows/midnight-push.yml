@@ -1,25 +1,17 @@
 name: Midnight GPS Push
 
-# Fires at UK midnight (what matters for HMRC) + evening bracket at 10pm + morning bracket at 7am
-# GMT (winter): midnight=00:00 UTC, 10pm=22:00 UTC, 7am=07:00 UTC
-# BST (summer): midnight=23:00 UTC, 10pm=21:00 UTC, 7am=06:00 UTC
+# Runs EVERY HOUR. The script checks UK time and sends whatever push
+# notifications are due. With 24 runs/day, even if GitHub delays some
+# by hours, the next run catches up. Firebase dedup prevents duplicates.
 on:
   schedule:
-    # Midnight captures (the main HMRC one)
-    - cron: '0 0 * * *'    # midnight GMT (winter: late Oct - late Mar)
-    - cron: '0 23 * * *'   # midnight BST (summer: late Mar - late Oct)
-    # Evening bracket (10pm UK)
-    - cron: '0 22 * * *'   # 10pm GMT (winter)
-    - cron: '0 21 * * *'   # 10pm BST (summer)
-    # Morning bracket (7am UK)
-    - cron: '0 7 * * *'    # 7am GMT (winter)
-    - cron: '0 6 * * *'    # 7am BST (summer)
+    - cron: '0 * * * *'   # every hour on the hour
   workflow_dispatch:         # manual trigger for testing
     inputs:
       capture_type:
-        description: 'Capture type: midnight, evening, or morning'
+        description: 'Capture type: midnight, evening, or morning (blank = auto-detect)'
         required: false
-        default: 'midnight'
+        default: ''
 
 jobs:
   send-push:
@@ -34,25 +26,8 @@ jobs:
       - name: Install dependencies
         run: npm install firebase-admin@12
 
-      - name: Determine capture type from schedule
-        id: capture-type
-        run: |
-          # Manual dispatch uses the input
-          if [ -n "${{ github.event.inputs.capture_type }}" ]; then
-            echo "type=${{ github.event.inputs.capture_type }}" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          # Both GMT and BST crons fire — the script itself deduplicates via Firebase
-          CRON="${{ github.event.schedule }}"
-          case "$CRON" in
-            "0 0 * * *"|"0 23 * * *")  echo "type=midnight" >> $GITHUB_OUTPUT ;;
-            "0 22 * * *"|"0 21 * * *") echo "type=evening" >> $GITHUB_OUTPUT ;;
-            "0 7 * * *"|"0 6 * * *")   echo "type=morning" >> $GITHUB_OUTPUT ;;
-            *)                          echo "type=midnight" >> $GITHUB_OUTPUT ;;
-          esac
-
-      - name: Send push notification (${{ steps.capture-type.outputs.type }})
+      - name: Send push notifications (auto-detect what's due)
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          CAPTURE_TYPE: ${{ steps.capture-type.outputs.type }}
+          CAPTURE_TYPE: ${{ github.event.inputs.capture_type }}
         run: node .github/scripts/midnight-push.js
