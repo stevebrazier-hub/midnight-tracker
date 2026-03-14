@@ -5,12 +5,14 @@ name: Midnight GPS Push
 # by hours, the next run catches up. Firebase dedup prevents duplicates.
 on:
   schedule:
-    # Every hour from 9pm to 11am UK time.
-    # GMT (winter): 21:00–11:00 UTC = hours 21,22,23,0,1,2,3,4,5,6,7,8,9,10,11
-    # BST (summer): 20:00–10:00 UTC = hours 20,21,22,23,0,1,2,3,4,5,6,7,8,9,10
-    # Combined: hours 20–11 UTC covers both seasons
-    - cron: '0 20-23 * * *'  # 20:00–23:00 UTC
-    - cron: '0 0-11 * * *'   # 00:00–11:00 UTC
+    # Hourly from 9pm to 11am UK, PLUS every 15 min around the critical
+    # 10pm evening window (21:30-23:15 UTC covers 10pm in both GMT & BST).
+    # GitHub Actions crons are unreliable, so more attempts = more chances.
+    - cron: '0 20 * * *'          # 8pm UTC (hourly)
+    - cron: '0,15,30,45 21 * * *' # 9pm UTC — every 15 min (10pm BST window)
+    - cron: '0,15,30,45 22 * * *' # 10pm UTC — every 15 min (10pm GMT window)
+    - cron: '0,15 23 * * *'       # 11pm UTC — every 15 min first half
+    - cron: '0 0-11 * * *'        # midnight–11am UTC (hourly)
   workflow_dispatch:         # manual trigger for testing
     inputs:
       capture_type:
