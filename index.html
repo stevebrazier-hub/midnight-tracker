@@ -2112,17 +2112,6 @@ function checkTodayGPS() {
     }
   }
 
-  // 1b. Evening bracket catch-up: if yesterday's evening was missed and it's now
-  // morning or later, backfill it. The user was almost certainly in the same place
-  // at 10pm as at midnight/7am, so current GPS is a valid stand-in.
-  if (ukHour >= 6) {
-    const ydayBrackets = yEntry?.brackets || {};
-    if (!ydayBrackets.evening?.lat) {
-      console.log('Evening bracket missing for ' + yesterdayStr + ' — backfilling now');
-      bracketGPSCapture(yesterdayStr, 'evening');
-    }
-  }
-
   // 2. If yesterday's midnight was missed entirely, try to backfill
   if (!yEntry || (!yEntry.city && !yEntry.place)) {
     if (yEntry?.brackets) {
