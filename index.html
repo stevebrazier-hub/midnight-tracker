@@ -492,7 +492,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-10e';
+const APP_VERSION = '2026-03-14a';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -2103,12 +2103,23 @@ function checkTodayGPS() {
   const yesterdayStr = ukDateStr(yesterday);
   const yEntry = entries[yesterdayStr];
 
-  // 1. Morning bracket (6-10am): corroborates yesterday's midnight
-  if (ukHour >= 6 && ukHour < 10) {
+  // 1. Morning bracket (6am-noon): corroborates yesterday's midnight
+  if (ukHour >= 6 && ukHour < 12) {
     const ydayBrackets = yEntry?.brackets || {};
     if (!ydayBrackets.morning?.lat) {
       console.log('Morning window (6-10am UK) — capturing morning bracket for ' + yesterdayStr);
       bracketGPSCapture(yesterdayStr, 'morning');
+    }
+  }
+
+  // 1b. Evening bracket catch-up: if yesterday's evening was missed and it's now
+  // morning or later, backfill it. The user was almost certainly in the same place
+  // at 10pm as at midnight/7am, so current GPS is a valid stand-in.
+  if (ukHour >= 6) {
+    const ydayBrackets = yEntry?.brackets || {};
+    if (!ydayBrackets.evening?.lat) {
+      console.log('Evening bracket missing for ' + yesterdayStr + ' — backfilling now');
+      bracketGPSCapture(yesterdayStr, 'evening');
     }
   }
 
