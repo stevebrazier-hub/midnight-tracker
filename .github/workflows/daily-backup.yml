@@ -51,6 +51,7 @@ jobs:
           cp -f /tmp/backups-staging/*.json backups/
           cp -f /tmp/backups-staging/*.xlsx backups/
           cp -f /tmp/backups-staging/history/*.json backups/history/
+          cp -f /tmp/backups-staging/history/*.xlsx backups/history/ 2>/dev/null || true
           git add backups/
           if git diff --staged --quiet; then
             echo "No changes to commit"

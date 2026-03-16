@@ -161,26 +161,29 @@ async function main() {
   statsWs['!cols'] = [{ wch: 25 }, { wch: 10 }];
   XLSX.utils.book_append_sheet(wb, statsWs, 'Summary');
 
-  // Write XLSX
+  // Write XLSX (latest + history copy)
   XLSX.writeFile(wb, path.join(BACKUP_DIR, 'latest.xlsx'));
-  console.log('Wrote latest.xlsx');
+  XLSX.writeFile(wb, path.join(HISTORY_DIR, `backup-${today}.xlsx`));
+  console.log('Wrote latest.xlsx and history/' + `backup-${today}.xlsx`);
 
-  // 4. Clean up old history files (keep only MAX_HISTORY most recent)
-  const historyFiles = fs.readdirSync(HISTORY_DIR)
-    .filter(f => f.startsWith('backup-') && f.endsWith('.json'))
-    .sort()
-    .reverse();
+  // 4. Clean up old history files (keep only MAX_HISTORY most recent of each type)
+  for (const ext of ['.json', '.xlsx']) {
+    const files = fs.readdirSync(HISTORY_DIR)
+      .filter(f => f.startsWith('backup-') && f.endsWith(ext))
+      .sort()
+      .reverse();
 
-  if (historyFiles.length > MAX_HISTORY) {
-    const toDelete = historyFiles.slice(MAX_HISTORY);
-    toDelete.forEach(f => {
-      fs.unlinkSync(path.join(HISTORY_DIR, f));
-      console.log(`Deleted old backup: ${f}`);
-    });
+    if (files.length > MAX_HISTORY) {
+      const toDelete = files.slice(MAX_HISTORY);
+      toDelete.forEach(f => {
+        fs.unlinkSync(path.join(HISTORY_DIR, f));
+        console.log(`Deleted old backup: ${f}`);
+      });
+    }
+    console.log(`History (${ext}): ${Math.min(files.length, MAX_HISTORY)} backups retained.`);
   }
 
-  console.log(`\nBackup complete. ${historyFiles.length > MAX_HISTORY ? historyFiles.length - MAX_HISTORY : 0} old backups cleaned up.`);
-  console.log(`History: ${Math.min(historyFiles.length, MAX_HISTORY)} backups retained.`);
+  console.log('\nBackup complete.');
 
   process.exit(0);
 }
