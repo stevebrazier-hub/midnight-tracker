@@ -460,7 +460,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
     <div id="modalMetaInfo" style="margin-top:10px;padding:10px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--text-light);">
       <div id="modalBracketEvening" style="margin-bottom:2px;display:none;font-size:11px;border-left:3px solid #e5e7eb;padding-left:8px;">
-        <span style="color:var(--text-light);">🌆 10pm:</span> <span id="eveningBracketText" style="font-family:monospace;"></span>
+        <span style="color:var(--text-light);">🌆 9pm:</span> <span id="eveningBracketText" style="font-family:monospace;"></span>
       </div>
       <div id="modalGpsCoords" style="margin-bottom:2px;display:none;">
         <span id="modalGpsLabel" style="color:var(--text-light);">📍 12am:</span> <span id="modalGpsText" style="font-family:monospace;font-size:11px;"></span>
@@ -492,7 +492,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-14a';
+const APP_VERSION = '2026-03-19a';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -892,7 +892,7 @@ function renderList() {
         '<div class="list-info"><div class="place">' + (place || (!hasData ? '<span style="color:var(--text-light);font-style:italic;">No data</span>' : '')) + '</div><div class="city-country">' + city + (country ? ', ' + country : '') + '</div>' +
         (flights ? '<div class="flights">✈ ' + flights + '</div>' : '') +
         '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">' +
-        (ds <= todayStr && entry?.brackets?.evening ? '<div class="working-tag" style="background:#fef3e8;color:#92400e;font-size:10px;">🌆 10pm ' + (entry.brackets.evening.lat ? shortGps(entry.brackets.evening.lat, entry.brackets.evening.lon) + (entry.brackets.evening.city ? ' → ' + entry.brackets.evening.city + (entry.brackets.evening.country ? ', ' + entry.brackets.evening.country : '') : '') : (entry.brackets.evening.city ? entry.brackets.evening.city + (entry.brackets.evening.country ? ', ' + entry.brackets.evening.country : '') : 'pending')) + (entry.brackets.evening.capturedAt ? ' @ ' + shortTs(entry.brackets.evening.capturedAt).split(' ').slice(1).join(' ') : '') + '</div>' : '') +
+        (ds <= todayStr && entry?.brackets?.evening ? '<div class="working-tag" style="background:#fef3e8;color:#92400e;font-size:10px;">🌆 9pm ' + (entry.brackets.evening.lat ? shortGps(entry.brackets.evening.lat, entry.brackets.evening.lon) + (entry.brackets.evening.city ? ' → ' + entry.brackets.evening.city + (entry.brackets.evening.country ? ', ' + entry.brackets.evening.country : '') : '') : (entry.brackets.evening.city ? entry.brackets.evening.city + (entry.brackets.evening.country ? ', ' + entry.brackets.evening.country : '') : 'pending')) + (entry.brackets.evening.capturedAt ? ' @ ' + shortTs(entry.brackets.evening.capturedAt).split(' ').slice(1).join(' ') : '') + '</div>' : '') +
         (ds <= todayStr && (entry?.lat || entry?.city) ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;font-size:10px;">📍 12am ' + (entry.lat ? shortGps(entry.lat, entry.lon) + (entry.city ? ' → ' + entry.city + (entry.country ? ', ' + entry.country : '') : '') : (entry.city ? entry.city + (entry.country ? ', ' + entry.country : '') : '')) + (entry.capturedAt ? ' @ ' + shortTs(entry.capturedAt).split(' ').slice(1).join(' ') : '') + '</div>' : '') +
         (ds <= todayStr && entry?.brackets?.morning ? '<div class="working-tag" style="background:#eff6ff;color:#1e40af;font-size:10px;">🌅 7am ' + (entry.brackets.morning.lat ? shortGps(entry.brackets.morning.lat, entry.brackets.morning.lon) + (entry.brackets.morning.city ? ' → ' + entry.brackets.morning.city + (entry.brackets.morning.country ? ', ' + entry.brackets.morning.country : '') : '') : (entry.brackets.morning.city ? entry.brackets.morning.city + (entry.brackets.morning.country ? ', ' + entry.brackets.morning.country : '') : 'pending')) + (entry.brackets.morning.capturedAt ? ' @ ' + shortTs(entry.brackets.morning.capturedAt).split(' ').slice(1).join(' ') : '') + '</div>' : '') +
         (ds <= todayStr && entry?.bracketInferred ? '<div class="working-tag" style="background:#fef9c3;color:#92400e;">📐 INFERRED</div>' : '') +
@@ -1572,7 +1572,7 @@ function openDay(dateStr) {
     noGpsDiv.style.display = '';
   }
 
-  // Bracket GPS data — displayed in chronological order: 10pm, 12am, 7am
+  // Bracket GPS data — displayed in chronological order: 9pm, 12am, 7am
   const evDiv = document.getElementById('modalBracketEvening');
   const amDiv = document.getElementById('modalBracketMorning');
   if (entry.brackets?.evening) {
@@ -1905,8 +1905,8 @@ async function autoGPSCapture(dateStr, force, source) {
   });
 }
 
-// ===== BRACKET GPS CAPTURE (10pm evening, 7am morning) =====
-// Captures GPS at 10pm and 7am as corroborating evidence for HMRC.
+// ===== BRACKET GPS CAPTURE (9pm evening, 7am morning) =====
+// Captures GPS at 9pm and 7am as corroborating evidence for HMRC.
 // If both brackets match (same country), we can infer midnight location.
 
 async function bracketGPSCapture(dateStr, bracketType) {
@@ -2043,7 +2043,7 @@ function inferMidnightFromBrackets(dateStr) {
 
     sendTeamsAlert(
       '**Bracket GPS mismatch** on ' + formatDisplayDate(dateStr) + '.<br><br>' +
-      'Evening (10pm): **' + (ev.lat ? shortGps(ev.lat, ev.lon) + ' → ' : '') + ev.city + ', ' + ev.country + '**<br>' +
+      'Evening (9pm): **' + (ev.lat ? shortGps(ev.lat, ev.lon) + ' → ' : '') + ev.city + ', ' + ev.country + '**<br>' +
       'Morning (7am): **' + (am.lat ? shortGps(am.lat, am.lon) + ' → ' : '') + am.city + ', ' + am.country + '**<br><br>' +
       'Countries differ — please confirm where Steve was at midnight.'
     );
@@ -2132,12 +2132,12 @@ function checkTodayGPS() {
     }
   }
 
-  // 3. Evening bracket (10pm+): belongs to TODAY's entry (tonight's midnight)
+  // 3. Evening bracket (9pm+): belongs to TODAY's entry (tonight's midnight)
   const todayStr = ukDateStr(new Date());
-  if (ukHour >= 22) {
+  if (ukHour >= 21) {
     const todayBrackets = entries[todayStr]?.brackets || {};
     if (!todayBrackets.evening?.lat) {
-      console.log('Evening window (10pm+ UK) — capturing evening bracket for ' + todayStr);
+      console.log('Evening window (9pm+ UK) — capturing evening bracket for ' + todayStr);
       bracketGPSCapture(todayStr, 'evening');
     }
   }

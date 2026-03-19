@@ -60,7 +60,7 @@ const titles = {
 };
 const bodies = {
   midnight: 'GPS captured automatically \u2014 tap only if you need to correct it',
-  evening: '10pm GPS bracket \u2014 confirms where you are before midnight',
+  evening: '9pm GPS bracket \u2014 confirms where you are before midnight',
   morning: 'Morning GPS bracket \u2014 confirms where you woke up'
 };
 
@@ -150,8 +150,8 @@ async function main() {
   } else {
     // Auto-detect based on UK time:
 
-    // Evening bracket: due after 10pm UK, attributed to today
-    if (uk.hour >= 22) {
+    // Evening bracket: due after 9pm UK, attributed to today
+    if (uk.hour >= 21) {
       toSend.push({ type: 'evening', date: uk.dateStr });
     }
 
