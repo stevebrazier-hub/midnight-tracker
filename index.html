@@ -492,7 +492,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-19a';
+const APP_VERSION = '2026-03-19b';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -1800,6 +1800,16 @@ async function autoGPSCapture(dateStr, force, source) {
     return;
   }
 
+  // SAFETY: Midnight capture (source='12am') should only happen near actual midnight.
+  // Prevents bugs where push handlers accidentally trigger midnight capture at 9-11pm.
+  if (source === '12am') {
+    const ukHour = parseInt(new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hour12: false }));
+    if (ukHour >= 1 && ukHour <= 22) {
+      console.log('BLOCKED: Midnight capture attempted at UK hour ' + ukHour + ' — only allowed 23:00-00:59. Source: ' + source);
+      return;
+    }
+  }
+
   // Don't overwrite a manually-set entry UNLESS forced by push notification
   const existing = entries[dateStr];
   if (!force && existing && existing.city && !existing.autoGps) {
@@ -2210,17 +2220,14 @@ async function initPushNotifications() {
       updatePushStatus('Push notifications active');
     }
 
-    // Handle foreground messages
+    // Foreground message handler — REMOVED.
+    // The SW push handler already sends postMessage to open tabs, which is handled
+    // by the 'message' event listener below. Having onMessage as well caused a bug:
+    // Firebase's onMessage sometimes delivers payload.data as undefined when the SW
+    // already handled the notification, causing captureType to default to 'midnight'
+    // and creating spurious midnight entries at 9-11pm.
     messaging.onMessage(payload => {
-      console.log('Push received (foreground):', payload);
-      const captureType = payload.data?.captureType || 'midnight';
-      // Use date from payload (not current date) to avoid wrong-day logging
-      const dateStr = payload.data?.date || ukDateStr(new Date());
-      if (captureType === 'evening' || captureType === 'morning') {
-        bracketGPSCapture(dateStr, captureType);
-      } else {
-        autoGPSCapture(dateStr, true, '12am'); // force=true from push notification
-      }
+      console.log('Push received (foreground) — handled by SW postMessage, ignoring onMessage:', payload);
     });
 
   } catch(e) {
