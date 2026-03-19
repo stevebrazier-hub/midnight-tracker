@@ -31,13 +31,25 @@ self.addEventListener('push', event => {
   const captureDate = data.date || '';
 
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body: body,
-      tag: captureType === 'midnight' ? 'midnight-gps' : 'bracket-gps-' + captureType,
-      renotify: true,
-      requireInteraction: captureType === 'midnight',
-      data: { action: 'capture-gps', captureType: captureType, date: captureDate, timestamp: Date.now() }
-    })
+    // Show notification AND immediately tell any open app tabs to capture GPS.
+    // This way GPS captures silently even if the user doesn't tap the notification.
+    Promise.all([
+      self.registration.showNotification(title, {
+        body: body,
+        tag: captureType === 'midnight' ? 'midnight-gps' : 'bracket-gps-' + captureType,
+        renotify: true,
+        requireInteraction: captureType === 'midnight',
+        data: { action: 'capture-gps', captureType: captureType, date: captureDate, timestamp: Date.now() }
+      }),
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+        for (const client of clients) {
+          if (client.url.includes('midnight')) {
+            console.log('[SW] Auto-triggering GPS capture in open tab');
+            client.postMessage({ type: 'midnight-gps-capture', captureType: captureType, date: captureDate });
+          }
+        }
+      })
+    ])
   );
 });
 
@@ -85,7 +97,7 @@ firebase.initializeApp({
 firebase.messaging();
 
 // ===== CACHING (PWA offline support) =====
-const CACHE_NAME = 'midnight-tracker-v27';
+const CACHE_NAME = 'midnight-tracker-v28';
 const ASSETS = [
   './index.html',
   './manifest.json',
