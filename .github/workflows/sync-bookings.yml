@@ -1,4 +1,4 @@
-name: Sync Bookings from Outlook
+name: Sync Bookings from Outlook + Google
 
 # Runs every 6 hours to check for new hotel/flight bookings
 on:
@@ -19,11 +19,14 @@ jobs:
       - name: Install dependencies
         run: npm install firebase-admin@12
 
-      - name: Sync bookings from Outlook
+      - name: Sync bookings from Outlook + Google
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           MS_TENANT_ID: ${{ secrets.MS_TENANT_ID }}
           MS_CLIENT_ID: ${{ secrets.MS_CLIENT_ID }}
           MS_CLIENT_SECRET: ${{ secrets.MS_CLIENT_SECRET }}
           MS_USER_EMAIL: ${{ secrets.MS_USER_EMAIL }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
         run: node .github/scripts/sync-bookings.js

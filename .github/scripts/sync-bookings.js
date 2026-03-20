@@ -1,18 +1,23 @@
 /**
  * Booking Sync Script
  *
- * Reads Outlook calendar events and emails from Hotels/Bookings folder
- * via Microsoft Graph API, extracts flight and hotel details, and
- * updates Firebase Realtime Database.
+ * Reads calendar events and emails from two sources:
+ *   1. Microsoft Outlook (steveb@canapii.com) — via Graph API (client credentials)
+ *   2. Google (swbrazier@gmail.com) — via Calendar & Gmail APIs (OAuth2 refresh token)
+ *
+ * Extracts flight and hotel details, deduplicates, and updates Firebase.
  *
  * Triggered by GitHub Actions on a schedule (every 6 hours).
  *
  * Environment variables required:
- *   FIREBASE_SERVICE_ACCOUNT - Firebase service account JSON
- *   MS_TENANT_ID            - Azure AD tenant ID
- *   MS_CLIENT_ID            - Azure AD app client ID
- *   MS_CLIENT_SECRET        - Azure AD app client secret
- *   MS_USER_EMAIL           - Outlook mailbox to read (steveb@canapii.com)
+ *   FIREBASE_SERVICE_ACCOUNT  - Firebase service account JSON
+ *   MS_TENANT_ID              - Azure AD tenant ID
+ *   MS_CLIENT_ID              - Azure AD app client ID
+ *   MS_CLIENT_SECRET          - Azure AD app client secret
+ *   MS_USER_EMAIL             - Outlook mailbox to read (steveb@canapii.com)
+ *   GOOGLE_CLIENT_ID          - Google OAuth2 client ID (optional, skipped if missing)
+ *   GOOGLE_CLIENT_SECRET      - Google OAuth2 client secret
+ *   GOOGLE_REFRESH_TOKEN      - Google OAuth2 refresh token (from one-time consent)
  */
 
 const admin = require('firebase-admin');
@@ -115,6 +120,251 @@ async function graphGet(token, path) {
     req.on('error', reject);
     req.end();
   });
+}
+
+// ===== GOOGLE API =====
+
+const GOOGLE_ENABLED = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN);
+
+async function getGoogleToken() {
+  const body = new URLSearchParams({
+    grant_type: 'refresh_token',
+    client_id: process.env.GOOGLE_CLIENT_ID,
+    client_secret: process.env.GOOGLE_CLIENT_SECRET,
+    refresh_token: process.env.GOOGLE_REFRESH_TOKEN
+  }).toString();
+
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: 'oauth2.googleapis.com',
+      path: '/token',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(body) }
+    }, res => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          if (json.access_token) resolve(json.access_token);
+          else reject(new Error('Google token error: ' + JSON.stringify(json)));
+        } catch(e) { reject(new Error('Google token parse error: ' + data.slice(0, 200))); }
+      });
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+async function googleGet(token, url) {
+  const u = new URL(url);
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: u.hostname,
+      path: u.pathname + u.search,
+      method: 'GET',
+      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+    }, res => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); }
+        catch(e) { reject(new Error('Google parse error: ' + data.slice(0, 200))); }
+      });
+    });
+    req.on('error', reject);
+    req.end();
+  });
+}
+
+// ===== GOOGLE CALENDAR =====
+
+async function processGoogleCalendar(token) {
+  const now = new Date();
+  const startDate = new Date(now);
+  startDate.setDate(startDate.getDate() - 3);
+  const endDate = new Date(now);
+  endDate.setDate(endDate.getDate() + DAYS_AHEAD);
+
+  console.log(`Reading Google Calendar events from ${fmtDate(startDate)} to ${fmtDate(endDate)}...`);
+
+  const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${startDate.toISOString()}&timeMax=${endDate.toISOString()}&maxResults=250&singleEvents=true&orderBy=startTime`;
+  const result = await googleGet(token, url);
+
+  if (result.error) {
+    console.error('Google Calendar error:', result.error.message);
+    return [];
+  }
+
+  const events = result.items || [];
+  console.log(`Found ${events.length} Google Calendar events`);
+
+  const bookings = [];
+
+  for (const event of events) {
+    const subject = event.summary || '';
+    const body = event.description || '';
+    const location = event.location || '';
+    const allText = subject + ' ' + body + ' ' + location;
+    const allTextUpper = allText.toUpperCase();
+
+    // Skip car rentals
+    if (/\b(car\s*rental|hertz|avis|europcar|sixt|enterprise|rent.?a.?car|pick.?up.*drop.?off|vehicle\s*collect)/i.test(allText)) continue;
+
+    // Skip events that don't look like travel
+    const isFlight = /\b(flight|fly|depart|arrive|airport|boarding|BA\d|EK\d|LH\d|AF\d|AZ\d|FR\d|U2\d|QR\d|EY\d|SQ\d|CX\d|TK\d)/i.test(allText);
+    const isHotel = /\b(hotel|check.?in|check.?out|booking|reservation|stay|accommodation|airbnb)/i.test(allText);
+
+    if (!isFlight && !isHotel) continue;
+
+    // Google Calendar uses date or dateTime
+    const startStr = event.start?.dateTime || event.start?.date;
+    const endStr = event.end?.dateTime || event.end?.date;
+    const startDt = parseDate(startStr);
+    const endDt = parseDate(endStr);
+    if (!startDt) continue;
+
+    if (isFlight) {
+      const flights = extractFlights(allTextUpper);
+      const dest = extractDestination(allTextUpper);
+      bookings.push({
+        type: 'flight',
+        date: fmtDate(startDt),
+        flights: flights.join(', '),
+        city: dest?.city || extractCity(allText) || '',
+        country: dest?.country || '',
+        place: '',
+        source: 'google-calendar',
+        raw: subject
+      });
+    }
+
+    if (isHotel && endDt) {
+      const hotelName = extractHotelName(subject) || location || extractHotelName(allText) || '';
+      const nights = dateRange(startDt, new Date(endDt.getTime() - 86400000));
+
+      for (const dateStr of nights) {
+        bookings.push({
+          type: 'hotel',
+          date: dateStr,
+          flights: '',
+          city: extractCity(allText) || location || '',
+          country: '',
+          place: hotelName,
+          source: 'google-calendar',
+          raw: subject
+        });
+      }
+    }
+  }
+
+  return bookings;
+}
+
+// ===== GMAIL =====
+
+async function processGmail(token) {
+  const allBookings = [];
+
+  // Search Gmail for travel-related emails from last 7 days
+  // Using Gmail search query syntax — looks for flight/hotel keywords
+  const queries = [
+    { q: 'newer_than:7d (flight OR itinerary OR boarding OR e-ticket OR airline)', type: 'flight' },
+    { q: 'newer_than:7d (hotel OR reservation OR "check-in" OR "check in" OR booking OR accommodation OR airbnb)', type: 'hotel' }
+  ];
+
+  for (const query of queries) {
+    console.log(`Searching Gmail for ${query.type} emails...`);
+    const searchUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query.q)}&maxResults=20`;
+    const searchResult = await googleGet(token, searchUrl);
+
+    if (searchResult.error) {
+      console.error('Gmail search error:', searchResult.error.message);
+      continue;
+    }
+
+    const messageIds = (searchResult.messages || []).map(m => m.id);
+    console.log(`  Found ${messageIds.length} ${query.type} emails`);
+
+    for (const msgId of messageIds) {
+      const msgUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msgId}?format=metadata&metadataHeaders=Subject&metadataHeaders=From`;
+      const msg = await googleGet(token, msgUrl);
+
+      if (msg.error) continue;
+
+      const headers = msg.payload?.headers || [];
+      const subject = headers.find(h => h.name === 'Subject')?.value || '';
+      const from = headers.find(h => h.name === 'From')?.value || '';
+      const snippet = msg.snippet || '';
+      const allText = subject + ' ' + snippet;
+      const allTextUpper = allText.toUpperCase();
+
+      // Skip car rentals
+      if (/\b(car\s*rental|hertz|avis|europcar|sixt|enterprise|rent.?a.?car)/i.test(allText)) {
+        console.log(`  🚗 SKIP car rental: ${subject.slice(0, 60)}`);
+        continue;
+      }
+
+      // Extract dates from the email
+      const datePatterns = [
+        /(\d{4}-\d{2}-\d{2})/g,
+        /(\d{1,2})\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})/gi,
+        /(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{1,2}),?\s+(\d{4})/gi,
+      ];
+
+      const extractedDates = [];
+      for (const pat of datePatterns) {
+        let m;
+        while ((m = pat.exec(allText)) !== null) {
+          const d = parseDate(m[0]);
+          if (d && d.getFullYear() >= 2025 && d.getFullYear() <= 2028) {
+            extractedDates.push(d);
+          }
+        }
+      }
+      extractedDates.sort((a, b) => a - b);
+
+      if (query.type === 'flight' && extractedDates.length > 0) {
+        const flights = extractFlights(allTextUpper);
+        const dest = extractDestination(allTextUpper);
+        allBookings.push({
+          type: 'flight',
+          date: fmtDate(extractedDates[0]),
+          flights: flights.join(', '),
+          city: dest?.city || '',
+          country: dest?.country || '',
+          place: '',
+          source: 'gmail',
+          raw: subject
+        });
+      }
+
+      if (query.type === 'hotel' && extractedDates.length >= 2) {
+        const hotelName = extractHotelName(allText) || '';
+        const checkIn = extractedDates[0];
+        const checkOut = extractedDates[extractedDates.length - 1];
+        const daySpan = Math.round((checkOut - checkIn) / 86400000);
+        if (daySpan > 30 || daySpan < 1) continue;
+        const nights = dateRange(checkIn, new Date(checkOut.getTime() - 86400000));
+
+        for (const dateStr of nights) {
+          allBookings.push({
+            type: 'hotel',
+            date: dateStr,
+            flights: '',
+            city: extractCity(allText) || '',
+            country: '',
+            place: hotelName,
+            source: 'gmail',
+            raw: subject
+          });
+        }
+      }
+    }
+  }
+
+  return allBookings;
 }
 
 // ===== DATE HELPERS =====
@@ -593,21 +843,41 @@ async function main() {
   console.log('=== Midnight Tracker — Booking Sync ===');
   console.log('Time:', new Date().toISOString());
 
-  // Get Graph API token
+  // --- Microsoft Outlook ---
   console.log('\nAuthenticating with Microsoft Graph...');
-  const token = await getGraphToken();
+  const msToken = await getGraphToken();
   console.log('Authenticated.');
 
-  // Process calendar
-  const calendarBookings = await processCalendar(token);
-  console.log(`Calendar: ${calendarBookings.length} booking entries found`);
+  const calendarBookings = await processCalendar(msToken);
+  console.log(`Outlook Calendar: ${calendarBookings.length} booking entries found`);
 
-  // Process emails
-  const emailBookings = await processEmails(token);
-  console.log(`Email: ${emailBookings.length} booking entries found`);
+  const emailBookings = await processEmails(msToken);
+  console.log(`Outlook Email: ${emailBookings.length} booking entries found`);
 
-  // Combine (calendar takes priority for same date)
-  const allBookings = [...calendarBookings, ...emailBookings];
+  // --- Google (optional) ---
+  let googleCalBookings = [];
+  let gmailBookings = [];
+
+  if (GOOGLE_ENABLED) {
+    console.log('\nAuthenticating with Google...');
+    try {
+      const gToken = await getGoogleToken();
+      console.log('Authenticated with Google.');
+
+      googleCalBookings = await processGoogleCalendar(gToken);
+      console.log(`Google Calendar: ${googleCalBookings.length} booking entries found`);
+
+      gmailBookings = await processGmail(gToken);
+      console.log(`Gmail: ${gmailBookings.length} booking entries found`);
+    } catch(e) {
+      console.error('Google API error (continuing with Outlook only):', e.message);
+    }
+  } else {
+    console.log('\nGoogle not configured — skipping. Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN to enable.');
+  }
+
+  // Combine all sources (Outlook calendar > Google calendar > emails)
+  const allBookings = [...calendarBookings, ...googleCalBookings, ...emailBookings, ...gmailBookings];
 
   // Deduplicate by date (keep first occurrence, which is calendar)
   const seen = new Set();
