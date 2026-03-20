@@ -263,105 +263,159 @@ async function processGoogleCalendar(token) {
 }
 
 // ===== GMAIL =====
+// Scans specific Gmail folders (labels) for travel emails, matching Outlook approach.
+// Gmail nested labels use "/" separator, e.g. "Inbox/Hotels" for a subfolder under Inbox.
 
-async function processGmail(token) {
-  const allBookings = [];
+const GMAIL_HOTEL_LABELS = ['Hotels', 'Hotel', 'Inbox/Hotels', 'Inbox/Hotel'];
+const GMAIL_FLIGHT_LABELS = ['Flights', 'Flight', 'Inbox/Flights', 'Inbox/Flight'];
 
-  // Search Gmail for travel-related emails from last 7 days
-  // Using Gmail search query syntax — looks for flight/hotel keywords
-  const queries = [
-    { q: 'newer_than:7d (flight OR itinerary OR boarding OR e-ticket OR airline)', type: 'flight' },
-    { q: 'newer_than:7d (hotel OR reservation OR "check-in" OR "check in" OR booking OR accommodation OR airbnb)', type: 'hotel' }
-  ];
+async function findGmailLabel(token, candidates) {
+  // List all labels
+  const result = await googleGet(token, 'https://gmail.googleapis.com/gmail/v1/users/me/labels');
+  if (result.error) {
+    console.error('Gmail labels error:', result.error.message);
+    return null;
+  }
 
-  for (const query of queries) {
-    console.log(`Searching Gmail for ${query.type} emails...`);
-    const searchUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query.q)}&maxResults=20`;
-    const searchResult = await googleGet(token, searchUrl);
+  const labels = result.labels || [];
+  const labelNames = labels.map(l => l.name);
+  console.log('  Gmail labels:', labelNames.filter(n => !n.startsWith('CATEGORY_') && !n.startsWith('UNREAD') && !n.startsWith('STARRED')).join(', '));
 
-    if (searchResult.error) {
-      console.error('Gmail search error:', searchResult.error.message);
+  for (const candidate of candidates) {
+    const match = labels.find(l => l.name === candidate || l.name.toLowerCase() === candidate.toLowerCase());
+    if (match) {
+      console.log(`  Found Gmail label: "${match.name}" (id: ${match.id})`);
+      return match.id;
+    }
+  }
+  return null;
+}
+
+async function processGmailFolder(token, labelId, folderType) {
+  // Get recent messages with this label (last 7 days)
+  const since = new Date();
+  since.setDate(since.getDate() - DAYS_BACK);
+  const q = `newer_than:${DAYS_BACK}d`;
+
+  const searchUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages?labelIds=${labelId}&q=${encodeURIComponent(q)}&maxResults=20`;
+  const searchResult = await googleGet(token, searchUrl);
+
+  if (searchResult.error) {
+    console.error('Gmail folder error:', searchResult.error.message);
+    return [];
+  }
+
+  const messageIds = (searchResult.messages || []).map(m => m.id);
+  console.log(`  Found ${messageIds.length} recent emails in Gmail ${folderType} folder`);
+
+  const bookings = [];
+
+  for (const msgId of messageIds) {
+    const msgUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msgId}?format=metadata&metadataHeaders=Subject&metadataHeaders=From`;
+    const msg = await googleGet(token, msgUrl);
+    if (msg.error) continue;
+
+    const headers = msg.payload?.headers || [];
+    const subject = headers.find(h => h.name === 'Subject')?.value || '';
+    const from = headers.find(h => h.name === 'From')?.value || '';
+    const snippet = msg.snippet || '';
+    const allText = subject + ' ' + snippet;
+    const allTextUpper = allText.toUpperCase();
+
+    // Skip car rentals
+    if (/\b(car\s*rental|hertz|avis|europcar|sixt|enterprise|rent.?a.?car)/i.test(allText)) {
+      console.log(`  🚗 SKIP car rental: ${subject.slice(0, 60)}`);
       continue;
     }
 
-    const messageIds = (searchResult.messages || []).map(m => m.id);
-    console.log(`  Found ${messageIds.length} ${query.type} emails`);
+    // Use folder type as hint (same as Outlook email processing)
+    const isFlight = folderType === 'flight' ||
+                     /\b(flight|itinerary|boarding|e-?ticket|airline)/i.test(allText) ||
+                     extractFlights(allTextUpper).length > 0;
+    const isHotel = folderType === 'hotel' ||
+                    /\b(hotel|reservation|check.?in|booking|stay|accommodation|airbnb|nights?)/i.test(allText);
 
-    for (const msgId of messageIds) {
-      const msgUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msgId}?format=metadata&metadataHeaders=Subject&metadataHeaders=From`;
-      const msg = await googleGet(token, msgUrl);
+    // Extract dates
+    const datePatterns = [
+      /(\d{4}-\d{2}-\d{2})/g,
+      /(\d{1,2})\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})/gi,
+      /(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{1,2}),?\s+(\d{4})/gi,
+    ];
 
-      if (msg.error) continue;
-
-      const headers = msg.payload?.headers || [];
-      const subject = headers.find(h => h.name === 'Subject')?.value || '';
-      const from = headers.find(h => h.name === 'From')?.value || '';
-      const snippet = msg.snippet || '';
-      const allText = subject + ' ' + snippet;
-      const allTextUpper = allText.toUpperCase();
-
-      // Skip car rentals
-      if (/\b(car\s*rental|hertz|avis|europcar|sixt|enterprise|rent.?a.?car)/i.test(allText)) {
-        console.log(`  🚗 SKIP car rental: ${subject.slice(0, 60)}`);
-        continue;
-      }
-
-      // Extract dates from the email
-      const datePatterns = [
-        /(\d{4}-\d{2}-\d{2})/g,
-        /(\d{1,2})\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})/gi,
-        /(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{1,2}),?\s+(\d{4})/gi,
-      ];
-
-      const extractedDates = [];
-      for (const pat of datePatterns) {
-        let m;
-        while ((m = pat.exec(allText)) !== null) {
-          const d = parseDate(m[0]);
-          if (d && d.getFullYear() >= 2025 && d.getFullYear() <= 2028) {
-            extractedDates.push(d);
-          }
+    const extractedDates = [];
+    for (const pat of datePatterns) {
+      let m;
+      while ((m = pat.exec(allText)) !== null) {
+        const d = parseDate(m[0]);
+        if (d && d.getFullYear() >= 2025 && d.getFullYear() <= 2028) {
+          extractedDates.push(d);
         }
       }
-      extractedDates.sort((a, b) => a - b);
+    }
+    extractedDates.sort((a, b) => a - b);
 
-      if (query.type === 'flight' && extractedDates.length > 0) {
-        const flights = extractFlights(allTextUpper);
-        const dest = extractDestination(allTextUpper);
-        allBookings.push({
-          type: 'flight',
-          date: fmtDate(extractedDates[0]),
-          flights: flights.join(', '),
-          city: dest?.city || '',
-          country: dest?.country || '',
-          place: '',
+    if (isFlight && extractedDates.length > 0) {
+      const flights = extractFlights(allTextUpper);
+      const dest = extractDestination(allTextUpper);
+      bookings.push({
+        type: 'flight',
+        date: fmtDate(extractedDates[0]),
+        flights: flights.join(', '),
+        city: dest?.city || '',
+        country: dest?.country || '',
+        place: '',
+        source: 'gmail',
+        raw: subject
+      });
+    }
+
+    if (isHotel && extractedDates.length >= 2) {
+      const hotelName = extractHotelName(allText) || '';
+      const checkIn = extractedDates[0];
+      const checkOut = extractedDates[extractedDates.length - 1];
+      const daySpan = Math.round((checkOut - checkIn) / 86400000);
+      if (daySpan > 30 || daySpan < 1) continue;
+      const nights = dateRange(checkIn, new Date(checkOut.getTime() - 86400000));
+
+      for (const dateStr of nights) {
+        bookings.push({
+          type: 'hotel',
+          date: dateStr,
+          flights: '',
+          city: extractCity(allText) || '',
+          country: '',
+          place: hotelName,
           source: 'gmail',
           raw: subject
         });
       }
-
-      if (query.type === 'hotel' && extractedDates.length >= 2) {
-        const hotelName = extractHotelName(allText) || '';
-        const checkIn = extractedDates[0];
-        const checkOut = extractedDates[extractedDates.length - 1];
-        const daySpan = Math.round((checkOut - checkIn) / 86400000);
-        if (daySpan > 30 || daySpan < 1) continue;
-        const nights = dateRange(checkIn, new Date(checkOut.getTime() - 86400000));
-
-        for (const dateStr of nights) {
-          allBookings.push({
-            type: 'hotel',
-            date: dateStr,
-            flights: '',
-            city: extractCity(allText) || '',
-            country: '',
-            place: hotelName,
-            source: 'gmail',
-            raw: subject
-          });
-        }
-      }
     }
+  }
+
+  return bookings;
+}
+
+async function processGmail(token) {
+  const allBookings = [];
+
+  // Process hotel folders
+  console.log('Looking for Gmail hotel folder...');
+  const hotelLabelId = await findGmailLabel(token, GMAIL_HOTEL_LABELS);
+  if (hotelLabelId) {
+    const hotelBookings = await processGmailFolder(token, hotelLabelId, 'hotel');
+    allBookings.push(...hotelBookings);
+  } else {
+    console.log('  No hotel label found in Gmail.');
+  }
+
+  // Process flight folders
+  console.log('Looking for Gmail flights folder...');
+  const flightLabelId = await findGmailLabel(token, GMAIL_FLIGHT_LABELS);
+  if (flightLabelId) {
+    const flightBookings = await processGmailFolder(token, flightLabelId, 'flight');
+    allBookings.push(...flightBookings);
+  } else {
+    console.log('  No flights label found in Gmail.');
   }
 
   return allBookings;
