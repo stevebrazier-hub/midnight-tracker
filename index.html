@@ -279,7 +279,10 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <div class="header">
   <h1>🌙 <span>Midnight</span> Tracker</h1>
-  <div class="sync-status" id="syncStatus"><div class="sync-dot pending"></div>Connecting...</div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span id="headerVersion" style="font-size:11px;color:rgba(255,255,255,.35);"></span>
+    <div class="sync-status" id="syncStatus"><div class="sync-dot pending"></div>Connecting...</div>
+  </div>
 </div>
 
 <div class="tabs">
@@ -584,6 +587,7 @@ function showApp(user) {
   document.getElementById('appWrap').classList.add('authed');
   document.getElementById('loggedInAs').textContent = 'Signed in as ' + user.email;
   document.getElementById('appVersion').textContent = 'Version: ' + APP_VERSION;
+  document.getElementById('headerVersion').textContent = 'v' + APP_VERSION;
   loadLocal();
   loadPresets();
   loadHomeSettings();
