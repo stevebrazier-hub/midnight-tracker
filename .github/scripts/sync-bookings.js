@@ -20,6 +20,8 @@
  *   GOOGLE_REFRESH_TOKEN      - Google OAuth2 refresh token (from one-time consent)
  */
 
+const SYNC_VERSION = '1.4.0';
+
 const admin = require('firebase-admin');
 const https = require('https');
 
@@ -554,16 +556,33 @@ function extractHotelName(text) {
   if (!text) return null;
   // Common patterns in hotel confirmation subjects/bodies
   const patterns = [
+    /(?:reservation\s+at|stay\s+at|check.?in\s+at|welcome\s+to|booking\s+at)\s+(.+?)(?:\s*[!.\n]|\s+in\s+|\s+on\s+|$)/i,
+    /(?:property|hotel|resort)\s*(?:name)?\s*:?\s*(.+?)(?:\s*[.\n,]|$)/i,
     /(?:check.?in|check.?out)\s+(.+?)(?:\s*[-–|,]|\s+on\s+|$)/i,
     /(?:booking|reservation|confirmation)\s+(?:at|for)\s+(.+?)(?:\s*[-–|,]|\s+in\s+|\s+on\s+|$)/i,
     /(?:your stay at|check.?in at|welcome to)\s+(.+?)(?:\s*[-–|,]|\s+on\s+|$)/i,
-    /(?:hotel|resort|inn|lodge|hostel|apartment|residence|suites?)\s*:?\s*(.+?)(?:\s*[-–|,]|$)/i,
+    /(?:hotel|resort|inn|lodge|hostel|apartment|residence|suites?|villa)\s*:?\s*(.+?)(?:\s*[-–|,]|$)/i,
   ];
   for (const pat of patterns) {
     const m = pat.exec(text);
     if (m && m[1].trim().length > 2 && m[1].trim().length < 80) {
-      return m[1].trim();
+      // Clean up trailing junk
+      return m[1].trim().replace(/\s+(your|the|a)\s*$/i, '').trim();
     }
+  }
+  return null;
+}
+
+// Extract city from labeled fields in full body text
+function extractLabeledCity(text) {
+  if (!text) return null;
+  const patterns = [
+    /(?:city|location|address|property\s+address)\s*:?\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/,
+    /\b(\d+[^,\n]{5,40}),\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\b/,
+  ];
+  for (const pat of patterns) {
+    const m = pat.exec(text);
+    if (m) return m[2] || m[1];
   }
   return null;
 }
@@ -802,7 +821,11 @@ async function processEmailsFromFolder(token, folderId, folderType) {
     }
 
     if (isHotel && extractedDates.length >= 2) {
-      const hotelName = extractHotelName(allText) || extractHotelName(fullBody.slice(0, 500)) || '';
+      // Try preview first, then first 1500 chars of full body for hotel name
+      const bodySnippet = fullBody.slice(0, 1500);
+      const hotelName = extractHotelName(allText) || extractHotelName(bodySnippet) || '';
+      // Try preview, then labeled fields in full body for city
+      const city = extractCity(allText) || extractLabeledCity(bodySnippet) || extractCity(bodySnippet) || '';
       const checkIn = extractedDates[0];
       const checkOut = extractedDates[extractedDates.length - 1];
       const daySpan = Math.round((checkOut - checkIn) / 86400000);
@@ -814,7 +837,7 @@ async function processEmailsFromFolder(token, folderId, folderType) {
           type: 'hotel',
           date: dateStr,
           flights: '',
-          city: extractCity(allText) || '',
+          city: city,
           country: '',
           place: hotelName,
           source: 'email',
@@ -944,7 +967,7 @@ function mergeFlights(existing, newFlights) {
 // ===== MAIN =====
 
 async function main() {
-  console.log('=== Midnight Tracker — Booking Sync ===');
+  console.log(`=== Midnight Tracker — Booking Sync v${SYNC_VERSION} ===`);
   console.log('Time:', new Date().toISOString());
 
   // --- Microsoft Outlook ---
