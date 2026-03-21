@@ -447,13 +447,24 @@ function dateRange(start, end) {
 // ===== PARSING =====
 
 // Extract flight numbers from text (e.g., BA123, EK456, LH1234)
+// Filters out common false positives: words like "AT", "TO", "IN", "NO", "IF", "OR", "BY", "ON", "UP"
+// followed by numbers (e.g., "at 0900", "in 2026", "no 123")
 function extractFlights(text) {
   if (!text) return [];
+  // Common 2-letter words that aren't airline codes
+  const FALSE_PREFIXES = new Set(['AT','TO','IN','NO','IF','OR','BY','ON','UP','AN','AS','BE','DO','GO','HE','IS','IT','ME','MY','OF','SO','US','WE']);
   const pattern = /\b([A-Z]{2})\s*(\d{1,4})\b/g;
   const flights = [];
   let m;
   while ((m = pattern.exec(text)) !== null) {
-    flights.push(m[1] + m[2]);
+    const code = m[1];
+    const num = m[2];
+    // Skip common English words followed by numbers
+    if (FALSE_PREFIXES.has(code)) continue;
+    // Skip numbers that look like times (e.g., 0900, 0800) or years (2025-2028)
+    const numVal = parseInt(num);
+    if (num.length === 4 && numVal >= 2024 && numVal <= 2030) continue;
+    flights.push(code + num);
   }
   return [...new Set(flights)];
 }
@@ -681,7 +692,7 @@ async function processEmailsFromFolder(token, folderId, folderType) {
   since.setDate(since.getDate() - DAYS_BACK);
 
   const filter = `receivedDateTime ge ${since.toISOString()}`;
-  const path = `/users/${USER_EMAIL}/mailFolders/${folderId}/messages?$filter=${encodeURIComponent(filter)}&$top=50&$select=subject,bodyPreview,receivedDateTime,from`;
+  const path = `/users/${USER_EMAIL}/mailFolders/${folderId}/messages?$filter=${encodeURIComponent(filter)}&$top=50&$select=subject,body,bodyPreview,receivedDateTime,from`;
   const result = await graphGet(token, path);
 
   if (result.error) {
@@ -696,7 +707,9 @@ async function processEmailsFromFolder(token, folderId, folderType) {
 
   for (const msg of messages) {
     const subject = msg.subject || '';
-    const body = msg.bodyPreview || '';
+    // Use full body (HTML stripped) for better date extraction; fall back to bodyPreview
+    const rawBody = msg.body?.content || msg.bodyPreview || '';
+    const body = rawBody.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim();
     const from = msg.from?.emailAddress?.address || '';
     const allText = subject + ' ' + body;
     const allTextUpper = allText.toUpperCase();
