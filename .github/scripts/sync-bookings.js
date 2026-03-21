@@ -20,7 +20,7 @@
  *   GOOGLE_REFRESH_TOKEN      - Google OAuth2 refresh token (from one-time consent)
  */
 
-const SYNC_VERSION = '1.4.0';
+const SYNC_VERSION = '1.5.0';
 
 const admin = require('firebase-admin');
 const https = require('https');
@@ -554,6 +554,8 @@ function extractDestination(text) {
 // Extract hotel name from text
 function extractHotelName(text) {
   if (!text) return null;
+  // Generic words that are NOT hotel names
+  const JUNK_NAMES = /^(confirmation|reservation|booking|receipt|itinerary|details|reminder|update|notice|alert|your|the|a|for|at)$/i;
   // Common patterns in hotel confirmation subjects/bodies
   const patterns = [
     /(?:reservation\s+at|stay\s+at|check.?in\s+at|welcome\s+to|booking\s+at)\s+(.+?)(?:\s*[!.\n]|\s+in\s+|\s+on\s+|$)/i,
@@ -561,13 +563,15 @@ function extractHotelName(text) {
     /(?:check.?in|check.?out)\s+(.+?)(?:\s*[-–|,]|\s+on\s+|$)/i,
     /(?:booking|reservation|confirmation)\s+(?:at|for)\s+(.+?)(?:\s*[-–|,]|\s+in\s+|\s+on\s+|$)/i,
     /(?:your stay at|check.?in at|welcome to)\s+(.+?)(?:\s*[-–|,]|\s+on\s+|$)/i,
-    /(?:hotel|resort|inn|lodge|hostel|apartment|residence|suites?|villa)\s*:?\s*(.+?)(?:\s*[-–|,]|$)/i,
+    /(?:hotel|resort|inn|lodge|hostel|apartment|residence|suites?|villa)\s+([A-Z][\w'']+(?:\s+[\w'']+){0,5})(?:\s*[-–|,.]|\s+on\s+|$)/i,
   ];
   for (const pat of patterns) {
     const m = pat.exec(text);
     if (m && m[1].trim().length > 2 && m[1].trim().length < 80) {
-      // Clean up trailing junk
-      return m[1].trim().replace(/\s+(your|the|a)\s*$/i, '').trim();
+      const name = m[1].trim().replace(/\s+(your|the|a)\s*$/i, '').trim();
+      // Skip generic/junk names
+      if (JUNK_NAMES.test(name)) continue;
+      return name;
     }
   }
   return null;
@@ -576,13 +580,15 @@ function extractHotelName(text) {
 // Extract city from labeled fields in full body text
 function extractLabeledCity(text) {
   if (!text) return null;
+  const NOT_CITIES = /^(January|February|March|April|May|June|July|August|September|October|November|December|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Confirmation|Reservation|Booking|Arrival|Departure|Check|Date|Room|Guest|Night)$/i;
   const patterns = [
     /(?:city|location|address|property\s+address)\s*:?\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/,
     /\b(\d+[^,\n]{5,40}),\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\b/,
   ];
   for (const pat of patterns) {
     const m = pat.exec(text);
-    if (m) return m[2] || m[1];
+    const city = m ? (m[2] || m[1]) : null;
+    if (city && !NOT_CITIES.test(city)) return city;
   }
   return null;
 }
@@ -590,10 +596,14 @@ function extractLabeledCity(text) {
 // Extract city from text
 function extractCity(text) {
   if (!text) return null;
+  // Words that look like cities but aren't (months, common nouns)
+  const NOT_CITIES = /^(January|February|March|April|May|June|July|August|September|October|November|December|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Confirmation|Reservation|Booking|Dear|Hello|Please|Thank|Thanks|Your|The|This|Arrival|Departure|Check|Date|Room|Guest|Total|Price|Rate|Night|Day)$/i;
   // Look for "in <City>" or "<City>, <Country>" patterns
-  const cityPattern = /\bin\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/;
-  const m = cityPattern.exec(text);
-  if (m) return m[1];
+  const cityPattern = /\bin\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/g;
+  let m;
+  while ((m = cityPattern.exec(text)) !== null) {
+    if (!NOT_CITIES.test(m[1])) return m[1];
+  }
   return null;
 }
 
@@ -823,9 +833,9 @@ async function processEmailsFromFolder(token, folderId, folderType) {
     if (isHotel && extractedDates.length >= 2) {
       // Try preview first, then first 1500 chars of full body for hotel name
       const bodySnippet = fullBody.slice(0, 1500);
-      const hotelName = extractHotelName(allText) || extractHotelName(bodySnippet) || '';
+      const hotelName = extractHotelName(subject) || extractHotelName(preview) || extractHotelName(bodySnippet) || '';
       // Try preview, then labeled fields in full body for city
-      const city = extractCity(allText) || extractLabeledCity(bodySnippet) || extractCity(bodySnippet) || '';
+      const city = extractCity(preview) || extractLabeledCity(bodySnippet) || extractCity(bodySnippet) || '';
       const checkIn = extractedDates[0];
       const checkOut = extractedDates[extractedDates.length - 1];
       const daySpan = Math.round((checkOut - checkIn) / 86400000);
