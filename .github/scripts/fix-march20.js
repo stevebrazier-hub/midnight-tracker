@@ -1,7 +1,7 @@
 /**
- * One-time cleanup: Remove bogus hotel entries created by run #118.
- * These entries have place="and late check out upon availability" and city="Tire"
- * from the Villa d'Este email full-body parsing issue.
+ * One-time cleanup v2: Fix two issues in Firebase
+ * 1. March 20 — remove fake flights (BA586, BA591, OX4, UB7 from Airbnb email)
+ * 2. April 6-10 — fix place "Confirmation" → "Villa d Este", clear city "April"
  * Run with: node .github/scripts/fix-march20.js
  */
 const admin = require('firebase-admin');
@@ -14,48 +14,75 @@ admin.initializeApp({
 const db = admin.database();
 
 async function main() {
+  console.log('=== Firebase Cleanup v2 ===\n');
+
   const snap = await db.ref('locations').once('value');
   const all = snap.val() || {};
-
   const updates = {};
-  let cleaned = 0;
+  let changes = 0;
 
-  for (const [dateStr, data] of Object.entries(all)) {
-    // Identify bogus entries: place contains "late check out upon availability" or city is "Tire"
-    const isBogus = (data.place && data.place.includes('late check out upon availability')) ||
-                    (data.city === 'Tire' && data.autoBooking);
+  // --- Fix 1: March 20 — clear fake flights and booking source ---
+  const mar20 = all['2026-03-20'];
+  if (mar20) {
+    console.log('March 20 current data:');
+    console.log('  flights:', mar20.flights || '(none)');
+    console.log('  bookingSource:', mar20.bookingSource || '(none)');
+    console.log('  autoBooking:', mar20.autoBooking || '(none)');
 
-    if (!isBogus) continue;
-
-    if (data.autoGps || data.gpsConfirmed || data.brackets) {
-      // GPS-confirmed entry — only clean the booking fields, keep GPS data
-      console.log(`  ${dateStr}: Cleaning booking fields from GPS-confirmed entry`);
-      if (data.place && data.place.includes('late check out')) updates[`locations/${dateStr}/place`] = null;
-      if (data.city === 'Tire') updates[`locations/${dateStr}/city`] = data.autoGps ? data.city : null;
-      if (data.bookingSource) updates[`locations/${dateStr}/bookingSource`] = null;
-      if (data.autoBooking) updates[`locations/${dateStr}/autoBooking`] = null;
-      // Remove bogus flights that came from the same email
-      if (data.flights && /\b(DX4|UB7)\b/.test(data.flights)) {
-        const cleaned = data.flights.split(/,\s*/).filter(f => !['DX4', 'UB7'].includes(f)).join(', ');
-        updates[`locations/${dateStr}/flights`] = cleaned || null;
-      }
-    } else {
-      // Pure booking entry with no GPS — delete entirely
-      console.log(`  ${dateStr}: Removing bogus booking entry entirely`);
-      updates[`locations/${dateStr}`] = null;
+    if (mar20.flights) {
+      updates['locations/2026-03-20/flights'] = null;
+      console.log('  → Clearing flights');
+      changes++;
     }
-    cleaned++;
+    if (mar20.bookingSource) {
+      updates['locations/2026-03-20/bookingSource'] = null;
+      console.log('  → Clearing bookingSource');
+      changes++;
+    }
+    if (mar20.autoBooking) {
+      updates['locations/2026-03-20/autoBooking'] = null;
+      console.log('  → Clearing autoBooking');
+      changes++;
+    }
+  } else {
+    console.log('March 20: no entry found');
   }
 
-  if (cleaned === 0) {
-    console.log('No bogus entries found.');
+  // --- Fix 2: April 6-10 — fix place and city from Villa d'Este email ---
+  const villaFixDates = ['2026-04-06', '2026-04-07', '2026-04-08', '2026-04-09', '2026-04-10'];
+  for (const dateStr of villaFixDates) {
+    const entry = all[dateStr];
+    if (!entry) {
+      console.log(`${dateStr}: no entry found`);
+      continue;
+    }
+    console.log(`\n${dateStr} current data:`);
+    console.log('  place:', entry.place || '(empty)');
+    console.log('  city:', entry.city || '(empty)');
+
+    if (entry.place === 'Confirmation' || !entry.place) {
+      updates[`locations/${dateStr}/place`] = 'Villa d Este';
+      console.log('  → Setting place to "Villa d Este"');
+      changes++;
+    }
+    if (entry.city === 'April' || !entry.city) {
+      updates[`locations/${dateStr}/city`] = 'Cernobbio';
+      console.log('  → Setting city to "Cernobbio"');
+      changes++;
+    }
+  }
+
+  console.log(`\n${changes} updates to apply.`);
+
+  if (changes === 0) {
+    console.log('Nothing to do.');
     process.exit(0);
   }
 
-  console.log(`\nCleaning ${cleaned} bogus entries...`);
+  console.log('Updates:', JSON.stringify(updates, null, 2));
   await db.ref().update(updates);
 
-  console.log('Done — cleaned up bogus entries from run #118.');
+  console.log('\nDone.');
   process.exit(0);
 }
 
