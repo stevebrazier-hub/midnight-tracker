@@ -335,23 +335,8 @@ async function processGmailFolder(token, labelId, folderType) {
     const isHotel = folderType === 'hotel' ||
                     /\b(hotel|reservation|check.?in|booking|stay|accommodation|airbnb|nights?)/i.test(allText);
 
-    // Extract dates
-    const datePatterns = [
-      /(\d{4}-\d{2}-\d{2})/g,
-      /(\d{1,2})\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})/gi,
-      /(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{1,2}),?\s+(\d{4})/gi,
-    ];
-
-    const extractedDates = [];
-    for (const pat of datePatterns) {
-      let m;
-      while ((m = pat.exec(allText)) !== null) {
-        const d = parseDate(m[0]);
-        if (d && d.getFullYear() >= 2025 && d.getFullYear() <= 2028) {
-          extractedDates.push(d);
-        }
-      }
-    }
+    // Extract dates from snippet text
+    const extractedDates = extractRawDates(allText);
     extractedDates.sort((a, b) => a - b);
 
     if (isFlight && extractedDates.length > 0) {
@@ -440,6 +425,66 @@ function dateRange(start, end) {
   while (d <= e) {
     dates.push(fmtDate(d));
     d.setDate(d.getDate() + 1);
+  }
+  return dates;
+}
+
+// ===== SMART DATE EXTRACTION =====
+
+// Date format patterns (reusable)
+const DATE_FMTS = [
+  /(\d{4}-\d{2}-\d{2})/,
+  /(\d{1,2})\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})/i,
+  /(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{1,2}),?\s+(\d{4})/i,
+  /(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{1,2}),?\s+(\d{4})/i,
+];
+
+// Extract dates that appear after labeled keywords like "Arrival Date:", "Check-in:", etc.
+// These are high-confidence dates from hotel/flight confirmations.
+function extractLabeledDates(text) {
+  if (!text) return [];
+  const labels = [
+    /(?:arrival|check.?in|depart(?:ure)?|check.?out|start|end|from|to)\s*(?:date)?\s*:?\s*/gi,
+  ];
+  const dates = [];
+  for (const labelPat of labels) {
+    let lm;
+    while ((lm = labelPat.exec(text)) !== null) {
+      // Look at the text right after the label (next 60 chars)
+      const after = text.slice(lm.index + lm[0].length, lm.index + lm[0].length + 60);
+      for (const datePat of DATE_FMTS) {
+        const dm = datePat.exec(after);
+        if (dm) {
+          const d = parseDate(dm[0]);
+          if (d && d.getFullYear() >= 2025 && d.getFullYear() <= 2028) {
+            dates.push(d);
+          }
+          break;
+        }
+      }
+    }
+  }
+  return dates;
+}
+
+// Raw date extraction from text — used as fallback on short text (subject + preview).
+// Scans for all date patterns in the text.
+function extractRawDates(text) {
+  if (!text) return [];
+  const datePatterns = [
+    /(\d{4}-\d{2}-\d{2})/g,
+    /(\d{1,2})\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})/gi,
+    /(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{1,2}),?\s+(\d{4})/gi,
+  ];
+  const dates = [];
+  for (const pat of datePatterns) {
+    let m;
+    while ((m = pat.exec(text)) !== null) {
+      const d = parseDate(m[0]);
+      if (d && d.getFullYear() >= 2025 && d.getFullYear() <= 2028) {
+        dates.push(d);
+      }
+    }
   }
   return dates;
 }
@@ -707,11 +752,13 @@ async function processEmailsFromFolder(token, folderId, folderType) {
 
   for (const msg of messages) {
     const subject = msg.subject || '';
-    // Use full body (HTML stripped) for better date extraction; fall back to bodyPreview
-    const rawBody = msg.body?.content || msg.bodyPreview || '';
-    const body = rawBody.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim();
+    const preview = msg.bodyPreview || '';
+    // Strip HTML from full body for structured date extraction only
+    const rawBody = msg.body?.content || '';
+    const fullBody = rawBody.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim();
     const from = msg.from?.emailAddress?.address || '';
-    const allText = subject + ' ' + body;
+    // Use subject + preview for keyword matching (avoids noise from full HTML body)
+    const allText = subject + ' ' + preview;
     const allTextUpper = allText.toUpperCase();
 
     // Skip car rental emails
@@ -727,23 +774,13 @@ async function processEmailsFromFolder(token, folderId, folderType) {
     const isHotel = folderType === 'hotel' ||
                     /\b(hotel|reservation|check.?in|booking|stay|accommodation|airbnb|nights?)/i.test(allText);
 
-    // Try to extract dates from the email
-    // Common patterns: "Check-in: 15 March 2026", "Date: 2026-03-15", "March 15, 2026"
-    const datePatterns = [
-      /(\d{4}-\d{2}-\d{2})/g,
-      /(\d{1,2})\s+(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})/gi,
-      /(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{1,2}),?\s+(\d{4})/gi,
-    ];
-
-    const extractedDates = [];
-    for (const pat of datePatterns) {
-      let m;
-      while ((m = pat.exec(allText)) !== null) {
-        const d = parseDate(m[0]);
-        if (d && d.getFullYear() >= 2025 && d.getFullYear() <= 2028) {
-          extractedDates.push(d);
-        }
-      }
+    // --- DATE EXTRACTION ---
+    // Strategy: First try labeled dates from full body (e.g. "Arrival Date: April 6, 2026").
+    // Fall back to raw date extraction from subject + preview only (not full body, to avoid noise).
+    let extractedDates = extractLabeledDates(fullBody);
+    if (extractedDates.length < 2) {
+      // Fall back to raw date scanning from subject + preview
+      extractedDates = extractRawDates(allText);
     }
 
     // Sort dates and take first as check-in, last as check-out
@@ -765,7 +802,7 @@ async function processEmailsFromFolder(token, folderId, folderType) {
     }
 
     if (isHotel && extractedDates.length >= 2) {
-      const hotelName = extractHotelName(allText) || '';
+      const hotelName = extractHotelName(allText) || extractHotelName(fullBody.slice(0, 500)) || '';
       const checkIn = extractedDates[0];
       const checkOut = extractedDates[extractedDates.length - 1];
       const daySpan = Math.round((checkOut - checkIn) / 86400000);

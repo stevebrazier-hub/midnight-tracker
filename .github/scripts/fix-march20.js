@@ -1,5 +1,7 @@
 /**
- * One-time cleanup: Remove false AT09 flight and wrong bookingSource from March 20, 2026.
+ * One-time cleanup: Remove bogus hotel entries created by run #118.
+ * These entries have place="and late check out upon availability" and city="Tire"
+ * from the Villa d'Este email full-body parsing issue.
  * Run with: node .github/scripts/fix-march20.js
  */
 const admin = require('firebase-admin');
@@ -12,42 +14,48 @@ admin.initializeApp({
 const db = admin.database();
 
 async function main() {
-  const ref = db.ref('locations/2026-03-20');
-  const snap = await ref.once('value');
-  const data = snap.val();
+  const snap = await db.ref('locations').once('value');
+  const all = snap.val() || {};
 
-  if (!data) {
-    console.log('No data for 2026-03-20');
-    process.exit(0);
-  }
-
-  console.log('Before:', JSON.stringify(data, null, 2));
-
-  // Remove the false flight and wrong booking source
   const updates = {};
-  if (data.flights && data.flights.includes('AT09')) {
-    // Remove AT09, keep any other flights
-    const remaining = (data.flights || '').split(/,\s*/).filter(f => f !== 'AT09').join(', ');
-    updates.flights = remaining || null;
-  }
-  if (data.bookingSource && data.bookingSource.includes('Airbnb')) {
-    // Remove the Airbnb-related booking source
-    const parts = (data.bookingSource || '').split(' | ').filter(p => !p.includes('Airbnb'));
-    updates.bookingSource = parts.join(' | ') || null;
+  let cleaned = 0;
+
+  for (const [dateStr, data] of Object.entries(all)) {
+    // Identify bogus entries: place contains "late check out upon availability" or city is "Tire"
+    const isBogus = (data.place && data.place.includes('late check out upon availability')) ||
+                    (data.city === 'Tire' && data.autoBooking);
+
+    if (!isBogus) continue;
+
+    if (data.autoGps || data.gpsConfirmed || data.brackets) {
+      // GPS-confirmed entry — only clean the booking fields, keep GPS data
+      console.log(`  ${dateStr}: Cleaning booking fields from GPS-confirmed entry`);
+      if (data.place && data.place.includes('late check out')) updates[`locations/${dateStr}/place`] = null;
+      if (data.city === 'Tire') updates[`locations/${dateStr}/city`] = data.autoGps ? data.city : null;
+      if (data.bookingSource) updates[`locations/${dateStr}/bookingSource`] = null;
+      if (data.autoBooking) updates[`locations/${dateStr}/autoBooking`] = null;
+      // Remove bogus flights that came from the same email
+      if (data.flights && /\b(DX4|UB7)\b/.test(data.flights)) {
+        const cleaned = data.flights.split(/,\s*/).filter(f => !['DX4', 'UB7'].includes(f)).join(', ');
+        updates[`locations/${dateStr}/flights`] = cleaned || null;
+      }
+    } else {
+      // Pure booking entry with no GPS — delete entirely
+      console.log(`  ${dateStr}: Removing bogus booking entry entirely`);
+      updates[`locations/${dateStr}`] = null;
+    }
+    cleaned++;
   }
 
-  if (Object.keys(updates).length === 0) {
-    console.log('Nothing to clean up.');
+  if (cleaned === 0) {
+    console.log('No bogus entries found.');
     process.exit(0);
   }
 
-  console.log('Updates:', updates);
-  await ref.update(updates);
+  console.log(`\nCleaning ${cleaned} bogus entries...`);
+  await db.ref().update(updates);
 
-  const after = await ref.once('value');
-  console.log('After:', JSON.stringify(after.val(), null, 2));
-
-  console.log('Done — cleaned up March 20.');
+  console.log('Done — cleaned up bogus entries from run #118.');
   process.exit(0);
 }
 
