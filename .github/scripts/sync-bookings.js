@@ -500,6 +500,16 @@ function extractFlights(text) {
   if (!text) return [];
   // Common 2-letter words that aren't airline codes
   const FALSE_PREFIXES = new Set(['AT','TO','IN','NO','IF','OR','BY','ON','UP','AN','AS','BE','DO','GO','HE','IS','IT','ME','MY','OF','SO','US','WE']);
+  // UK postcode prefixes (e.g. OX4, UB7, SW1, EC2, WC1, SE1, NW3, etc.)
+  const UK_POSTCODE_PREFIXES = new Set([
+    'AB','AL','BA','BB','BD','BH','BL','BN','BR','BS','BT','CA','CB','CF','CH','CM','CO','CR','CT','CV','CW',
+    'DA','DD','DE','DG','DH','DL','DN','DT','DY','EC','EH','EN','EX','FK','FY','GL','GU','GY',
+    'HA','HD','HG','HP','HR','HS','HU','HX','IG','IM','IP','IV','JE','KA','KT','KW','KY',
+    'LA','LD','LE','LL','LN','LS','LU','ME','MK','ML','NE','NG','NN','NP','NR','NW',
+    'OL','OX','PA','PE','PH','PL','PO','PR','RG','RH','RM','SA','SE','SG','SK','SL','SM','SN','SO',
+    'SP','SR','SS','ST','SW','SY','TA','TD','TF','TN','TQ','TR','TS','TW','UB',
+    'WA','WC','WD','WF','WN','WR','WS','WV','YO','ZE'
+  ]);
   const pattern = /\b([A-Z]{2})\s*(\d{1,4})\b/g;
   const flights = [];
   let m;
@@ -508,7 +518,9 @@ function extractFlights(text) {
     const num = m[2];
     // Skip common English words followed by numbers
     if (FALSE_PREFIXES.has(code)) continue;
-    // Skip numbers that look like times (e.g., 0900, 0800) or years (2025-2028)
+    // Skip UK postcodes (2 letters + 1-2 digits)
+    if (num.length <= 2 && UK_POSTCODE_PREFIXES.has(code)) continue;
+    // Skip numbers that look like years (2025-2028)
     const numVal = parseInt(num);
     if (num.length === 4 && numVal >= 2024 && numVal <= 2030) continue;
     flights.push(code + num);
