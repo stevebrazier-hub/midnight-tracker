@@ -32,7 +32,7 @@ self.addEventListener('push', event => {
 
   event.waitUntil(
     // Show notification AND immediately tell any open app tabs to capture GPS.
-    // This way GPS captures silently even if the user doesn't tap the notification.
+    // If no tabs are open, silently open the app so GPS capture triggers automatically.
     Promise.all([
       self.registration.showNotification(title, {
         body: body,
@@ -42,11 +42,22 @@ self.addEventListener('push', event => {
         data: { action: 'capture-gps', captureType: captureType, date: captureDate, timestamp: Date.now() }
       }),
       self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
-        for (const client of clients) {
-          if (client.url.includes('midnight')) {
+        const appClients = clients.filter(c => c.url.includes('midnight'));
+        if (appClients.length > 0) {
+          // App is open — tell it to capture GPS
+          for (const client of appClients) {
             console.log('[SW] Auto-triggering GPS capture in open tab');
             client.postMessage({ type: 'midnight-gps-capture', captureType: captureType, date: captureDate });
           }
+        } else {
+          // No app tabs open — silently open the app with capture flag.
+          // The app will auto-capture GPS on load via URL parameters.
+          // This is the key improvement for overnight GPS reliability.
+          console.log('[SW] No open tabs — silently opening app for GPS capture');
+          const captureUrl = './?capture=' + captureType + '&date=' + captureDate + '&silent=1';
+          return self.clients.openWindow(captureUrl).catch(err => {
+            console.warn('[SW] Failed to open window for GPS capture:', err.message);
+          });
         }
       })
     ])
@@ -97,7 +108,7 @@ firebase.initializeApp({
 firebase.messaging();
 
 // ===== CACHING (PWA offline support) =====
-const CACHE_NAME = 'midnight-tracker-v29';
+const CACHE_NAME = 'midnight-tracker-v30';
 const ASSETS = [
   './index.html',
   './manifest.json',

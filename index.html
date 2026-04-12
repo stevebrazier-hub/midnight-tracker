@@ -1984,10 +1984,9 @@ async function bracketGPSCapture(dateStr, bracketType) {
           ' bracket: ' + locDesc);
         setTimeout(dismissGpsBanner, 5000);
 
-        // If we now have both brackets, try to infer midnight location
-        if (brackets.evening && brackets.morning) {
-          inferMidnightFromBrackets(dateStr);
-        }
+        // Try to infer midnight location from brackets
+        // Works with both brackets (strongest) or single bracket at known location
+        inferMidnightFromBrackets(dateStr);
 
         resolve(true);
       },
@@ -2003,50 +2002,55 @@ async function bracketGPSCapture(dateStr, bracketType) {
 }
 
 // Infer midnight location from evening + morning bracket GPS
+// Also supports single-bracket inference when the bracket is at a known preset location
 function inferMidnightFromBrackets(dateStr) {
   const entry = entries[dateStr];
-  if (!entry?.brackets?.evening || !entry?.brackets?.morning) return;
+  if (!entry?.brackets) return;
 
   const ev = entry.brackets.evening;
   const am = entry.brackets.morning;
 
-  // If same country (and ideally same city), we can infer midnight location
-  if (ev.country && am.country && ev.country === am.country) {
+  // Only infer if no existing GPS/manual entry, or entry is a late backfill/unconfirmed
+  const canInfer = !entry.city || entry.lateBackfill || entry.unconfirmed;
+  if (!canInfer) return;
+
+  // CASE 1: Both brackets exist and same country — strongest inference
+  if (ev?.country && am?.country && ev.country === am.country) {
     const sameCity = ev.city && am.city && ev.city === am.city;
 
-    // Only infer if no existing GPS/manual entry, or entry is a late backfill
-    if (!entry.city || entry.lateBackfill || entry.unconfirmed) {
-      console.log('Bracket inference for ' + dateStr + ': ' +
-        (sameCity ? 'same city (' + ev.city + ')' : 'same country (' + ev.country + ')'));
+    console.log('Bracket inference for ' + dateStr + ': ' +
+      (sameCity ? 'same city (' + ev.city + ')' : 'same country (' + ev.country + ')'));
 
-      entry.country = ev.country;
-      entry.city = sameCity ? ev.city : (ev.city || am.city); // prefer evening city
-      entry.place = sameCity ? (ev.place || am.place) : (ev.place || am.place);
-      entry.bracketInferred = true;
-      entry.autoGps = true;
-      entry.capturedAt = ev.capturedAt || am.capturedAt || ukTimestamp();
-      entry.captureSource = 'bracket-inference';
-      // Use evening coords as the "midnight" location (closer to midnight than morning)
-      entry.lat = ev.lat;
-      entry.lon = ev.lon;
-      entry.notes = (entry.notes || '') +
-        (entry.notes ? ' | ' : '') +
-        'Inferred from GPS brackets: evening=' + ev.city + ' ' + ev.capturedAt +
-        ', morning=' + am.city + ' ' + am.capturedAt;
-      if (entry.lateBackfill) delete entry.lateBackfill;
-      if (entry.unconfirmed) delete entry.unconfirmed;
+    entry.country = ev.country;
+    entry.city = sameCity ? ev.city : (ev.city || am.city); // prefer evening city
+    entry.place = sameCity ? (ev.place || am.place) : (ev.place || am.place);
+    entry.bracketInferred = true;
+    entry.autoGps = true;
+    entry.capturedAt = ev.capturedAt || am.capturedAt || ukTimestamp();
+    entry.captureSource = 'bracket-inference';
+    // Use evening coords as the "midnight" location (closer to midnight than morning)
+    entry.lat = ev.lat;
+    entry.lon = ev.lon;
+    entry.notes = (entry.notes || '') +
+      (entry.notes ? ' | ' : '') +
+      'Inferred from GPS brackets: evening=' + ev.city + ' ' + ev.capturedAt +
+      ', morning=' + am.city + ' ' + am.capturedAt;
+    if (entry.lateBackfill) delete entry.lateBackfill;
+    if (entry.unconfirmed) delete entry.unconfirmed;
 
-      syncEntry(dateStr, entry);
-      saveLocal();
-      render();
+    syncEntry(dateStr, entry);
+    saveLocal();
+    render();
 
-      showGpsBanner('ok', '📐 Midnight inferred from brackets: ' +
-        entry.city + ', ' + entry.country +
-        (sameCity ? ' (city match)' : ' (country match)'));
-      setTimeout(dismissGpsBanner, 6000);
-    }
-  } else if (ev.country && am.country) {
-    // Countries differ — might have crossed a border overnight!
+    showGpsBanner('ok', '📐 Midnight inferred from brackets: ' +
+      entry.city + ', ' + entry.country +
+      (sameCity ? ' (city match)' : ' (country match)'));
+    setTimeout(dismissGpsBanner, 6000);
+    return;
+  }
+
+  // CASE 2: Both brackets exist but countries differ — border crossing
+  if (ev?.country && am?.country && ev.country !== am.country) {
     console.log('Bracket mismatch for ' + dateStr + ': evening=' + ev.country + ', morning=' + am.country);
     entry.notes = (entry.notes || '') +
       (entry.notes ? ' | ' : '') +
@@ -2061,6 +2065,78 @@ function inferMidnightFromBrackets(dateStr) {
       'Morning (7am): **' + (am.lat ? shortGps(am.lat, am.lon) + ' → ' : '') + am.city + ', ' + am.country + '**<br><br>' +
       'Countries differ — please confirm where Steve was at midnight.'
     );
+    return;
+  }
+
+  // CASE 3: Single bracket at a known preset location — infer with high confidence
+  // If someone was at a known home/regular location at 9pm or 7am, they almost certainly
+  // didn't leave and return between then and midnight.
+  const singleBracket = ev || am;
+  if (singleBracket?.lat && singleBracket?.country) {
+    const presetMatch = matchLocationToPreset(singleBracket.lat, singleBracket.lon);
+    if (presetMatch) {
+      const bracketName = ev ? 'evening' : 'morning';
+      console.log('Single-bracket inference for ' + dateStr + ': ' + bracketName +
+        ' at known location ' + presetMatch.preset.city + ' (' + presetMatch.distance.toFixed(1) + 'km)');
+
+      const p = presetMatch.preset;
+      entry.country = p.country;
+      entry.city = p.city;
+      entry.place = p.place || p.city;
+      entry.bracketInferred = true;
+      entry.autoGps = true;
+      entry.capturedAt = singleBracket.capturedAt || ukTimestamp();
+      entry.captureSource = 'single-bracket-inference';
+      entry.lat = singleBracket.lat;
+      entry.lon = singleBracket.lon;
+      entry.notes = (entry.notes || '') +
+        (entry.notes ? ' | ' : '') +
+        'Inferred from ' + bracketName + ' bracket at known location: ' +
+        p.city + ' ' + singleBracket.capturedAt;
+      if (entry.lateBackfill) delete entry.lateBackfill;
+      if (entry.unconfirmed) delete entry.unconfirmed;
+
+      syncEntry(dateStr, entry);
+      saveLocal();
+      render();
+
+      showGpsBanner('ok', '📐 Midnight inferred from ' + bracketName + ' bracket: ' +
+        p.city + ', ' + p.country + ' (known location)');
+      setTimeout(dismissGpsBanner, 6000);
+      return;
+    }
+
+    // Single bracket at unknown location — also infer if booking matches the same country
+    if (entry.autoBooking && entry.country && entry.country === singleBracket.country) {
+      const bracketName = ev ? 'evening' : 'morning';
+      console.log('Single-bracket + booking inference for ' + dateStr + ': ' + bracketName +
+        ' bracket confirms booking country (' + singleBracket.country + ')');
+
+      // Keep existing booking city/place but upgrade with GPS coords and confirm country
+      entry.bracketInferred = true;
+      entry.autoGps = true;
+      entry.lat = singleBracket.lat;
+      entry.lon = singleBracket.lon;
+      entry.capturedAt = singleBracket.capturedAt || ukTimestamp();
+      entry.captureSource = 'bracket-booking-inference';
+      entry.notes = (entry.notes || '') +
+        (entry.notes ? ' | ' : '') +
+        'Booking confirmed by ' + bracketName + ' bracket GPS in same country: ' +
+        singleBracket.city + ' ' + singleBracket.capturedAt;
+      if (entry.lateBackfill) delete entry.lateBackfill;
+      if (entry.unconfirmed) delete entry.unconfirmed;
+      // Clear country conflict since bracket confirms booking country
+      if (entry.countryConflict) delete entry.countryConflict;
+
+      syncEntry(dateStr, entry);
+      saveLocal();
+      render();
+
+      showGpsBanner('ok', '📐 Booking confirmed by ' + bracketName + ' bracket GPS: ' +
+        entry.city + ', ' + entry.country);
+      setTimeout(dismissGpsBanner, 6000);
+      return;
+    }
   }
 }
 
@@ -2129,10 +2205,14 @@ function checkTodayGPS() {
   // 2. If yesterday's midnight was missed entirely, try to backfill
   if (!yEntry || (!yEntry.city && !yEntry.place)) {
     if (yEntry?.brackets) {
+      // Try bracket inference (works with 1 or 2 brackets now)
       console.log('Yesterday (' + yesterdayStr + ') missing — trying bracket inference...');
       inferMidnightFromBrackets(yesterdayStr);
-    } else {
-      console.log('Yesterday (' + yesterdayStr + ') missing with no brackets — capturing GPS as late backfill');
+    }
+    // If still missing after inference attempt, try GPS backfill
+    const afterInference = entries[yesterdayStr];
+    if (!afterInference || (!afterInference.city && !afterInference.place)) {
+      console.log('Yesterday (' + yesterdayStr + ') still missing — capturing GPS as late backfill');
       autoGPSCapture(yesterdayStr, false, 'backfill').then(() => {
         if (entries[yesterdayStr]) {
           entries[yesterdayStr].lateBackfill = true;
