@@ -737,7 +737,6 @@ function initFirebaseSync() {
     if (data) {
       const newEntries = {};
       const countryFixes = {};
-      const countryFixes = {};
       Object.keys(data).forEach(dateKey => {
         const e = { ...data[dateKey], synced: true };
         // Normalise country names (one-time migration for e.g. "United States" → "USA")
@@ -751,15 +750,6 @@ function initFirebaseSync() {
         newEntries[dateKey] = e;
       });
       entries = newEntries;
-      if (Object.keys(countryFixes).length > 0) {
-        const updates = {};
-        Object.entries(countryFixes).forEach(([dk, c]) => {
-          updates['locations/' + dk + '/country'] = c;
-        });
-        db.ref().update(updates).then(() => {
-          console.log('Country normalisation applied:', countryFixes);
-        }).catch(err => console.warn('Country normalisation sync failed:', err));
-      }
       // Push any country normalisations back to Firebase
       if (Object.keys(countryFixes).length > 0) {
         const updates = {};
@@ -979,23 +969,6 @@ function countryFlag(country) {
     'Malaysia':'🇲🇾','Vietnam':'🇻🇳','Philippines':'🇵🇭','Hong Kong':'🇭🇰',
   };
   return map[country] || '🏳️';
-}
-
-// Normalise country names so variants (e.g. Nominatim's "United States") map
-// to the canonical short form used in airport lookups and stats.
-function normalizeCountry(c) {
-  if (!c) return c;
-  const map = {
-    'United States': 'USA',
-    'United States of America': 'USA',
-    'United Kingdom': 'UK',
-    'Great Britain': 'UK',
-    'United Arab Emirates': 'UAE',
-    'Republic of China': 'Taiwan',
-    'Korea, Republic of': 'South Korea',
-    'Republic of Korea': 'South Korea',
-  };
-  return map[c] || c;
 }
 
 // Normalise country names so variants (e.g. Nominatim's "United States") map

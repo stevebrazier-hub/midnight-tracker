@@ -75,21 +75,6 @@ function normalizeCountry(c) {
   };
   return map[c] || c;
 }
-// Normalise country names so variants map to canonical short forms
-function normalizeCountry(c) {
-  if (!c) return c;
-  const map = {
-    'United States': 'USA',
-    'United States of America': 'USA',
-    'United Kingdom': 'UK',
-    'Great Britain': 'UK',
-    'United Arab Emirates': 'UAE',
-    'Republic of China': 'Taiwan',
-    'Korea, Republic of': 'South Korea',
-    'Republic of Korea': 'South Korea',
-  };
-  return map[c] || c;
-}
 
 // ===== FIREBASE INIT =====
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
