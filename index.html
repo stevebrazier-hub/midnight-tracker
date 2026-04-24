@@ -736,10 +736,30 @@ function initFirebaseSync() {
   fbListen('locations', data => {
     if (data) {
       const newEntries = {};
+      const countryFixes = {};
       Object.keys(data).forEach(dateKey => {
-        newEntries[dateKey] = { ...data[dateKey], synced: true };
+        const e = { ...data[dateKey], synced: true };
+        // Normalise country names (one-time migration for e.g. "United States" → "USA")
+        if (e.country) {
+          const norm = normalizeCountry(e.country);
+          if (norm !== e.country) {
+            e.country = norm;
+            countryFixes[dateKey] = norm;
+          }
+        }
+        newEntries[dateKey] = e;
       });
       entries = newEntries;
+      // Push any country normalisations back to Firebase
+      if (Object.keys(countryFixes).length > 0) {
+        const updates = {};
+        Object.entries(countryFixes).forEach(([dk, c]) => {
+          updates['locations/' + dk + '/country'] = c;
+        });
+        db.ref().update(updates).then(() => {
+          console.log('Country normalisation applied:', countryFixes);
+        }).catch(err => console.warn('Country normalisation sync failed:', err));
+      }
     } else {
       entries = {};
     }
@@ -949,6 +969,23 @@ function countryFlag(country) {
     'Malaysia':'🇲🇾','Vietnam':'🇻🇳','Philippines':'🇵🇭','Hong Kong':'🇭🇰',
   };
   return map[country] || '🏳️';
+}
+
+// Normalise country names so variants (e.g. Nominatim's "United States") map
+// to the canonical short form used in airport lookups and stats.
+function normalizeCountry(c) {
+  if (!c) return c;
+  const map = {
+    'United States': 'USA',
+    'United States of America': 'USA',
+    'United Kingdom': 'UK',
+    'Great Britain': 'UK',
+    'United Arab Emirates': 'UAE',
+    'Republic of China': 'Taiwan',
+    'Korea, Republic of': 'South Korea',
+    'Republic of Korea': 'South Korea',
+  };
+  return map[c] || c;
 }
 
 // ===== STATS (UK Tax Year: 6 Apr – 5 Apr) =====
@@ -1240,8 +1277,15 @@ function loadPresets() {
 }
 
 function migratePresets() {
-  // Rename old "Home" preset to "Cernobbio"
+  // Normalise country names in presets
   let changed = false;
+  presets.forEach(p => {
+    if (p.country) {
+      const norm = normalizeCountry(p.country);
+      if (norm !== p.country) { p.country = norm; changed = true; }
+    }
+  });
+  // Rename old "Home" preset to "Cernobbio"
   presets.forEach(p => {
     if (p.id === 'home' && p.label === 'Home') {
       p.id = 'cernobbio'; p.icon = '🇮🇹'; p.label = 'Cernobbio'; p.sub = 'Italy'; p.place = 'Cernobbio';
@@ -1349,7 +1393,7 @@ function closePresetForm() {
 function submitPresetForm() {
   const label = document.getElementById('pf_label').value.trim();
   const city = document.getElementById('pf_city').value.trim();
-  const country = document.getElementById('pf_country').value.trim();
+  const country = normalizeCountry(document.getElementById('pf_country').value.trim());
   if (!label || !city || !country) { toast('Name, city and country are required'); return; }
   const data = {
     icon: document.getElementById('pf_icon').value.trim() || '📍',
@@ -1372,7 +1416,7 @@ function saveHomeSettings() {
   if (!city || !country) { toast('City and country are required'); return; }
   HOME.place = place || 'Home';
   HOME.city = city;
-  HOME.country = country;
+  HOME.country = normalizeCountry(country);
   localStorage.setItem('mt_home', JSON.stringify(HOME));
   if (fbReady) fbSet('settings/home', { place: HOME.place, city: HOME.city, country: HOME.country });
   render();
@@ -1382,14 +1426,14 @@ function saveHomeSettings() {
 function loadHomeSettings() {
   try {
     const saved = JSON.parse(localStorage.getItem('mt_home'));
-    if (saved) { HOME.place = saved.place; HOME.city = saved.city; HOME.country = saved.country; }
+    if (saved) { HOME.place = saved.place; HOME.city = saved.city; HOME.country = normalizeCountry(saved.country); }
   } catch(e) {}
   if (fbReady) {
     fbListen('settings/home', data => {
       if (data) {
         HOME.place = data.place || 'Home';
         HOME.city = data.city || 'Cernobbio';
-        HOME.country = data.country || 'Italy';
+        HOME.country = normalizeCountry(data.country || 'Italy');
         localStorage.setItem('mt_home', JSON.stringify(HOME));
         render();
       }
@@ -1680,7 +1724,7 @@ function saveDay() {
     ...(existing || {}),
     place: place,
     city: document.getElementById('editCity').value.trim(),
-    country: document.getElementById('editCountry').value.trim(),
+    country: normalizeCountry(document.getElementById('editCountry').value.trim()),
     flights: document.getElementById('editFlights').value.trim(),
     notes: document.getElementById('editNotes').value.trim(),
     working: document.getElementById('editWorking').checked ? true : false,
@@ -1869,7 +1913,7 @@ async function autoGPSCapture(dateStr, force, source) {
             const r = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json&accept-language=en');
             const data = await r.json();
             city = data.address?.city || data.address?.town || data.address?.village || '';
-            country = data.address?.country || '';
+            country = normalizeCountry(data.address?.country || '');
             placeName = data.display_name?.split(',')[0] || '';
           } catch(e) { console.warn('Geocode failed', e); }
 
@@ -1961,7 +2005,7 @@ async function bracketGPSCapture(dateStr, bracketType) {
             const r = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json&accept-language=en');
             const data = await r.json();
             city = data.address?.city || data.address?.town || data.address?.village || '';
-            country = data.address?.country || '';
+            country = normalizeCountry(data.address?.country || '');
             place = data.display_name?.split(',')[0] || '';
           } catch(e) { console.warn('Bracket geocode failed', e); }
         }

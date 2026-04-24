@@ -60,6 +60,22 @@ const AIRPORTS = {
   'OXF': { city: 'Oxford', country: 'UK' },
 };
 
+// Normalise country names so variants map to canonical short forms
+function normalizeCountry(c) {
+  if (!c) return c;
+  const map = {
+    'United States': 'USA',
+    'United States of America': 'USA',
+    'United Kingdom': 'UK',
+    'Great Britain': 'UK',
+    'United Arab Emirates': 'UAE',
+    'Republic of China': 'Taiwan',
+    'Korea, Republic of': 'South Korea',
+    'Republic of Korea': 'South Korea',
+  };
+  return map[c] || c;
+}
+
 // ===== FIREBASE INIT =====
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 admin.initializeApp({
@@ -930,7 +946,7 @@ async function updateFirebase(bookings) {
     const entry = {
       place: current?.place || booking.place || '',
       city: current?.city || booking.city || '',
-      country: current?.country || booking.country || '',
+      country: normalizeCountry(current?.country || booking.country || ''),
       flights: mergeFlights(current?.flights, booking.flights),
       notes: current?.notes || '',
       autoBooking: true,
