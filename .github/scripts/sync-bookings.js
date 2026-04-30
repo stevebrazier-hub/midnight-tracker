@@ -608,7 +608,7 @@ function extractHotelName(text) {
 // Extract city from labeled fields in full body text
 function extractLabeledCity(text) {
   if (!text) return null;
-  const NOT_CITIES = /^(January|February|March|April|May|June|July|August|September|October|November|December|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Confirmation|Reservation|Booking|Arrival|Departure|Check|Date|Room|Guest|Night)$/i;
+  const NOT_CITIES = /^(January|February|March|April|May|June|July|August|September|October|November|December|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Confirmation|Reservation|Booking|Arrival|Departure|Check|Date|Room|Guest|Night|Gmail|Outlook|Yahoo|Hotmail|Icloud|Email|Inbox)$/i;
   const patterns = [
     /(?:city|location|address|property\s+address)\s*:?\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/,
     /\b(\d+[^,\n]{5,40}),\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\b/,
@@ -625,7 +625,7 @@ function extractLabeledCity(text) {
 function extractCity(text) {
   if (!text) return null;
   // Words that look like cities but aren't (months, common nouns)
-  const NOT_CITIES = /^(January|February|March|April|May|June|July|August|September|October|November|December|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Confirmation|Reservation|Booking|Dear|Hello|Please|Thank|Thanks|Your|The|This|Arrival|Departure|Check|Date|Room|Guest|Total|Price|Rate|Night|Day)$/i;
+  const NOT_CITIES = /^(January|February|March|April|May|June|July|August|September|October|November|December|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Confirmation|Reservation|Booking|Dear|Hello|Please|Thank|Thanks|Your|The|This|Arrival|Departure|Check|Date|Room|Guest|Total|Price|Rate|Night|Day|Gmail|Outlook|Yahoo|Hotmail|Icloud|Email|Inbox)$/i;
   // Look for "in <City>" or "<City>, <Country>" patterns
   const cityPattern = /\bin\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/g;
   let m;

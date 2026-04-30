@@ -495,7 +495,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-03-21a';
+const APP_VERSION = '2026-04-30a';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -766,6 +766,9 @@ function initFirebaseSync() {
     saveLocal();
     setSyncStatus('ok', 'Synced');
     render();
+    // One-time pass: fix entries where brackets disagree with stored country
+    // (e.g. bad booking-derived city/country overridden by GPS evidence)
+    try { reconcileBracketCountries(); } catch(e) { console.warn('reconcileBracketCountries failed:', e); }
   });
   db.ref('.info/connected').on('value', snap => {
     if (snap.val() === true) {
@@ -2045,6 +2048,30 @@ async function bracketGPSCapture(dateStr, bracketType) {
   });
 }
 
+// Reconcile bracket evidence with stored country across all entries.
+// If both brackets agree on a country but the stored country differs (typically
+// because a stale/wrong booking populated city+country first), re-run inference.
+// Runs once on data load — fixes historical bad entries like Apr 29 2026 (UK→Germany).
+function reconcileBracketCountries() {
+  let fixed = 0;
+  Object.keys(entries).forEach(dateStr => {
+    const e = entries[dateStr];
+    const ev = e?.brackets?.evening;
+    const am = e?.brackets?.morning;
+    if (!ev?.country || !am?.country) return;
+    if (ev.country !== am.country) return;
+    if (e.country === ev.country) return; // already correct
+    const reliableMidnightGps = e.autoGps && !e.bracketInferred && !e.lateBackfill;
+    const userSet = e.city && !e.autoGps && !e.autoBooking;
+    if (reliableMidnightGps || e.gpsConfirmed || userSet) return;
+    console.log('Reconciling ' + dateStr + ': brackets agree on ' + ev.country +
+      ' but stored country is ' + (e.country || '(empty)') + ' — re-inferring');
+    inferMidnightFromBrackets(dateStr);
+    fixed++;
+  });
+  if (fixed > 0) console.log('Bracket reconciliation fixed ' + fixed + ' entries');
+}
+
 // Infer midnight location from evening + morning bracket GPS
 // Also supports single-bracket inference when the bracket is at a known preset location
 function inferMidnightFromBrackets(dateStr) {
@@ -2054,8 +2081,14 @@ function inferMidnightFromBrackets(dateStr) {
   const ev = entry.brackets.evening;
   const am = entry.brackets.morning;
 
-  // Only infer if no existing GPS/manual entry, or entry is a late backfill/unconfirmed
-  const canInfer = !entry.city || entry.lateBackfill || entry.unconfirmed;
+  // Brackets are strong evidence (GPS 3h before + 7h after midnight). They override
+  // anything except: a real 12am GPS capture, a user-confirmed entry, or a pure-manual entry.
+  // In particular, brackets MUST be allowed to override booking-only data (autoBooking)
+  // and previous bracket inferences (bracketInferred) — see Apr 29 2026 case where a
+  // bad email parse stuffed city="Gmail", country="UK" into a Berlin night.
+  const reliableMidnightGps = entry.autoGps && !entry.bracketInferred && !entry.lateBackfill;
+  const userSet = entry.city && !entry.autoGps && !entry.autoBooking;
+  const canInfer = !reliableMidnightGps && !entry.gpsConfirmed && !userSet;
   if (!canInfer) return;
 
   // CASE 1: Both brackets exist and same country — strongest inference
