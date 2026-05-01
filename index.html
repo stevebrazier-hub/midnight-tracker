@@ -495,7 +495,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-05-01b';
+const APP_VERSION = '2026-05-01c';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -691,6 +691,7 @@ let anchorYear, anchorMonth;
 // How many months to show at once (we render a window of months)
 const MONTHS_BUFFER = 6; // 3 past + current + 2 future
 let scrollOffset = 0; // 0 = current month is first column
+let userNavigatedMonths = false; // true once the user clicks ◀/▶; suppresses auto-snap-to-today
 
 // ===== SYNC STATUS =====
 function setSyncStatus(state, text) {
@@ -846,6 +847,7 @@ function getMonthKey(y, m) { return y + '-' + String(m + 1).padStart(2, '0'); }
 
 function scrollMonths(dir) {
   scrollOffset += dir;
+  userNavigatedMonths = true; // suppress auto-snap-to-today on this render
   renderList();
 }
 
@@ -952,10 +954,15 @@ function renderList() {
 
   container.innerHTML = html;
 
-  // Scroll today's row into view (centred on screen)
-  const todayEl = container.querySelector('.is-today');
-  if (todayEl) {
-    todayEl.scrollIntoView({ block: 'center', behavior: 'instant' });
+  // Scroll today's row into view (centred on screen) — but ONLY on initial render.
+  // After the user clicks ◀/▶ to navigate to another month, snapping back to today
+  // hides the month they wanted to see (especially on mobile where only one column
+  // is visible at a time). See bug 2026-05-01: arrow updated title but content stayed.
+  if (!userNavigatedMonths) {
+    const todayEl = container.querySelector('.is-today');
+    if (todayEl) {
+      todayEl.scrollIntoView({ block: 'center', behavior: 'instant' });
+    }
   }
 
   // Update range label
