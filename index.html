@@ -495,7 +495,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-05-01c';
+const APP_VERSION = '2026-05-01d';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -2084,25 +2084,56 @@ function clearJunkBookingCities() {
 }
 
 // Reconcile bracket evidence with stored country across all entries.
-// If both brackets agree on a country but the stored country differs (typically
-// because a stale/wrong booking populated city+country first), re-run inference.
-// Runs once on data load — fixes historical bad entries like Apr 29 2026 (UK→Germany).
+// Two cases handled here:
+//   A) Both brackets agree on a country but the stored country differs (e.g. bad booking
+//      stuffed wrong country) → re-run full inference via inferMidnightFromBrackets.
+//   B) Single bracket exists (e.g. only morning was captured) AND the entry has empty
+//      city/country (booking-only entry that wasn't resolved) → promote the bracket's
+//      city/country directly onto the entry so it renders properly. Apr 30 2026 case:
+//      Google Calendar created a "Stay at Villa Rosemarie" entry with no city/country,
+//      morning bracket captured Brandis/Germany, but no evening bracket existed.
+// Runs once on data load.
 function reconcileBracketCountries() {
   let fixed = 0;
   Object.keys(entries).forEach(dateStr => {
     const e = entries[dateStr];
     const ev = e?.brackets?.evening;
     const am = e?.brackets?.morning;
-    if (!ev?.country || !am?.country) return;
-    if (ev.country !== am.country) return;
-    if (e.country === ev.country) return; // already correct
+    if (!ev?.country && !am?.country) return; // need at least one bracket with a country
     const reliableMidnightGps = e.autoGps && !e.bracketInferred && !e.lateBackfill;
     const userSet = e.city && !e.autoGps && !e.autoBooking;
     if (reliableMidnightGps || e.gpsConfirmed || userSet) return;
-    console.log('Reconciling ' + dateStr + ': brackets agree on ' + ev.country +
-      ' but stored country is ' + (e.country || '(empty)') + ' — re-inferring');
-    inferMidnightFromBrackets(dateStr, true); // silent: skip per-entry render/banner
-    fixed++;
+
+    // Case A: both brackets agree, override existing wrong country
+    if (ev?.country && am?.country && ev.country === am.country) {
+      if (e.country === ev.country) return; // already correct
+      console.log('Reconciling ' + dateStr + ' (both brackets): ' + ev.country +
+        ' vs stored ' + (e.country || '(empty)'));
+      inferMidnightFromBrackets(dateStr, true);
+      fixed++;
+      return;
+    }
+
+    // Case B: single bracket, entry has no city/country yet — promote the bracket
+    const single = (ev?.country && (!am || !am.country)) ? ev :
+                   (am?.country && (!ev || !ev.country)) ? am : null;
+    if (single && !e.country && !e.city) {
+      console.log('Reconciling ' + dateStr + ' (single bracket): promoting ' +
+        single.city + ', ' + single.country + ' onto empty entry');
+      e.country = single.country;
+      e.city = single.city || '';
+      // place stays whatever the booking gave us (e.g. "Villa Rosemarie..."); only
+      // overwrite if empty.
+      if (!e.place && single.place) e.place = single.place;
+      e.bracketInferred = true;
+      e.lat = single.lat;
+      e.lon = single.lon;
+      e.capturedAt = single.capturedAt || ukTimestamp();
+      e.captureSource = 'single-bracket-reconcile';
+      syncEntry(dateStr, e);
+      fixed++;
+      return;
+    }
   });
   if (fixed > 0) console.log('Bracket reconciliation fixed ' + fixed + ' entries');
 }
