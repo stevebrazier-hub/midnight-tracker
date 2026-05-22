@@ -176,4 +176,40 @@ async function main() {
   statsRows.push({ 'Country': 'UK work days (max 30)', 'Nights': workDays });
   statsRows.push({ 'Country': 'Total entries', 'Nights': entryCount });
   statsRows.push({});
-  statsRows.push({ 'Country': 'Backup date', 'Nights': today
+  statsRows.push({ 'Country': 'Backup date', 'Nights': today });
+
+  const statsWs = XLSX.utils.json_to_sheet(statsRows);
+  statsWs['!cols'] = [{ wch: 25 }, { wch: 10 }];
+  XLSX.utils.book_append_sheet(wb, statsWs, 'Summary');
+
+  // Write XLSX (latest + history copy)
+  XLSX.writeFile(wb, path.join(BACKUP_DIR, 'latest.xlsx'));
+  XLSX.writeFile(wb, path.join(HISTORY_DIR, `backup-${today}.xlsx`));
+  console.log('Wrote latest.xlsx and history/' + `backup-${today}.xlsx`);
+
+  // 4. Clean up old history files (keep only MAX_HISTORY most recent of each type)
+  for (const ext of ['.json', '.xlsx']) {
+    const files = fs.readdirSync(HISTORY_DIR)
+      .filter(f => f.startsWith('backup-') && f.endsWith(ext))
+      .sort()
+      .reverse();
+
+    if (files.length > MAX_HISTORY) {
+      const toDelete = files.slice(MAX_HISTORY);
+      toDelete.forEach(f => {
+        fs.unlinkSync(path.join(HISTORY_DIR, f));
+        console.log(`Deleted old backup: ${f}`);
+      });
+    }
+    console.log(`History (${ext}): ${Math.min(files.length, MAX_HISTORY)} backups retained.`);
+  }
+
+  console.log('\nBackup complete.');
+
+  process.exit(0);
+}
+
+main().catch(err => {
+  console.error('Fatal error:', err);
+  process.exit(1);
+});
