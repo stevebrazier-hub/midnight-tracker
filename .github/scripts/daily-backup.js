@@ -30,6 +30,21 @@ function fmtDate(d) {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
+// Excel hard limit per cell. Anything longer crashes XLSX.writeFile.
+const XLSX_CELL_LIMIT = 32767;
+const CLAMP_WARN_AT = 1000;
+function clamp(v, ctx) {
+  if (v == null) return '';
+  const s = typeof v === 'string' ? v : String(v);
+  if (s.length > CLAMP_WARN_AT) {
+    console.warn(`[clamp] oversized cell (${s.length} chars) at ${ctx || '?'} — first 120: ${s.slice(0, 120).replace(/\n/g, ' ')}`);
+  }
+  if (s.length > XLSX_CELL_LIMIT) {
+    return s.slice(0, XLSX_CELL_LIMIT - 20) + '…[TRUNCATED]';
+  }
+  return s;
+}
+
 async function main() {
   const today = fmtDate(new Date());
   console.log('=== Midnight Tracker — Daily Backup ===');
@@ -66,7 +81,7 @@ async function main() {
     const d = new Date(dateStr + 'T00:00:00');
     const ev = e.brackets?.evening;
     const am = e.brackets?.morning;
-    return {
+    const row = {
       'Date': dateStr,
       'Day': dayNames[d.getDay()],
       'Place': e.place || '',
@@ -95,6 +110,12 @@ async function main() {
       'Auto booking': e.autoBooking ? 'Yes' : '',
       'GPS confirmed': e.gpsConfirmed ? 'Yes' : '',
     };
+    // Defensive: clamp every cell so a single bloated field can't crash XLSX.writeFile.
+    // Also logs anything over 1k chars so we can find and clean the offender in Firebase.
+    for (const k of Object.keys(row)) {
+      row[k] = clamp(row[k], `${dateStr}/${k}`);
+    }
+    return row;
   });
 
   if (rows.length) {
@@ -155,40 +176,4 @@ async function main() {
   statsRows.push({ 'Country': 'UK work days (max 30)', 'Nights': workDays });
   statsRows.push({ 'Country': 'Total entries', 'Nights': entryCount });
   statsRows.push({});
-  statsRows.push({ 'Country': 'Backup date', 'Nights': today });
-
-  const statsWs = XLSX.utils.json_to_sheet(statsRows);
-  statsWs['!cols'] = [{ wch: 25 }, { wch: 10 }];
-  XLSX.utils.book_append_sheet(wb, statsWs, 'Summary');
-
-  // Write XLSX (latest + history copy)
-  XLSX.writeFile(wb, path.join(BACKUP_DIR, 'latest.xlsx'));
-  XLSX.writeFile(wb, path.join(HISTORY_DIR, `backup-${today}.xlsx`));
-  console.log('Wrote latest.xlsx and history/' + `backup-${today}.xlsx`);
-
-  // 4. Clean up old history files (keep only MAX_HISTORY most recent of each type)
-  for (const ext of ['.json', '.xlsx']) {
-    const files = fs.readdirSync(HISTORY_DIR)
-      .filter(f => f.startsWith('backup-') && f.endsWith(ext))
-      .sort()
-      .reverse();
-
-    if (files.length > MAX_HISTORY) {
-      const toDelete = files.slice(MAX_HISTORY);
-      toDelete.forEach(f => {
-        fs.unlinkSync(path.join(HISTORY_DIR, f));
-        console.log(`Deleted old backup: ${f}`);
-      });
-    }
-    console.log(`History (${ext}): ${Math.min(files.length, MAX_HISTORY)} backups retained.`);
-  }
-
-  console.log('\nBackup complete.');
-
-  process.exit(0);
-}
-
-main().catch(err => {
-  console.error('Fatal error:', err);
-  process.exit(1);
-});
+  statsRows.push({ 'Country': 'Backup date', 'Nights': today
