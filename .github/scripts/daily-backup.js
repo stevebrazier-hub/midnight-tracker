@@ -30,6 +30,21 @@ function fmtDate(d) {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
+// Excel hard limit per cell. Anything longer crashes XLSX.writeFile.
+const XLSX_CELL_LIMIT = 32767;
+const CLAMP_WARN_AT = 1000;
+function clamp(v, ctx) {
+  if (v == null) return '';
+  const s = typeof v === 'string' ? v : String(v);
+  if (s.length > CLAMP_WARN_AT) {
+    console.warn(`[clamp] oversized cell (${s.length} chars) at ${ctx || '?'} — first 120: ${s.slice(0, 120).replace(/\n/g, ' ')}`);
+  }
+  if (s.length > XLSX_CELL_LIMIT) {
+    return s.slice(0, XLSX_CELL_LIMIT - 20) + '…[TRUNCATED]';
+  }
+  return s;
+}
+
 async function main() {
   const today = fmtDate(new Date());
   console.log('=== Midnight Tracker — Daily Backup ===');
@@ -66,7 +81,7 @@ async function main() {
     const d = new Date(dateStr + 'T00:00:00');
     const ev = e.brackets?.evening;
     const am = e.brackets?.morning;
-    return {
+    const row = {
       'Date': dateStr,
       'Day': dayNames[d.getDay()],
       'Place': e.place || '',
@@ -95,6 +110,12 @@ async function main() {
       'Auto booking': e.autoBooking ? 'Yes' : '',
       'GPS confirmed': e.gpsConfirmed ? 'Yes' : '',
     };
+    // Defensive: clamp every cell so a single bloated field can't crash XLSX.writeFile.
+    // Also logs anything over 1k chars so we can find and clean the offender in Firebase.
+    for (const k of Object.keys(row)) {
+      row[k] = clamp(row[k], `${dateStr}/${k}`);
+    }
+    return row;
   });
 
   if (rows.length) {

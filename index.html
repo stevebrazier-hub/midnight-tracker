@@ -495,7 +495,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-05-01d';
+const APP_VERSION = '2026-04-30a';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -704,7 +704,6 @@ let anchorYear, anchorMonth;
 // How many months to show at once (we render a window of months)
 const MONTHS_BUFFER = 6; // 3 past + current + 2 future
 let scrollOffset = 0; // 0 = current month is first column
-let userNavigatedMonths = false; // true once the user clicks ◀/▶; suppresses auto-snap-to-today
 
 // ===== SYNC STATUS =====
 function setSyncStatus(state, text) {
@@ -780,15 +779,9 @@ function initFirebaseSync() {
     saveLocal();
     setSyncStatus('ok', 'Synced');
     render();
-    // One-time per-session migrations. Guarded with `migrationsRun` so the
-    // Firebase listener (which fires again every time syncEntry writes) does
-    // NOT re-trigger them and hang the UI in a render-storm.
-    if (!migrationsRun) {
-      migrationsRun = true;
-      try { clearJunkBookingCities(); } catch(e) { console.warn('clearJunkBookingCities failed:', e); }
-      try { reconcileBracketCountries(); } catch(e) { console.warn('reconcileBracketCountries failed:', e); }
-      render();
-    }
+    // One-time pass: fix entries where brackets disagree with stored country
+    // (e.g. bad booking-derived city/country overridden by GPS evidence)
+    try { reconcileBracketCountries(); } catch(e) { console.warn('reconcileBracketCountries failed:', e); }
   });
   db.ref('.info/connected').on('value', snap => {
     if (snap.val() === true) {
@@ -860,7 +853,6 @@ function getMonthKey(y, m) { return y + '-' + String(m + 1).padStart(2, '0'); }
 
 function scrollMonths(dir) {
   scrollOffset += dir;
-  userNavigatedMonths = true; // suppress auto-snap-to-today on this render
   renderList();
 }
 
@@ -967,15 +959,10 @@ function renderList() {
 
   container.innerHTML = html;
 
-  // Scroll today's row into view (centred on screen) — but ONLY on initial render.
-  // After the user clicks ◀/▶ to navigate to another month, snapping back to today
-  // hides the month they wanted to see (especially on mobile where only one column
-  // is visible at a time). See bug 2026-05-01: arrow updated title but content stayed.
-  if (!userNavigatedMonths) {
-    const todayEl = container.querySelector('.is-today');
-    if (todayEl) {
-      todayEl.scrollIntoView({ block: 'center', behavior: 'instant' });
-    }
+  // Scroll today's row into view (centred on screen)
+  const todayEl = container.querySelector('.is-today');
+  if (todayEl) {
+    todayEl.scrollIntoView({ block: 'center', behavior: 'instant' });
   }
 
   // Update range label
@@ -2074,88 +2061,43 @@ async function bracketGPSCapture(dateStr, bracketType) {
   });
 }
 
-// Guard so one-time migrations only run once per session, even though the
-// Firebase listener fires again every time we write back via syncEntry.
-let migrationsRun = false;
-
-// Heal entries whose city was populated with junk from a misparsed email body
-// (e.g. "in Gmail", "location: Outlook" — see Apr 29 2026 case where city="Gmail").
-// Only clears city; leaves country, place, brackets, flights etc. intact so the
-// real GPS / bracket / booking pipeline can fill in correctly later.
-function clearJunkBookingCities() {
-  const JUNK = /^(Gmail|Outlook|Yahoo|Hotmail|Icloud|Email|Inbox)$/i;
-  let cleared = 0;
-  Object.keys(entries).forEach(dateStr => {
-    const e = entries[dateStr];
-    if (!e?.city || !JUNK.test(e.city)) return;
-    console.log('Clearing junk city "' + e.city + '" from ' + dateStr);
-    e.city = '';
-    syncEntry(dateStr, e);
-    cleared++;
-  });
-  if (cleared > 0) console.log('Cleared junk city from ' + cleared + ' entries');
-}
-
 // Reconcile bracket evidence with stored country across all entries.
-// Two cases handled here:
-//   A) Both brackets agree on a country but the stored country differs (e.g. bad booking
-//      stuffed wrong country) → re-run full inference via inferMidnightFromBrackets.
-//   B) Single bracket exists (e.g. only morning was captured) AND the entry has empty
-//      city/country (booking-only entry that wasn't resolved) → promote the bracket's
-//      city/country directly onto the entry so it renders properly. Apr 30 2026 case:
-//      Google Calendar created a "Stay at Villa Rosemarie" entry with no city/country,
-//      morning bracket captured Brandis/Germany, but no evening bracket existed.
-// Runs once on data load.
+// If both brackets agree on a country but the stored country differs (typically
+// because a stale/wrong booking populated city+country first), re-run inference.
+// Runs once on data load — fixes historical bad entries like Apr 29 2026 (UK→Germany).
 function reconcileBracketCountries() {
   let fixed = 0;
   Object.keys(entries).forEach(dateStr => {
     const e = entries[dateStr];
     const ev = e?.brackets?.evening;
     const am = e?.brackets?.morning;
-    if (!ev?.country && !am?.country) return; // need at least one bracket with a country
+    if (!ev?.country || !am?.country) return;
+    if (ev.country !== am.country) return;
+    if (e.country === ev.country) return; // already correct
     const reliableMidnightGps = e.autoGps && !e.bracketInferred && !e.lateBackfill;
     const userSet = e.city && !e.autoGps && !e.autoBooking;
     if (reliableMidnightGps || e.gpsConfirmed || userSet) return;
-
-    // Case A: both brackets agree, override existing wrong country
-    if (ev?.country && am?.country && ev.country === am.country) {
-      if (e.country === ev.country) return; // already correct
-      console.log('Reconciling ' + dateStr + ' (both brackets): ' + ev.country +
-        ' vs stored ' + (e.country || '(empty)'));
-      inferMidnightFromBrackets(dateStr, true);
-      fixed++;
-      return;
-    }
-
-    // Case B: single bracket, entry has no city/country yet — promote the bracket
-    const single = (ev?.country && (!am || !am.country)) ? ev :
-                   (am?.country && (!ev || !ev.country)) ? am : null;
-    if (single && !e.country && !e.city) {
-      console.log('Reconciling ' + dateStr + ' (single bracket): promoting ' +
-        single.city + ', ' + single.country + ' onto empty entry');
-      e.country = single.country;
-      e.city = single.city || '';
-      // place stays whatever the booking gave us (e.g. "Villa Rosemarie..."); only
-      // overwrite if empty.
-      if (!e.place && single.place) e.place = single.place;
-      e.bracketInferred = true;
-      e.lat = single.lat;
-      e.lon = single.lon;
-      e.capturedAt = single.capturedAt || ukTimestamp();
-      e.captureSource = 'single-bracket-reconcile';
-      syncEntry(dateStr, e);
-      fixed++;
-      return;
-    }
+    console.log('Reconciling ' + dateStr + ': brackets agree on ' + ev.country +
+      ' but stored country is ' + (e.country || '(empty)') + ' — re-inferring');
+    inferMidnightFromBrackets(dateStr);
+    fixed++;
   });
   if (fixed > 0) console.log('Bracket reconciliation fixed ' + fixed + ' entries');
 }
 
-// Infer midnight location from evening + morning bracket GPS.
-// Also supports single-bracket inference when the bracket is at a known preset location.
-// `silent` skips per-entry render() and the GPS banner — used when batch-reconciling
-// many entries on data load (otherwise we render-storm and hang the UI).
-function inferMidnightFromBrackets(dateStr, silent) {
+// Helper: append a categorized note to entry.notes, replacing any prior note in the
+// same category so the field can't bloat over repeated runs of the inference code.
+// `category` should be a substring unique to this note type (e.g. 'Inferred from GPS brackets').
+function setUniqueNote(entry, category, newNote) {
+  const existing = (entry.notes || '').split(' | ').filter(n => n.trim());
+  const filtered = existing.filter(n => !n.includes(category));
+  filtered.push(newNote);
+  entry.notes = filtered.join(' | ');
+}
+
+// Infer midnight location from evening + morning bracket GPS
+// Also supports single-bracket inference when the bracket is at a known preset location
+function inferMidnightFromBrackets(dateStr) {
   const entry = entries[dateStr];
   if (!entry?.brackets) return;
 
@@ -2189,31 +2131,28 @@ function inferMidnightFromBrackets(dateStr, silent) {
     // Use evening coords as the "midnight" location (closer to midnight than morning)
     entry.lat = ev.lat;
     entry.lon = ev.lon;
-    entry.notes = (entry.notes || '') +
-      (entry.notes ? ' | ' : '') +
+    setUniqueNote(entry, 'Inferred from GPS brackets',
       'Inferred from GPS brackets: evening=' + ev.city + ' ' + ev.capturedAt +
-      ', morning=' + am.city + ' ' + am.capturedAt;
+      ', morning=' + am.city + ' ' + am.capturedAt);
     if (entry.lateBackfill) delete entry.lateBackfill;
     if (entry.unconfirmed) delete entry.unconfirmed;
 
     syncEntry(dateStr, entry);
     saveLocal();
-    if (!silent) {
-      render();
-      showGpsBanner('ok', '📐 Midnight inferred from brackets: ' +
-        entry.city + ', ' + entry.country +
-        (sameCity ? ' (city match)' : ' (country match)'));
-      setTimeout(dismissGpsBanner, 6000);
-    }
+    render();
+
+    showGpsBanner('ok', '📐 Midnight inferred from brackets: ' +
+      entry.city + ', ' + entry.country +
+      (sameCity ? ' (city match)' : ' (country match)'));
+    setTimeout(dismissGpsBanner, 6000);
     return;
   }
 
   // CASE 2: Both brackets exist but countries differ — border crossing
   if (ev?.country && am?.country && ev.country !== am.country) {
     console.log('Bracket mismatch for ' + dateStr + ': evening=' + ev.country + ', morning=' + am.country);
-    entry.notes = (entry.notes || '') +
-      (entry.notes ? ' | ' : '') +
-      'Bracket mismatch: evening=' + ev.city + ',' + ev.country + ' vs morning=' + am.city + ',' + am.country;
+    setUniqueNote(entry, 'Bracket mismatch',
+      'Bracket mismatch: evening=' + ev.city + ',' + ev.country + ' vs morning=' + am.city + ',' + am.country);
     entry.unconfirmed = true;
     syncEntry(dateStr, entry);
     saveLocal();
@@ -2248,21 +2187,19 @@ function inferMidnightFromBrackets(dateStr, silent) {
       entry.captureSource = 'single-bracket-inference';
       entry.lat = singleBracket.lat;
       entry.lon = singleBracket.lon;
-      entry.notes = (entry.notes || '') +
-        (entry.notes ? ' | ' : '') +
+      setUniqueNote(entry, 'bracket at known location',
         'Inferred from ' + bracketName + ' bracket at known location: ' +
-        p.city + ' ' + singleBracket.capturedAt;
+        p.city + ' ' + singleBracket.capturedAt);
       if (entry.lateBackfill) delete entry.lateBackfill;
       if (entry.unconfirmed) delete entry.unconfirmed;
 
       syncEntry(dateStr, entry);
       saveLocal();
-      if (!silent) {
-        render();
-        showGpsBanner('ok', '📐 Midnight inferred from ' + bracketName + ' bracket: ' +
-          p.city + ', ' + p.country + ' (known location)');
-        setTimeout(dismissGpsBanner, 6000);
-      }
+      render();
+
+      showGpsBanner('ok', '📐 Midnight inferred from ' + bracketName + ' bracket: ' +
+        p.city + ', ' + p.country + ' (known location)');
+      setTimeout(dismissGpsBanner, 6000);
       return;
     }
 
@@ -2279,10 +2216,9 @@ function inferMidnightFromBrackets(dateStr, silent) {
       entry.lon = singleBracket.lon;
       entry.capturedAt = singleBracket.capturedAt || ukTimestamp();
       entry.captureSource = 'bracket-booking-inference';
-      entry.notes = (entry.notes || '') +
-        (entry.notes ? ' | ' : '') +
+      setUniqueNote(entry, 'bracket GPS in same country',
         'Booking confirmed by ' + bracketName + ' bracket GPS in same country: ' +
-        singleBracket.city + ' ' + singleBracket.capturedAt;
+        singleBracket.city + ' ' + singleBracket.capturedAt);
       if (entry.lateBackfill) delete entry.lateBackfill;
       if (entry.unconfirmed) delete entry.unconfirmed;
       // Clear country conflict since bracket confirms booking country
@@ -2290,12 +2226,11 @@ function inferMidnightFromBrackets(dateStr, silent) {
 
       syncEntry(dateStr, entry);
       saveLocal();
-      if (!silent) {
-        render();
-        showGpsBanner('ok', '📐 Booking confirmed by ' + bracketName + ' bracket GPS: ' +
-          entry.city + ', ' + entry.country);
-        setTimeout(dismissGpsBanner, 6000);
-      }
+      render();
+
+      showGpsBanner('ok', '📐 Booking confirmed by ' + bracketName + ' bracket GPS: ' +
+        entry.city + ', ' + entry.country);
+      setTimeout(dismissGpsBanner, 6000);
       return;
     }
   }

@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-05-26T06:08:36.183Z"
+      "updatedAt": "2026-05-24T18:50:01.624Z"
     }
   },
   "locations": {
@@ -3737,28 +3737,12 @@
     },
     "2026-05-24": {
       "autoBooking": true,
-      "autoGps": true,
       "bookingSource": "google-calendar: Stay at Villa Rosemarie con piscina ad uso esclusivo",
-      "bracketInferred": true,
-      "brackets": {
-        "morning": {
-          "capturedAt": "2026-05-25 09:45:17 BST",
-          "city": "Oxford",
-          "country": "UK",
-          "lat": 51.7329528,
-          "lon": -1.237357,
-          "place": "Oxford"
-        }
-      },
-      "captureSource": "single-bracket-inference",
-      "capturedAt": "2026-05-25 09:45:17 BST",
-      "city": "Oxford",
-      "country": "UK",
+      "city": "",
+      "country": "",
       "flights": "",
-      "lat": 51.7329528,
-      "lon": -1.237357,
-      "notes": "Inferred from morning bracket at known location: Oxford 2026-05-25 09:45:17 BST",
-      "place": "Oxford"
+      "notes": "",
+      "place": "Villa Rosemarie con piscina ad uso esclusivo"
     },
     "2026-05-25": {
       "autoBooking": true,
@@ -3771,17 +3755,12 @@
     },
     "2026-05-26": {
       "autoBooking": true,
-      "autoGps": true,
       "bookingSource": "google-calendar: Stay at Villa Rosemarie con piscina ad uso esclusivo",
-      "captureSource": "12am",
-      "capturedAt": "2026-05-26 00:00:48 BST",
-      "city": "Cernobbio",
-      "country": "Italy",
+      "city": "",
+      "country": "",
       "flights": "",
-      "lat": 45.8437774,
-      "lon": 9.0668219,
       "notes": "",
-      "place": "Cernobbio"
+      "place": "Villa Rosemarie con piscina ad uso esclusivo"
     },
     "2026-05-27": {
       "autoBooking": true,
@@ -4160,7 +4139,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-05-26T04:04:14.115Z",
+    "lastBookingSync": "2026-05-25T04:18:41.235Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
