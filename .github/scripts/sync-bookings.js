@@ -360,16 +360,22 @@ async function processGmailFolder(token, labelId, folderType) {
     if (isFlight && extractedDates.length > 0) {
       const flights = extractFlights(allTextUpper);
       const dest = extractDestination(allTextUpper);
-      bookings.push({
-        type: 'flight',
-        date: fmtDate(extractedDates[0]),
-        flights: flights.join(', '),
-        city: dest?.city || '',
-        country: dest?.country || '',
-        place: '',
-        source: 'gmail',
-        raw: subject
-      });
+      // Multi-leg fix: push one booking per unique date (up to 30 days apart).
+      // A round-trip itinerary email contains both outbound and return dates;
+      // previously only extractedDates[0] (the outbound) became a booking.
+      const flightDates = uniqueFlightDates(extractedDates);
+      for (const d of flightDates) {
+        bookings.push({
+          type: 'flight',
+          date: fmtDate(d),
+          flights: flights.join(', '),
+          city: dest?.city || '',
+          country: dest?.country || '',
+          place: '',
+          source: 'gmail',
+          raw: subject
+        });
+      }
     }
 
     if (isHotel && extractedDates.length >= 2) {
@@ -445,6 +451,26 @@ function dateRange(start, end) {
     d.setDate(d.getDate() + 1);
   }
   return dates;
+}
+
+// Dedupe a sorted Date[] by YYYY-MM-DD and keep only entries within 30 days
+// of the earliest. A single-leg flight email returns one date; a round-trip
+// itinerary (outbound + return in the same email) returns one date per leg.
+// The 30-day cap rejects unrelated noise like booking-creation timestamps.
+function uniqueFlightDates(dates) {
+  if (!dates || !dates.length) return [];
+  const earliest = dates[0];
+  const seen = new Set();
+  const out = [];
+  for (const d of dates) {
+    const span = Math.round((d - earliest) / 86400000);
+    if (span < 0 || span > 30) continue;
+    const key = fmtDate(d);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(d);
+  }
+  return out;
 }
 
 // ===== SMART DATE EXTRACTION =====
@@ -846,16 +872,23 @@ async function processEmailsFromFolder(token, folderId, folderType) {
     if (isFlight && extractedDates.length > 0) {
       const flights = extractFlights(allTextUpper);
       const dest = extractDestination(allTextUpper);
-      bookings.push({
-        type: 'flight',
-        date: fmtDate(extractedDates[0]),
-        flights: flights.join(', '),
-        city: dest?.city || '',
-        country: dest?.country || '',
-        place: '',
-        source: 'email',
-        raw: subject
-      });
+      // Multi-leg fix: push one booking per unique date (up to 30 days apart).
+      // A round-trip itinerary email contains both outbound and return dates;
+      // previously only extractedDates[0] (the outbound) became a booking,
+      // silently dropping the return leg (e.g. BA591 May 23 outbound + May 25 return).
+      const flightDates = uniqueFlightDates(extractedDates);
+      for (const d of flightDates) {
+        bookings.push({
+          type: 'flight',
+          date: fmtDate(d),
+          flights: flights.join(', '),
+          city: dest?.city || '',
+          country: dest?.country || '',
+          place: '',
+          source: 'email',
+          raw: subject
+        });
+      }
     }
 
     if (isHotel && extractedDates.length >= 2) {

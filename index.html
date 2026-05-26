@@ -596,6 +596,8 @@ function showApp(user) {
   initFirebaseSync();
   // Start midnight GPS system
   scheduleMidnightCapture();
+  // Schedule recurring 21:00 UK evening bracket (FCM push fallback is unreliable on iOS PWAs)
+  scheduleEveningBracket();
   // Check if today needs a GPS capture (delayed to let Firebase sync first)
   setTimeout(checkTodayGPS, 3000);
   // Initialise push notifications
@@ -679,6 +681,17 @@ async function flushSyncQueue() {
 window.addEventListener('online', () => {
   console.log('Back online — flushing sync queue');
   if (fbReady) flushSyncQueue();
+});
+
+// Re-run today's GPS checks when the user refocuses the tab.
+// On iOS PWAs the 21:00 FCM push can fail to wake the app via clients.openWindow();
+// when the user actively opens the app, treat that as the trigger to fill in any
+// missed brackets (morning before noon, evening after 21:00 UK).
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && currentUser) {
+    console.log('Tab visible — re-running checkTodayGPS');
+    checkTodayGPS();
+  }
 });
 
 // ===== STATE =====
@@ -2326,6 +2339,42 @@ function scheduleMidnightCapture() {
       scheduleMidnightCapture();
     });
   }, msToMidnight);
+}
+
+// Schedule GPS capture at 21:00 UK for the evening bracket.
+// Mirrors scheduleMidnightCapture(). Needed because the FCM push at 21:00 UTC
+// relies on sw.js clients.openWindow() which is unreliable on iOS PWAs without
+// a user gesture — so the evening bracket was only firing when the user
+// happened to open the app between 21:00 and midnight.
+let eveningBracketTimer = null;
+function scheduleEveningBracket() {
+  if (eveningBracketTimer) clearTimeout(eveningBracketTimer);
+  const now = new Date();
+  // Probe forward in 1-minute steps to find when UK clock next reads 21:00 (max 25 hours)
+  let msToEvening = 0;
+  for (let m = 1; m <= 1500; m++) {
+    const future = new Date(now.getTime() + m * 60000);
+    const parts = future.toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', minute: '2-digit', hour12: false });
+    const [h, mm] = parts.split(':').map(Number);
+    if (h === 21 && mm === 0) {
+      msToEvening = m * 60000 + 5000; // 5 seconds past 21:00 UK
+      break;
+    }
+  }
+  if (msToEvening === 0) msToEvening = 24 * 60 * 60 * 1000; // fallback 24h
+  console.log('Next 21:00 UK evening bracket in ' + Math.round(msToEvening / 60000) + ' minutes');
+  eveningBracketTimer = setTimeout(() => {
+    const todayStr = ukDateStr(new Date());
+    const todayBrackets = entries[todayStr]?.brackets || {};
+    if (!todayBrackets.evening?.lat) {
+      console.log('21:00 UK! Auto-capturing evening bracket for ' + todayStr);
+      bracketGPSCapture(todayStr, 'evening');
+    } else {
+      console.log('21:00 UK reached — evening bracket already captured for ' + todayStr + ', skipping');
+    }
+    // Reschedule for tomorrow
+    scheduleEveningBracket();
+  }, msToEvening);
 }
 
 // On app load, check if yesterday's entry needs backfilling and capture brackets.
