@@ -82,7 +82,12 @@ async function sendPush(captureType, dateStr, tokenList) {
       notification: {
         tag: captureType === 'midnight' ? 'midnight-gps' : 'bracket-gps-' + captureType,
         renotify: 'true',
-        requireInteraction: String(captureType === 'midnight')
+        // Sticky for midnight and evening. Evening especially needs to persist:
+        // if GitHub Actions delays the cron past bedtime (real case 2026-05-27,
+        // push fired at 22:50 BST = 23:50 Italy), a non-sticky banner clears
+        // before the user sees it. Morning stays non-sticky because it's
+        // informational rather than critical.
+        requireInteraction: String(captureType === 'midnight' || captureType === 'evening')
       },
       fcmOptions: {
         link: 'https://midnight.cancomo.com/?capture=' + captureType + '&date=' + dateStr

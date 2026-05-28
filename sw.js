@@ -38,7 +38,10 @@ self.addEventListener('push', event => {
         body: body,
         tag: captureType === 'midnight' ? 'midnight-gps' : 'bracket-gps-' + captureType,
         renotify: true,
-        requireInteraction: captureType === 'midnight',
+        // Sticky for midnight and evening so a delayed push (e.g. cron firing
+        // at 22:50 BST = 23:50 Italy on 2026-05-27) stays on the lock screen
+        // until tapped, instead of clearing while the user is asleep.
+        requireInteraction: captureType === 'midnight' || captureType === 'evening',
         data: { action: 'capture-gps', captureType: captureType, date: captureDate, timestamp: Date.now() }
       }),
       self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
@@ -108,7 +111,7 @@ firebase.initializeApp({
 firebase.messaging();
 
 // ===== CACHING (PWA offline support) =====
-const CACHE_NAME = 'midnight-tracker-v30';
+const CACHE_NAME = 'midnight-tracker-v31';
 const ASSETS = [
   './index.html',
   './manifest.json',
