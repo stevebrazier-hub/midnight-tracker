@@ -2147,6 +2147,18 @@ function reconcileBracketCountries() {
       fixed++;
       return;
     }
+
+    // Case C: single bracket CONFLICTS with a booking country already on the entry.
+    // GPS is hard evidence; let inference flip the country (handled in the new override
+    // branch of inferMidnightFromBrackets). Silent so we don't render-storm on load.
+    // Skip entries already corrected by a previous bracket inference.
+    if (single && e.country && e.country !== single.country && e.autoBooking && !e.bracketInferred) {
+      console.log('Reconciling ' + dateStr + ' (single bracket conflicts booking): GPS ' +
+        single.country + ' vs booking ' + e.country);
+      inferMidnightFromBrackets(dateStr, true);
+      fixed++;
+      return;
+    }
   });
   if (fixed > 0) console.log('Bracket reconciliation fixed ' + fixed + ' entries');
 }
@@ -2295,6 +2307,60 @@ function inferMidnightFromBrackets(dateStr, silent) {
         showGpsBanner('ok', '📐 Booking confirmed by ' + bracketName + ' bracket GPS: ' +
           entry.city + ', ' + entry.country);
         setTimeout(dismissGpsBanner, 6000);
+      }
+      return;
+    }
+
+    // Single bracket at unknown location that CONFLICTS with a booking country.
+    // GPS is hard evidence and carries the heaviest weight: if Steve was physically
+    // at this location at 9pm or 7am, he was almost certainly there at midnight too
+    // (you don't fly out and back in that window). So the GPS bracket OVERRIDES the
+    // booking country. We flag it unconfirmed + countryConflict and alert so it can be
+    // reviewed — but the recorded country flips to the GPS truth.
+    // (June 2 2026 case: a long-term Italy villa booking and a 1-night London booking
+    // overlapped; the Italy booking won server-side, but the 7am UK bracket proves
+    // Steve slept in London.)
+    if (entry.autoBooking && entry.country && entry.country !== singleBracket.country) {
+      const bracketName = ev ? 'evening' : 'morning';
+      const oldCountry = entry.country;
+      const oldCity = entry.city || '';
+      console.log('Single-bracket OVERRIDE for ' + dateStr + ': ' + bracketName +
+        ' GPS bracket (' + singleBracket.country + ') overrides booking (' + oldCountry + ')');
+
+      entry.country = singleBracket.country;
+      entry.city = singleBracket.city || '';
+      entry.place = singleBracket.place || singleBracket.city || '';
+      entry.bracketInferred = true;
+      entry.autoGps = true;
+      entry.lat = singleBracket.lat;
+      entry.lon = singleBracket.lon;
+      entry.capturedAt = singleBracket.capturedAt || ukTimestamp();
+      entry.captureSource = 'bracket-overrides-booking';
+      entry.countryConflict = 'GPS bracket says ' + singleBracket.country +
+        ', booking said ' + oldCountry;
+      entry.unconfirmed = true;
+      entry.notes = (entry.notes || '') +
+        (entry.notes ? ' | ' : '') +
+        'GPS ' + bracketName + ' bracket overrode booking country: was ' +
+        oldCountry + (oldCity ? ' (' + oldCity + ')' : '') + ', now ' +
+        singleBracket.country + ' (' + singleBracket.city + ' ' + singleBracket.capturedAt + ')';
+      if (entry.lateBackfill) delete entry.lateBackfill;
+
+      syncEntry(dateStr, entry);
+      saveLocal();
+      sendTeamsAlert(
+        '**GPS overrode booking** on ' + formatDisplayDate(dateStr) + '.<br><br>' +
+        (singleBracket.lat ? shortGps(singleBracket.lat, singleBracket.lon) + ' → ' : '') +
+        '**' + singleBracket.city + ', ' + singleBracket.country + '** (' + bracketName +
+        ' GPS bracket) overrode booking **' + oldCity + ', ' + oldCountry + '**.<br><br>' +
+        'Recorded as ' + singleBracket.country + '. Please confirm at ' +
+        '<a href="https://midnight.cancomo.com">midnight.cancomo.com</a>.'
+      );
+      if (!silent) {
+        render();
+        showGpsBanner('ok', '📐 GPS overrode booking: ' + entry.city + ', ' +
+          entry.country + ' (was ' + oldCountry + ')');
+        setTimeout(dismissGpsBanner, 7000);
       }
       return;
     }

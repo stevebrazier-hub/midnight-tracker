@@ -266,6 +266,7 @@ async function processGoogleCalendar(token) {
         bookings.push({
           type: 'hotel',
           date: dateStr,
+          nights: nights.length,
           flights: '',
           city: extractCity(allText) || location || '',
           country: '',
@@ -390,6 +391,7 @@ async function processGmailFolder(token, labelId, folderType) {
         bookings.push({
           type: 'hotel',
           date: dateStr,
+          nights: nights.length,
           flights: '',
           city: extractCity(allText) || '',
           country: '',
@@ -732,6 +734,7 @@ async function processCalendar(token) {
         bookings.push({
           type: 'hotel',
           date: dateStr,
+          nights: nights.length,
           flights: '',
           city: extractCity(allText) || location || '',
           country: '',
@@ -907,6 +910,7 @@ async function processEmailsFromFolder(token, folderId, folderType) {
         bookings.push({
           type: 'hotel',
           date: dateStr,
+          nights: nights.length,
           flights: '',
           city: city,
           country: '',
@@ -922,6 +926,58 @@ async function processEmailsFromFolder(token, folderId, folderType) {
 }
 
 // ===== FIREBASE UPDATE =====
+
+// Resolve possibly-overlapping bookings for a single date into ONE entry.
+// Priority for the recorded country (where Steve actually sleeps that night):
+//   1. Flight arrival country — a flight that day lands him there.
+//   2. Most-specific hotel booking — fewest total nights. A 1-night stay beats a
+//      long-term standing booking (e.g. a 1-night London hotel beats a month-long
+//      Italy villa for the night they overlap).
+// Flights are always merged in. GPS brackets (client-side) still override everything.
+// If overlapping bookings disagree on country we still pick by the above priority but
+// record a bookingConflict note for the audit trail.
+function resolveBookingsForDate(list) {
+  let flights = '';
+  for (const b of list) flights = mergeFlights(flights, b.flights);
+
+  const flightWithCountry = list.find(b => b.type === 'flight' && b.country);
+  const hotels = list.filter(b => b.type === 'hotel' && b.country)
+    .sort((a, b) => (a.nights || 99) - (b.nights || 99)); // most specific (fewest nights) first
+
+  const countries = [...new Set(list.map(b => normalizeCountry(b.country)).filter(Boolean))];
+
+  let winner;
+  if (flightWithCountry) {
+    // Prefer a hotel in the flight's country so place/city show the hotel name.
+    const hotelInFlightCountry = hotels.find(h =>
+      normalizeCountry(h.country) === normalizeCountry(flightWithCountry.country));
+    winner = hotelInFlightCountry
+      ? { country: flightWithCountry.country, city: hotelInFlightCountry.city, place: hotelInFlightCountry.place }
+      : { country: flightWithCountry.country, city: flightWithCountry.city, place: '' };
+  } else if (hotels.length) {
+    winner = { country: hotels[0].country, city: hotels[0].city, place: hotels[0].place };
+  } else {
+    const b = list[0];
+    winner = { country: b.country, city: b.city, place: b.place };
+  }
+
+  const resolved = {
+    date: list[0].date,
+    type: flightWithCountry ? 'flight' : 'hotel',
+    flights,
+    city: winner.city || '',
+    country: winner.country || '',
+    place: winner.place || '',
+    source: [...new Set(list.map(b => b.source))].join('+'),
+    raw: list.map(b => b.raw).filter(Boolean).join(' | ').slice(0, 240)
+  };
+  if (countries.length > 1) {
+    resolved.bookingConflict = 'Overlapping bookings disagree: ' + countries.join(' vs ') +
+      ' — picked ' + normalizeCountry(resolved.country) +
+      (flightWithCountry ? ' (flight arrival)' : ' (most-specific stay)');
+  }
+  return resolved;
+}
 
 async function updateFirebase(bookings) {
   if (!bookings.length) {
@@ -940,9 +996,20 @@ async function updateFirebase(bookings) {
   let mergedCount = 0;
   let skippedCount = 0;
 
-  for (const booking of bookings) {
+  // Group overlapping bookings by date, then resolve each date to a single winning
+  // entry (flight arrival > most-specific stay > long-term stay) BEFORE merging into
+  // Firebase. Prevents the old first-writer-wins behaviour where whichever booking
+  // happened to be processed first claimed the night.
+  const byDate = {};
+  for (const b of bookings) (byDate[b.date] = byDate[b.date] || []).push(b);
+  const resolvedBookings = Object.values(byDate).map(resolveBookingsForDate);
+
+  for (const booking of resolvedBookings) {
     const dateStr = booking.date;
     const current = existing[dateStr];
+    if (booking.bookingConflict) {
+      console.log(`  ⚠ BOOKING CONFLICT on ${dateStr}: ${booking.bookingConflict}`);
+    }
 
     // Only protect GPS-confirmed entries — booking data can overwrite everything else
     if (current && (current.autoGps || current.gpsConfirmed) && current.city) {
@@ -976,10 +1043,18 @@ async function updateFirebase(bookings) {
       ? (existingSource.includes(sourceInfo) ? existingSource : existingSource + ' | ' + sourceInfo)
       : sourceInfo;
 
+    // A manually-set entry (user typed it; not GPS, not booking) is authoritative for
+    // location — keep it. Otherwise the freshly-resolved booking wins, so a newly
+    // synced specific booking can CORRECT a previous booking's wrong country.
+    const manualSet = !!(current && current.city && !current.autoGps &&
+                         !current.autoBooking && !current.gpsConfirmed);
+
     const entry = {
-      place: current?.place || booking.place || '',
-      city: current?.city || booking.city || '',
-      country: normalizeCountry(current?.country || booking.country || ''),
+      place: manualSet ? current.place : (booking.place || current?.place || ''),
+      city: manualSet ? current.city : (booking.city || current?.city || ''),
+      country: normalizeCountry(manualSet
+        ? (current.country || booking.country || '')
+        : (booking.country || current?.country || '')),
       flights: mergeFlights(current?.flights, booking.flights),
       notes: current?.notes || '',
       autoBooking: true,
@@ -992,6 +1067,9 @@ async function updateFirebase(bookings) {
     if (current?.working) entry.working = current.working;
     if (current?.autoGps) entry.autoGps = current.autoGps;
 
+    // Record overlapping-booking disagreement for the audit trail
+    if (booking.bookingConflict) entry.bookingConflict = booking.bookingConflict;
+
     // Check for country conflict — GPS vs booking disagree on country
     if (current?.autoGps && current?.country && booking.country &&
         current.country !== booking.country) {
@@ -1003,8 +1081,10 @@ async function updateFirebase(bookings) {
     const hasNew = (!current) ||
                    (!current.place && entry.place) ||
                    (!current.city && entry.city) ||
+                   (entry.country && entry.country !== normalizeCountry(current.country || '')) ||
                    (!current.flights && entry.flights) ||
                    (entry.flights && entry.flights !== current.flights) ||
+                   (booking.bookingConflict && booking.bookingConflict !== current.bookingConflict) ||
                    (!current.bookingSource && entry.bookingSource);
 
     if (hasNew) {
