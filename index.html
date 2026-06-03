@@ -819,6 +819,9 @@ function syncEntry(date, entry) {
   if (entry.captureSource) data.captureSource = entry.captureSource;
   if (entry.lateBackfill) data.lateBackfill = true;
   if (entry.bracketInferred) data.bracketInferred = true;
+  if (entry.flightInferred) data.flightInferred = true;
+  if (entry.airborneTransit) data.airborneTransit = true;
+  if (entry.bookingConflict) data.bookingConflict = entry.bookingConflict;
   if (entry.brackets) data.brackets = entry.brackets;
 
   if (!fbReady || !navigator.onLine) {

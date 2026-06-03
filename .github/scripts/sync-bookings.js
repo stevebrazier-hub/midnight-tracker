@@ -253,6 +253,7 @@ async function processGoogleCalendar(token) {
         city: dest?.city || extractCity(allText) || '',
         country: dest?.country || '',
         place: '',
+        flightLeg: buildFlightLeg(allTextUpper, startDt, endDt),
         source: 'google-calendar',
         raw: subject
       });
@@ -607,6 +608,95 @@ function extractDestination(text) {
   return null;
 }
 
+// Determine BOTH origin and destination airports/countries from flight text.
+// e.g. "MXP to LHR" → { origCode:'MXP', origCountry:'Italy', destCode:'LHR', destCountry:'UK' }
+function extractRoute(text) {
+  if (!text) return null;
+  let origCode = null, destCode = null;
+  const pair = /\b([A-Z]{3})\s*(?:to|→|->|>|–|—)\s*([A-Z]{3})\b/i.exec(text);
+  if (pair && AIRPORTS[pair[1].toUpperCase()] && AIRPORTS[pair[2].toUpperCase()]) {
+    origCode = pair[1].toUpperCase();
+    destCode = pair[2].toUpperCase();
+  } else {
+    const aps = extractAirports(text.toUpperCase());
+    if (aps.length >= 2) { origCode = aps[0]; destCode = aps[aps.length - 1]; }
+    else if (aps.length === 1) { destCode = aps[0]; }
+  }
+  if (!destCode || !AIRPORTS[destCode]) return null;
+  return {
+    origCode: origCode || null,
+    origCountry: origCode ? AIRPORTS[origCode].country : null,
+    destCode,
+    destCountry: AIRPORTS[destCode].country
+  };
+}
+
+// UK (Europe/London) wall-clock parts of an instant. HMRC counts presence at UK
+// midnight, so ALL flight-direction maths is done in UK time. Returns
+// { date:'YYYY-MM-DD', min: hoursSinceMidnight*60 } or null.
+function ukParts(input) {
+  const d = input instanceof Date ? input : new Date(input);
+  if (isNaN(d.getTime())) return null;
+  const fmt = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false
+  });
+  const p = {};
+  for (const part of fmt.formatToParts(d)) p[part.type] = part.value;
+  let hh = parseInt(p.hour, 10); if (hh === 24) hh = 0;
+  return { date: `${p.year}-${p.month}-${p.day}`, min: hh * 60 + parseInt(p.minute, 10) };
+}
+
+// Add n days to a 'YYYY-MM-DD' string (UTC-safe, no DST drift).
+function addDaysISO(dateStr, n) {
+  const d = new Date(dateStr + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+// Build a directional flight leg from text + (optional) departure/arrival instants.
+function buildFlightLeg(text, startDt, endDt) {
+  const route = extractRoute(text);
+  if (!route) return null;
+  const dep = startDt ? ukParts(startDt) : null;
+  const arr = endDt ? ukParts(endDt) : null;
+  if (!dep) return null; // need at least a departure to know the UK date
+  return {
+    flight: extractFlights(text)[0] || '',
+    origCode: route.origCode, origCountry: route.origCountry,
+    destCode: route.destCode, destCountry: route.destCountry,
+    depUKdate: dep.date, depUKmin: dep.min,
+    arrUKdate: arr ? arr.date : null, arrUKmin: arr ? arr.min : null
+  };
+}
+
+// Given a flight leg, return the UK-midnight location for each affected night.
+// HMRC rule: where were you at 00:00 UK that ENDS the calendar day?
+//   - night before departure  → ORIGIN (you hadn't left yet)
+//   - departure day           → DESTINATION if you land the same UK day,
+//                                else AIRBORNE at UK midnight (overnight flight)
+//   - arrival day (overnight) → DESTINATION
+// Returns [{ date, country, code, airborne? }].
+function flightNightLocations(leg) {
+  if (!leg || !leg.depUKdate || !leg.destCountry) return [];
+  const depDate = leg.depUKdate;
+  const arrDate = leg.arrUKdate || depDate; // no arrival time → assume same-day daytime
+  const out = [];
+  // Night before departure = origin (only if we know the origin country)
+  if (leg.origCountry) {
+    out.push({ date: addDaysISO(depDate, -1), country: leg.origCountry, code: leg.origCode });
+  }
+  if (arrDate <= depDate) {
+    // Lands the same UK day → at the midnight ending depDate he's at the destination
+    out.push({ date: depDate, country: leg.destCountry, code: leg.destCode });
+  } else {
+    // Overnight: airborne at the midnight ending depDate; at destination by arrival day's midnight
+    out.push({ date: depDate, airborne: true, country: leg.destCountry, code: leg.destCode });
+    out.push({ date: arrDate, country: leg.destCountry, code: leg.destCode });
+  }
+  return out;
+}
+
 // Extract hotel name from text
 function extractHotelName(text) {
   if (!text) return null;
@@ -720,6 +810,7 @@ async function processCalendar(token) {
         city: dest?.city || extractCity(allText) || '',
         country: dest?.country || '',
         place: '',
+        flightLeg: buildFlightLeg(allTextUpper, startDate, endDate),
         source: 'calendar',
         raw: subject
       });
@@ -996,12 +1087,39 @@ async function updateFirebase(bookings) {
   let mergedCount = 0;
   let skippedCount = 0;
 
+  // FLIGHT-DIRECTION INFERENCE (UK midnight rule). Build per-night location hints from
+  // every directional flight leg: the night before a flight = origin country, the
+  // night of/after = destination (or airborne if overnight at UK midnight). This pins
+  // down transit days that GPS pings get wrong, and a round trip cross-checks itself
+  // (a night is both the outbound destination and the return origin).
+  const flightHints = {}; // dateStr -> { country, code, airborne?, flight, conflict? }
+  for (const b of bookings) {
+    if (b.type !== 'flight' || !b.flightLeg) continue;
+    for (const loc of flightNightLocations(b.flightLeg)) {
+      const cur = flightHints[loc.date];
+      if (!cur) {
+        flightHints[loc.date] = { country: loc.country, code: loc.code, airborne: !!loc.airborne, flight: b.flightLeg.flight || (b.flights || '') };
+      } else if (cur.airborne && !loc.airborne) {
+        // A definite location supersedes an airborne marker for the same night.
+        flightHints[loc.date] = { country: loc.country, code: loc.code, airborne: false, flight: cur.flight };
+      } else if (!cur.airborne && !loc.airborne &&
+                 normalizeCountry(cur.country) !== normalizeCountry(loc.country)) {
+        cur.conflict = normalizeCountry(cur.country) + ' vs ' + normalizeCountry(loc.country);
+      }
+    }
+  }
+
   // Group overlapping bookings by date, then resolve each date to a single winning
   // entry (flight arrival > most-specific stay > long-term stay) BEFORE merging into
   // Firebase. Prevents the old first-writer-wins behaviour where whichever booking
   // happened to be processed first claimed the night.
   const byDate = {};
   for (const b of bookings) (byDate[b.date] = byDate[b.date] || []).push(b);
+  // A flight's origin night may have no booking of its own (e.g. last night of a stay
+  // before flying home) — inject a stub so the hint still creates/corrects that entry.
+  for (const date of Object.keys(flightHints)) {
+    if (!byDate[date]) byDate[date] = [{ type: 'flight-hint', date, flights: '', city: '', country: '', place: '', source: 'flight-inference', raw: flightHints[date].flight || '' }];
+  }
   const resolvedBookings = Object.values(byDate).map(resolveBookingsForDate);
 
   for (const booking of resolvedBookings) {
@@ -1070,6 +1188,36 @@ async function updateFirebase(bookings) {
     // Record overlapping-booking disagreement for the audit trail
     if (booking.bookingConflict) entry.bookingConflict = booking.bookingConflict;
 
+    // FLIGHT-DIRECTION takes top booking priority for the night (it's a hard directional
+    // fact, computed at UK midnight). It overrides a hotel booking but NOT a real GPS
+    // entry (those are handled/protected above) or a manual entry. A trustworthy GPS
+    // bracket on the device can still correct it later (client side).
+    const fh = flightHints[dateStr];
+    let flightChanged = false;
+    if (fh && !manualSet) {
+      if (fh.airborne) {
+        if (!current?.airborneTransit) {
+          entry.airborneTransit = true;
+          entry.unconfirmed = true;
+          entry.notes = (entry.notes ? entry.notes + ' | ' : '') +
+            'Airborne at UK midnight (flight ' + (fh.flight || '') + ') — transit day; confirm HMRC treatment.';
+          flightChanged = true;
+        }
+      } else if (fh.country) {
+        const fhCountry = normalizeCountry(fh.country);
+        if (fhCountry !== entry.country) {
+          entry.notes = (entry.notes ? entry.notes + ' | ' : '') +
+            'Flight-inferred country ' + fhCountry + ' from ' + (fh.flight || 'flight') +
+            ' direction (UK midnight rule).';
+          entry.country = fhCountry;
+          if (fh.code && AIRPORTS[fh.code] && !entry.city) entry.city = AIRPORTS[fh.code].city;
+          flightChanged = true;
+        }
+        entry.flightInferred = true;
+        if (fh.conflict) entry.bookingConflict = 'Flight direction conflict: ' + fh.conflict;
+      }
+    }
+
     // Check for country conflict — GPS vs booking disagree on country
     if (current?.autoGps && current?.country && booking.country &&
         current.country !== booking.country) {
@@ -1085,6 +1233,8 @@ async function updateFirebase(bookings) {
                    (!current.flights && entry.flights) ||
                    (entry.flights && entry.flights !== current.flights) ||
                    (booking.bookingConflict && booking.bookingConflict !== current.bookingConflict) ||
+                   flightChanged ||
+                   (entry.flightInferred && !current?.flightInferred) ||
                    (!current.bookingSource && entry.bookingSource);
 
     if (hasNew) {
