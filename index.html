@@ -1996,7 +1996,7 @@ async function autoGPSCapture(dateStr, force, source) {
 // Captures GPS at 9pm and 7am as corroborating evidence for HMRC.
 // If both brackets match (same country), we can infer midnight location.
 
-async function bracketGPSCapture(dateStr, bracketType) {
+async function bracketGPSCapture(dateStr, bracketType, allowRefresh) {
   if (!navigator.geolocation) {
     console.log('Bracket GPS: geolocation not available');
     return;
@@ -2005,8 +2005,9 @@ async function bracketGPSCapture(dateStr, bracketType) {
   const existing = entries[dateStr] || {};
   const brackets = existing.brackets || {};
 
-  // Don't re-capture if we already have this bracket
-  if (brackets[bracketType]?.lat) {
+  // Don't re-capture if we already have this bracket — UNLESS allowRefresh is set
+  // (evening bracket refresh, to keep the LATEST reading before midnight).
+  if (brackets[bracketType]?.lat && !allowRefresh) {
     console.log('Bracket ' + bracketType + ' already captured for ' + dateStr);
     return;
   }
@@ -2127,13 +2128,19 @@ function reconcileBracketCountries() {
     if (e.captureSource === 'bracket-overrides-booking') {
       const drivenByEvening = ev?.country && ev.country === e.country;
       const drivenByMorning = !drivenByEvening && am?.country && am.country === e.country;
-      const hr = drivenByMorning ? bracketHourUK(am.capturedAt) : null;
-      if (drivenByMorning && (hr === null || hr >= 9)) {
+      const driver = drivenByMorning ? am : (drivenByEvening ? ev : null);
+      const dHr = driver ? bracketHourUK(driver.capturedAt) : null;
+      // Suspect if the bracket that drove the flip is too far from midnight under the
+      // current rule: a morning reading >=09:00, or an early-evening reading <20:00.
+      const suspect = !!driver && (dHr === null ||
+        (drivenByMorning ? dHr >= 9 : dHr < 20));
+      if (suspect) {
         const m = String(e.countryConflict || '').match(/booking said ([A-Za-z][A-Za-z ]*)/i);
         const orig = m ? m[1].trim() : '';
         if (orig && orig !== e.country) {
           console.log('Healing bad flip on ' + dateStr + ': revert ' + e.country +
-            ' → ' + orig + ' (late-morning bracket @ ' + am.capturedAt + ')');
+            ' → ' + orig + ' (' + (drivenByMorning ? 'morning' : 'evening') +
+            ' bracket @ ' + driver.capturedAt + ')');
           e.country = orig;
           e.city = '';                 // lost in the flip; next booking sync refills it
           e.place = '';
@@ -2143,10 +2150,12 @@ function reconcileBracketCountries() {
           delete e.lon;
           e.captureSource = 'reverted-bad-bracket-flip';
           e.unconfirmed = true;
-          e.countryConflict = 'Reverted: late-morning GPS (' + (am.city || '') + ' @ ' +
-            am.capturedAt + ') differed from booking — confirm midnight country';
+          e.countryConflict = 'Reverted: ' + (drivenByMorning ? 'late-morning' : 'early-evening') +
+            ' GPS (' + (driver.city || '') + ' @ ' + driver.capturedAt +
+            ') differed from booking — confirm midnight country';
           e.notes = (e.notes || '') + (e.notes ? ' | ' : '') +
-            'Auto-reverted a late-morning-bracket override back to booking country ' + orig + '.';
+            'Auto-reverted a ' + (drivenByMorning ? 'late-morning' : 'early-evening') +
+            '-bracket override back to booking country ' + orig + '.';
           syncEntry(dateStr, e);
           fixed++;
           return;
@@ -2374,29 +2383,34 @@ function inferMidnightFromBrackets(dateStr, silent) {
       const oldCountry = entry.country;
       const oldCity = entry.city || '';
       const hr = bracketHourUK(singleBracket.capturedAt);
-      const trustworthy = !!ev || (hr !== null && hr < 9); // evening always; morning only if early
+      // Trustworthy as a midnight proxy: a late-evening reading (>=20:00, close to
+      // midnight) or a genuine early-morning wake-up reading (<09:00). An early-evening
+      // (18-19:59) or late-morning reading is too far from midnight to flip a booking.
+      const trustworthy = ev ? (hr !== null && hr >= 20) : (hr !== null && hr < 9);
 
       if (!trustworthy) {
-        // SUSPECT late-morning GPS — likely post-flight arrival, NOT where he slept.
-        // Keep the booking country; just flag for review.
-        console.log('Single-bracket CONFLICT (suspect late-morning) for ' + dateStr +
+        // SUSPECT reading — too far from midnight (late-morning arrival, or an early-
+        // evening reading before he'd settled). Keep the booking country; flag for review.
+        const proxyDesc = ev ? 'early-evening' : 'late-morning';
+        console.log('Single-bracket CONFLICT (suspect ' + proxyDesc + ') for ' + dateStr +
           ': GPS ' + singleBracket.country + ' @ ' + singleBracket.capturedAt +
           ' kept booking ' + oldCountry + ' (not flipped)');
         entry.unconfirmed = true;
-        entry.countryConflict = 'Late-morning GPS (' + singleBracket.city + ', ' +
-          singleBracket.country + ' @ ' + singleBracket.capturedAt + ') differs from booking ' +
-          oldCountry + ' — may be post-flight arrival; please confirm midnight country';
+        entry.countryConflict = proxyDesc.charAt(0).toUpperCase() + proxyDesc.slice(1) +
+          ' GPS (' + singleBracket.city + ', ' + singleBracket.country + ' @ ' +
+          singleBracket.capturedAt + ') differs from booking ' + oldCountry +
+          ' — too far from midnight to be sure; please confirm midnight country';
         entry.notes = (entry.notes || '') + (entry.notes ? ' | ' : '') +
-          'Late-morning GPS bracket (' + singleBracket.city + ' ' + singleBracket.capturedAt +
+          proxyDesc + ' GPS bracket (' + singleBracket.city + ' ' + singleBracket.capturedAt +
           ') differs from booking ' + oldCountry + ' but was NOT trusted to flip the day ' +
-          '(captured after likely morning travel).';
+          '(too far from midnight — possible travel before/after).';
         syncEntry(dateStr, entry);
         saveLocal();
         sendTeamsAlert(
           '**Transit-day GPS conflict** on ' + formatDisplayDate(dateStr) + '.<br><br>' +
-          'Booking says **' + oldCity + ', ' + oldCountry + '**; a late-morning GPS ping ' +
+          'Booking says **' + oldCity + ', ' + oldCountry + '**; a ' + proxyDesc + ' GPS ping ' +
           'shows **' + singleBracket.city + ', ' + singleBracket.country + ' @ ' +
-          singleBracket.capturedAt + '** — likely where Steve arrived, not where he slept.<br><br>' +
+          singleBracket.capturedAt + '** — too far from midnight to be sure.<br><br>' +
           'Kept ' + oldCountry + '. Please confirm midnight country at ' +
           '<a href="https://midnight.cancomo.com">midnight.cancomo.com</a>.'
         );
@@ -2574,13 +2588,26 @@ function checkTodayGPS() {
     }
   }
 
-  // 3. Evening bracket (9pm+): belongs to TODAY's entry (tonight's midnight)
+  // 3. Evening bracket: belongs to TODAY's entry (tonight's midnight).
+  // PUSH-INDEPENDENT: capture on ANY app-open from 18:00 onward, and REFRESH to the
+  // latest reading before midnight so the closest-to-midnight location wins. This is
+  // the "last GPS of the day" proxy — it works whenever the app is opened in the
+  // evening, with no reliance on the 9pm push arriving or being tapped. (Readings
+  // before 20:00 are kept for the record but treated as weaker evidence — they won't
+  // override a conflicting booking, only corroborate; see inferMidnightFromBrackets.)
   const todayStr = ukDateStr(new Date());
-  if (ukHour >= 21) {
-    const todayBrackets = entries[todayStr]?.brackets || {};
-    if (!todayBrackets.evening?.lat) {
-      console.log('Evening window (9pm+ UK) — capturing evening bracket for ' + todayStr);
+  if (ukHour >= 18) {
+    const evBr = entries[todayStr]?.brackets?.evening;
+    if (!evBr?.lat) {
+      console.log('Evening window (6pm+ UK) — capturing evening bracket for ' + todayStr);
       bracketGPSCapture(todayStr, 'evening');
+    } else {
+      // Refresh at most once per new hour, moving the reading closer to midnight.
+      const prevHr = bracketHourUK(evBr.capturedAt);
+      if (prevHr === null || prevHr < ukHour) {
+        console.log('Evening refresh (' + prevHr + 'h → ' + ukHour + 'h) — updating evening bracket for ' + todayStr);
+        bracketGPSCapture(todayStr, 'evening', true);
+      }
     }
   }
 }
