@@ -2117,6 +2117,43 @@ function reconcileBracketCountries() {
     const userSet = e.city && !e.autoGps && !e.autoBooking;
     if (reliableMidnightGps || e.gpsConfirmed || userSet) return;
 
+    // HEAL: undo bad flips made by the earlier over-aggressive override. Any entry we
+    // set via 'bracket-overrides-booking' that was driven by a LATE/suspect morning
+    // bracket (no reliable evening bracket; morning captured >=09:00) should never have
+    // changed the country — the late-morning ping was a post-flight arrival, not where
+    // Steve slept. Revert to the original booking country (stored in countryConflict as
+    // "booking said X"), clear the GPS flags so the next booking sync refills place/city.
+    // (Fixes June 1 2026 and any collateral wrong flips from the previous version.)
+    if (e.captureSource === 'bracket-overrides-booking') {
+      const drivenByEvening = ev?.country && ev.country === e.country;
+      const drivenByMorning = !drivenByEvening && am?.country && am.country === e.country;
+      const hr = drivenByMorning ? bracketHourUK(am.capturedAt) : null;
+      if (drivenByMorning && (hr === null || hr >= 9)) {
+        const m = String(e.countryConflict || '').match(/booking said ([A-Za-z][A-Za-z ]*)/i);
+        const orig = m ? m[1].trim() : '';
+        if (orig && orig !== e.country) {
+          console.log('Healing bad flip on ' + dateStr + ': revert ' + e.country +
+            ' → ' + orig + ' (late-morning bracket @ ' + am.capturedAt + ')');
+          e.country = orig;
+          e.city = '';                 // lost in the flip; next booking sync refills it
+          e.place = '';
+          delete e.autoGps;
+          delete e.bracketInferred;
+          delete e.lat;
+          delete e.lon;
+          e.captureSource = 'reverted-bad-bracket-flip';
+          e.unconfirmed = true;
+          e.countryConflict = 'Reverted: late-morning GPS (' + (am.city || '') + ' @ ' +
+            am.capturedAt + ') differed from booking — confirm midnight country';
+          e.notes = (e.notes || '') + (e.notes ? ' | ' : '') +
+            'Auto-reverted a late-morning-bracket override back to booking country ' + orig + '.';
+          syncEntry(dateStr, e);
+          fixed++;
+          return;
+        }
+      }
+    }
+
     // Case A: both brackets agree, override existing wrong country
     if (ev?.country && am?.country && ev.country === am.country) {
       if (e.country === ev.country) return; // already correct
@@ -2161,6 +2198,15 @@ function reconcileBracketCountries() {
     }
   });
   if (fixed > 0) console.log('Bracket reconciliation fixed ' + fixed + ' entries');
+}
+
+// Parse the UK hour (0-23) from a capturedAt string like "2026-06-02 06:51:02 BST".
+// Returns null if it can't be parsed. Used to judge whether a morning bracket was
+// captured early enough (a genuine wake-up reading) to trust as a midnight proxy.
+function bracketHourUK(capturedAt) {
+  if (!capturedAt) return null;
+  const m = String(capturedAt).match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  return m ? parseInt(m[1], 10) : null;
 }
 
 // Infer midnight location from evening + morning bracket GPS.
@@ -2312,18 +2358,57 @@ function inferMidnightFromBrackets(dateStr, silent) {
     }
 
     // Single bracket at unknown location that CONFLICTS with a booking country.
-    // GPS is hard evidence and carries the heaviest weight: if Steve was physically
-    // at this location at 9pm or 7am, he was almost certainly there at midnight too
-    // (you don't fly out and back in that window). So the GPS bracket OVERRIDES the
-    // booking country. We flag it unconfirmed + countryConflict and alert so it can be
-    // reviewed — but the recorded country flips to the GPS truth.
-    // (June 2 2026 case: a long-term Italy villa booking and a 1-night London booking
-    // overlapped; the Italy booking won server-side, but the 7am UK bracket proves
-    // Steve slept in London.)
+    // GPS is hard evidence, but only some brackets are trustworthy as a MIDNIGHT proxy:
+    //   - Evening (9pm) bracket: reliable — it's ~3h before midnight, same day, before
+    //     any travel. If Steve was here at 9pm he slept here.
+    //   - Morning (7am) bracket: reliable ONLY if captured early (before ~09:00). A
+    //     genuine 7am reading is "where I woke up" = where I slept. But a LATE-morning
+    //     reading on a fly-out day reflects where he ARRIVED, not where he slept.
+    //     (June 1 2026 case: morning ping captured 10:20 AFTER he'd landed in London,
+    //     so it wrongly looked like he slept in London when he actually slept in Italy
+    //     and flew out that morning.)
+    // So: trustworthy bracket → override the booking. Suspect late-morning bracket →
+    // do NOT flip; flag unconfirmed + countryConflict + alert for manual confirmation.
     if (entry.autoBooking && entry.country && entry.country !== singleBracket.country) {
       const bracketName = ev ? 'evening' : 'morning';
       const oldCountry = entry.country;
       const oldCity = entry.city || '';
+      const hr = bracketHourUK(singleBracket.capturedAt);
+      const trustworthy = !!ev || (hr !== null && hr < 9); // evening always; morning only if early
+
+      if (!trustworthy) {
+        // SUSPECT late-morning GPS — likely post-flight arrival, NOT where he slept.
+        // Keep the booking country; just flag for review.
+        console.log('Single-bracket CONFLICT (suspect late-morning) for ' + dateStr +
+          ': GPS ' + singleBracket.country + ' @ ' + singleBracket.capturedAt +
+          ' kept booking ' + oldCountry + ' (not flipped)');
+        entry.unconfirmed = true;
+        entry.countryConflict = 'Late-morning GPS (' + singleBracket.city + ', ' +
+          singleBracket.country + ' @ ' + singleBracket.capturedAt + ') differs from booking ' +
+          oldCountry + ' — may be post-flight arrival; please confirm midnight country';
+        entry.notes = (entry.notes || '') + (entry.notes ? ' | ' : '') +
+          'Late-morning GPS bracket (' + singleBracket.city + ' ' + singleBracket.capturedAt +
+          ') differs from booking ' + oldCountry + ' but was NOT trusted to flip the day ' +
+          '(captured after likely morning travel).';
+        syncEntry(dateStr, entry);
+        saveLocal();
+        sendTeamsAlert(
+          '**Transit-day GPS conflict** on ' + formatDisplayDate(dateStr) + '.<br><br>' +
+          'Booking says **' + oldCity + ', ' + oldCountry + '**; a late-morning GPS ping ' +
+          'shows **' + singleBracket.city + ', ' + singleBracket.country + ' @ ' +
+          singleBracket.capturedAt + '** — likely where Steve arrived, not where he slept.<br><br>' +
+          'Kept ' + oldCountry + '. Please confirm midnight country at ' +
+          '<a href="https://midnight.cancomo.com">midnight.cancomo.com</a>.'
+        );
+        if (!silent) {
+          render();
+          showGpsBanner('error', '⚠ Transit-day conflict on ' + dateStr +
+            ' — kept ' + oldCountry + ', please confirm');
+          setTimeout(dismissGpsBanner, 7000);
+        }
+        return;
+      }
+
       console.log('Single-bracket OVERRIDE for ' + dateStr + ': ' + bracketName +
         ' GPS bracket (' + singleBracket.country + ') overrides booking (' + oldCountry + ')');
 
