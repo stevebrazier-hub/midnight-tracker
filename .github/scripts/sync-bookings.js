@@ -573,25 +573,28 @@ function extractFlights(text) {
   return [...new Set(flights)];
 }
 
-// Extract airport codes from text
+// Extract airport codes from text, in the ORDER THEY APPEAR IN THE TEXT.
+// (Previously iterated the AIRPORTS map keys, so "MXP-LHR" returned ['LHR','MXP']
+// because LHR is first in the map — which reversed flight-direction inference and
+// made "last airport mentioned" actually mean "last airport in the map".)
 function extractAirports(text) {
   if (!text) return [];
   const found = [];
   for (const code of Object.keys(AIRPORTS)) {
-    // Look for the 3-letter code as a standalone word
-    const pattern = new RegExp('\\b' + code + '\\b', 'g');
-    if (pattern.test(text)) found.push(code);
+    const m = new RegExp('\\b' + code + '\\b').exec(text);
+    if (m) found.push({ code, index: m.index });
   }
-  return found;
+  found.sort((a, b) => a.index - b.index);
+  return found.map(f => f.code);
 }
 
 // Determine destination from flight context
 // e.g., "LHR to MXP" → destination is MXP
 function extractDestination(text) {
   if (!text) return null;
-  // Patterns: "X to Y", "X → Y", "X - Y", "X>Y", "departing X arriving Y"
+  // Patterns: "X to Y", "X → Y", "X - Y", "X>Y", "X/Y", "departing X arriving Y"
   const patterns = [
-    /\b([A-Z]{3})\s*(?:to|→|->|>|–|—)\s*([A-Z]{3})\b/gi,
+    /\b([A-Z]{3})\s*(?:to|→|->|>|–|—|-|\/)\s*([A-Z]{3})\b/gi,
     /(?:arriving|arr\.?|destination)\s*:?\s*([A-Z]{3})\b/gi,
   ];
   for (const pat of patterns) {
@@ -613,7 +616,7 @@ function extractDestination(text) {
 function extractRoute(text) {
   if (!text) return null;
   let origCode = null, destCode = null;
-  const pair = /\b([A-Z]{3})\s*(?:to|→|->|>|–|—)\s*([A-Z]{3})\b/i.exec(text);
+  const pair = /\b([A-Z]{3})\s*(?:to|→|->|>|–|—|-|\/)\s*([A-Z]{3})\b/i.exec(text);
   if (pair && AIRPORTS[pair[1].toUpperCase()] && AIRPORTS[pair[2].toUpperCase()]) {
     origCode = pair[1].toUpperCase();
     destCode = pair[2].toUpperCase();
@@ -1210,7 +1213,15 @@ async function updateFirebase(bookings) {
             'Flight-inferred country ' + fhCountry + ' from ' + (fh.flight || 'flight') +
             ' direction (UK midnight rule).';
           entry.country = fhCountry;
-          if (fh.code && AIRPORTS[fh.code] && !entry.city) entry.city = AIRPORTS[fh.code].city;
+          // The old city belonged to the old country (possibly a stale earlier
+          // inference) — replace it with the hint airport's city. GPS brackets and
+          // presets refine it later.
+          entry.city = (fh.code && AIRPORTS[fh.code]) ? AIRPORTS[fh.code].city : '';
+          // Keep the booking's place (e.g. the villa) unless the booking explicitly
+          // disagrees with the flight on country — then it's the wrong country's place.
+          if (booking.country && normalizeCountry(booking.country) !== fhCountry) {
+            entry.place = '';
+          }
           flightChanged = true;
         }
         entry.flightInferred = true;
