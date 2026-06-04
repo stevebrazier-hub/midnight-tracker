@@ -700,6 +700,38 @@ function flightNightLocations(leg) {
   return out;
 }
 
+// GAP FILL: between an arrival and the matching return departure, the destination
+// country carries through the intermediate nights (e.g. land London Sat, fly home
+// Tue → Sun & Mon nights are UK). Legs must cross-check — this leg's destination
+// country equals the NEXT leg's origin country — and the window is capped at 30
+// nights so a missing flight in between can't poison a long stretch. Direct leg
+// hints take precedence; every real night still gets GPS/bracket evidence later.
+// Mutates flightHints in place. `legs` must be sorted by departure.
+function fillFlightGaps(flightHints, legs) {
+  let filled = 0;
+  for (let i = 0; i < legs.length - 1; i++) {
+    const a = legs[i], b = legs[i + 1];
+    if (!a.destCountry || !b.origCountry) continue;
+    if (normalizeCountry(a.destCountry) !== normalizeCountry(b.origCountry)) continue;
+    const stayStart = addDaysISO(a.arrUKdate || a.depUKdate, 1); // night after the arrival night
+    const stayEnd = addDaysISO(b.depUKdate, -1);                 // night before return (already hinted)
+    if (stayStart > stayEnd) continue;
+    let d = stayStart, guard = 0;
+    while (d <= stayEnd && guard < 30) {
+      if (!flightHints[d]) {
+        flightHints[d] = {
+          country: a.destCountry, code: a.destCode, airborne: false,
+          flight: (a.flight || '?') + '→' + (b.flight || '?'), gapFill: true
+        };
+        filled++;
+      }
+      d = addDaysISO(d, 1);
+      guard++;
+    }
+  }
+  return filled;
+}
+
 // Extract hotel name from text
 function extractHotelName(text) {
   if (!text) return null;
@@ -1112,6 +1144,23 @@ async function updateFirebase(bookings) {
     }
   }
 
+  // Fill the nights BETWEEN a flight's arrival and the matching return departure
+  // (destination country carries through the stay). Deduped + sorted by departure.
+  const seenLegs = new Set();
+  const sortedLegs = bookings
+    .filter(b => b.type === 'flight' && b.flightLeg && b.flightLeg.depUKdate)
+    .map(b => b.flightLeg)
+    .filter(l => {
+      const k = (l.flight || '') + '|' + l.depUKdate;
+      if (seenLegs.has(k)) return false;
+      seenLegs.add(k);
+      return true;
+    })
+    .sort((a, b) => (a.depUKdate + String(a.depUKmin == null ? 720 : a.depUKmin).padStart(4, '0'))
+      .localeCompare(b.depUKdate + String(b.depUKmin == null ? 720 : b.depUKmin).padStart(4, '0')));
+  const gapFilled = fillFlightGaps(flightHints, sortedLegs);
+  if (gapFilled > 0) console.log(`Flight gap-fill: ${gapFilled} night(s) carried through between flights`);
+
   // Group overlapping bookings by date, then resolve each date to a single winning
   // entry (flight arrival > most-specific stay > long-term stay) BEFORE merging into
   // Firebase. Prevents the old first-writer-wins behaviour where whichever booking
@@ -1211,7 +1260,8 @@ async function updateFirebase(bookings) {
         if (fhCountry !== entry.country) {
           entry.notes = (entry.notes ? entry.notes + ' | ' : '') +
             'Flight-inferred country ' + fhCountry + ' from ' + (fh.flight || 'flight') +
-            ' direction (UK midnight rule).';
+            (fh.gapFill ? ' stay — night between arrival and return flight' : ' direction') +
+            ' (UK midnight rule).';
           entry.country = fhCountry;
           // The old city belonged to the old country (possibly a stale earlier
           // inference) — replace it with the hint airport's city. GPS brackets and
