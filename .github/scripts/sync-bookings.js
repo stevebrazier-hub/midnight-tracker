@@ -1181,9 +1181,39 @@ async function updateFirebase(bookings) {
       console.log(`  ⚠ BOOKING CONFLICT on ${dateStr}: ${booking.bookingConflict}`);
     }
 
-    // Only protect GPS-confirmed entries — booking data can overwrite everything else
+    // Protect real GPS entries — booking data can overwrite everything else.
     if (current && (current.autoGps || current.gpsConfirmed) && current.city) {
-      // GPS-confirmed: only merge flights, don't touch location
+      // A flight is a HARD directional fact. It may correct a mere bracket GUESS
+      // (bracketInferred — GPS pings before/after midnight that were extrapolated to
+      // midnight) on a transit day, but NEVER a confirmed entry or a real midnight
+      // (12am) GPS fix. June 9 2026 case: a midday Oxford ping was extrapolated to the
+      // night, but BA590 flew Steve to Italy that evening — the flight + the 7am-next-
+      // day Cernobbio ping both say Italy, so the flight corrects the bracket guess.
+      const fh = flightHints[dateStr];
+      const isGuess = current.bracketInferred && !current.gpsConfirmed && current.captureSource !== '12am';
+      if (fh && !fh.airborne && fh.country && isGuess &&
+          normalizeCountry(fh.country) !== normalizeCountry(current.country || '')) {
+        const sourceInfo = booking.source + ': ' + (booking.raw || '').slice(0, 120);
+        const existingSource = current.bookingSource || '';
+        const combinedSource = existingSource
+          ? (existingSource.includes(sourceInfo) ? existingSource : existingSource + ' | ' + sourceInfo)
+          : sourceInfo;
+        updates['locations/' + dateStr + '/country'] = normalizeCountry(fh.country);
+        updates['locations/' + dateStr + '/city'] = (fh.code && AIRPORTS[fh.code]) ? AIRPORTS[fh.code].city : '';
+        updates['locations/' + dateStr + '/flights'] = mergeFlights(current.flights, booking.flights);
+        updates['locations/' + dateStr + '/flightInferred'] = true;
+        updates['locations/' + dateStr + '/bracketInferred'] = null;
+        updates['locations/' + dateStr + '/unconfirmed'] = true;
+        updates['locations/' + dateStr + '/captureSource'] = 'flight-overrides-bracket';
+        updates['locations/' + dateStr + '/countryConflict'] =
+          'Flight ' + (fh.flight || '') + ' direction → ' + normalizeCountry(fh.country) +
+          '; a GPS bracket had guessed ' + current.country + ' (kept flight — confirm).';
+        updates['locations/' + dateStr + '/bookingSource'] = combinedSource;
+        mergedCount++;
+        console.log(`  ✈ Flight ${fh.flight} corrected bracket guess on ${dateStr}: ${current.country} → ${normalizeCountry(fh.country)}`);
+        continue;
+      }
+      // Otherwise: real GPS is authoritative — only merge flight numbers in.
       if (booking.flights) {
         const merged = mergeFlights(current.flights, booking.flights);
         if (merged !== (current.flights || '')) {

@@ -495,7 +495,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-05-26a';
+const APP_VERSION = '2026-06-10a';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -2241,6 +2241,36 @@ function inferMidnightFromBrackets(dateStr, silent) {
   const userSet = entry.city && !entry.autoGps && !entry.autoBooking;
   const canInfer = !reliableMidnightGps && !entry.gpsConfirmed && !userSet;
   if (!canInfer) return;
+
+  // FLIGHT DAYS: a flight is a hard directional fact (computed at UK midnight server-
+  // side). Don't let a single mistimed or conflicting bracket override it. Only allow a
+  // change when BOTH brackets agree with each other on a country different from the
+  // flight's, AND at least one is a trustworthy near-midnight reading — strong,
+  // consistent GPS evidence that Steve actually changed plans. Otherwise keep the flight
+  // country and just flag the conflict. (June 9 2026: BA590 flew to Italy in the evening;
+  // a midday Oxford ping must NOT flip the night to UK when the 7am Cernobbio ping and
+  // the flight both say Italy.)
+  if (entry.flightInferred && entry.country) {
+    const F = entry.country;
+    const evC = ev?.country, amC = am?.country;
+    const bothAgreeDifferent = evC && amC && evC === amC && evC !== F;
+    const evHr = bracketHourUK(ev?.capturedAt), amHr = bracketHourUK(am?.capturedAt);
+    const oneNearMidnight = (evHr !== null && evHr >= 20) || (amHr !== null && amHr < 9);
+    const strongDisagreement = bothAgreeDifferent && oneNearMidnight;
+    if (!strongDisagreement) {
+      if ((evC && evC !== F) || (amC && amC !== F)) {
+        console.log('Flight day ' + dateStr + ': kept flight country ' + F +
+          ' over conflicting bracket(s) ev=' + (evC || '-') + ', am=' + (amC || '-'));
+        entry.unconfirmed = true;
+        entry.countryConflict = 'Flight says ' + F + '; GPS brackets differ (ev=' +
+          (evC || '-') + ', am=' + (amC || '-') + ') — kept flight country, please confirm';
+        syncEntry(dateStr, entry);
+        saveLocal();
+        if (!silent) { render(); }
+      }
+      return; // do NOT let the rest of the function change a flight-inferred country
+    }
+  }
 
   // CASE 1: Both brackets exist and same country — strongest inference
   if (ev?.country && am?.country && ev.country === am.country) {
