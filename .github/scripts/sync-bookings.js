@@ -1198,15 +1198,33 @@ async function updateFirebase(bookings) {
         const combinedSource = existingSource
           ? (existingSource.includes(sourceInfo) ? existingSource : existingSource + ' | ' + sourceInfo)
           : sourceInfo;
-        updates['locations/' + dateStr + '/country'] = normalizeCountry(fh.country);
-        updates['locations/' + dateStr + '/city'] = (fh.code && AIRPORTS[fh.code]) ? AIRPORTS[fh.code].city : '';
+        const fhC = normalizeCountry(fh.country);
+        // If a bracket actually AGREES with the flight country (e.g. the 7am-next-day
+        // ping at the destination), adopt its real coords/city/place — that's genuine
+        // GPS in the right country. Otherwise use the airport city and CLEAR the stale
+        // coords/place left by the wrong bracket guess (don't show e.g. Oxford coords
+        // labelled Italy).
+        const brs = current.brackets || {};
+        const agree = [brs.evening, brs.morning].find(b => b && normalizeCountry(b.country) === fhC);
+        updates['locations/' + dateStr + '/country'] = fhC;
+        if (agree) {
+          updates['locations/' + dateStr + '/city'] = agree.city || ((fh.code && AIRPORTS[fh.code]) ? AIRPORTS[fh.code].city : '');
+          updates['locations/' + dateStr + '/place'] = agree.place || agree.city || '';
+          updates['locations/' + dateStr + '/lat'] = agree.lat != null ? agree.lat : null;
+          updates['locations/' + dateStr + '/lon'] = agree.lon != null ? agree.lon : null;
+        } else {
+          updates['locations/' + dateStr + '/city'] = (fh.code && AIRPORTS[fh.code]) ? AIRPORTS[fh.code].city : '';
+          updates['locations/' + dateStr + '/place'] = '';
+          updates['locations/' + dateStr + '/lat'] = null;
+          updates['locations/' + dateStr + '/lon'] = null;
+        }
         updates['locations/' + dateStr + '/flights'] = mergeFlights(current.flights, booking.flights);
         updates['locations/' + dateStr + '/flightInferred'] = true;
         updates['locations/' + dateStr + '/bracketInferred'] = null;
         updates['locations/' + dateStr + '/unconfirmed'] = true;
         updates['locations/' + dateStr + '/captureSource'] = 'flight-overrides-bracket';
         updates['locations/' + dateStr + '/countryConflict'] =
-          'Flight ' + (fh.flight || '') + ' direction → ' + normalizeCountry(fh.country) +
+          'Flight ' + (fh.flight || '') + ' direction → ' + fhC +
           '; a GPS bracket had guessed ' + current.country + ' (kept flight — confirm).';
         updates['locations/' + dateStr + '/bookingSource'] = combinedSource;
         mergedCount++;

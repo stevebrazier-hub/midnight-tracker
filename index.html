@@ -495,7 +495,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-06-10a';
+const APP_VERSION = '2026-06-10b';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -2261,6 +2261,20 @@ function inferMidnightFromBrackets(dateStr, silent) {
       if ((evC && evC !== F) || (amC && amC !== F)) {
         console.log('Flight day ' + dateStr + ': kept flight country ' + F +
           ' over conflicting bracket(s) ev=' + (evC || '-') + ', am=' + (amC || '-'));
+        // Adopt a bracket that AGREES with the flight (real GPS in the right country);
+        // otherwise drop the stale coords/place from the conflicting bracket guess so we
+        // don't show e.g. Oxford coordinates labelled Italy.
+        const agree = (evC === F ? ev : (amC === F ? am : null));
+        if (agree) {
+          entry.city = agree.city || entry.city;
+          entry.place = agree.place || agree.city || '';
+          entry.lat = agree.lat;
+          entry.lon = agree.lon;
+        } else {
+          entry.place = '';
+          delete entry.lat;
+          delete entry.lon;
+        }
         entry.unconfirmed = true;
         entry.countryConflict = 'Flight says ' + F + '; GPS brackets differ (ev=' +
           (evC || '-') + ', am=' + (amC || '-') + ') — kept flight country, please confirm';
