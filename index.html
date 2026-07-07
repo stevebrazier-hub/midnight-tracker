@@ -495,7 +495,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-06-10b';
+const APP_VERSION = '2026-07-05a';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -786,6 +786,7 @@ function initFirebaseSync() {
     if (!migrationsRun) {
       migrationsRun = true;
       try { clearJunkBookingCities(); } catch(e) { console.warn('clearJunkBookingCities failed:', e); }
+      try { healMisattributedMorningBrackets(); } catch(e) { console.warn('healMisattributedMorningBrackets failed:', e); }
       try { reconcileBracketCountries(); } catch(e) { console.warn('reconcileBracketCountries failed:', e); }
       render();
     }
@@ -2110,6 +2111,56 @@ function clearJunkBookingCities() {
 //      Google Calendar created a "Stay at Villa Rosemarie" entry with no city/country,
 //      morning bracket captured Brandis/Germany, but no evening bracket existed.
 // Runs once on data load.
+// Add n days to a 'YYYY-MM-DD' string (UTC-safe).
+function addDaysStr(dateStr, n) {
+  const d = new Date(dateStr + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+// HEAL: a "morning" bracket captured at/after 09:00 is really the NEXT day's daytime
+// reading, not "where I woke = where I slept last night". Move any such bracket off the
+// day it was wrongly filed under and onto the next day's evening (today-reading) slot,
+// and if that day's recorded location was inferred FROM this bracket, demote it back to
+// booking data (flagged for confirmation). Runs once on load. (July 2/3 2026: an 11:23
+// ping on Fri 3rd shown on Thu 2nd.)
+function healMisattributedMorningBrackets() {
+  let moved = 0;
+  Object.keys(entries).forEach(dateStr => {
+    const e = entries[dateStr];
+    const am = e?.brackets?.morning;
+    if (!am?.lat) return;
+    const hr = bracketHourUK(am.capturedAt);
+    if (hr === null || hr < 9) return; // genuine early-morning reading — leave it
+
+    const nextStr = addDaysStr(dateStr, 1);
+    // Preserve the reading on the correct day: put it in next day's evening slot, but
+    // only if that slot is empty (don't clobber a later reading closer to midnight).
+    if (!entries[nextStr]) entries[nextStr] = {};
+    if (!entries[nextStr].brackets) entries[nextStr].brackets = {};
+    if (!entries[nextStr].brackets.evening?.lat) {
+      entries[nextStr].brackets.evening = Object.assign({}, am, { movedFromMorningOf: dateStr });
+      syncEntry(nextStr, entries[nextStr]);
+    }
+    // Remove from the wrong day.
+    delete e.brackets.morning;
+    // If the wrong day's location was inferred from this bracket, demote to booking.
+    if (e.bracketInferred && e.lat === am.lat && e.lon === am.lon) {
+      delete e.autoGps; delete e.bracketInferred; delete e.lat; delete e.lon; delete e.capturedAt;
+      e.captureSource = 'reverted-late-morning-bracket';
+      e.unconfirmed = true;
+      e.notes = (e.notes || '') + (e.notes ? ' | ' : '') +
+        'Late-morning GPS (' + (am.capturedAt || '') + ') moved to ' + nextStr +
+        ' — it was a next-day reading, not where Steve slept.';
+    }
+    console.log('Healed late-morning bracket: moved ' + (am.capturedAt || '') +
+      ' from ' + dateStr + ' to ' + nextStr);
+    syncEntry(dateStr, e);
+    moved++;
+  });
+  if (moved > 0) console.log('Moved ' + moved + ' mis-filed late-morning bracket(s) to the correct day');
+}
+
 function reconcileBracketCountries() {
   let fixed = 0;
   Object.keys(entries).forEach(dateStr => {
@@ -2602,11 +2653,15 @@ function checkTodayGPS() {
   const yesterdayStr = ukDateStr(yesterday);
   const yEntry = entries[yesterdayStr];
 
-  // 1. Morning bracket (6am-noon): corroborates yesterday's midnight
-  if (ukHour >= 6 && ukHour < 12) {
+  // 1. Morning bracket (6am–9am ONLY): corroborates YESTERDAY's midnight — a genuine
+  // "where I woke up = where I slept last night" reading. A ping from 9am onward is a
+  // TODAY reading (Steve may already have moved/travelled), so it must NOT be filed as
+  // yesterday's morning bracket. (July 2/3 2026: an 11:23 ping on Fri 3rd was wrongly
+  // shown on Thu 2nd because the old window ran to noon.)
+  if (ukHour >= 6 && ukHour < 9) {
     const ydayBrackets = yEntry?.brackets || {};
     if (!ydayBrackets.morning?.lat) {
-      console.log('Morning window (6-10am UK) — capturing morning bracket for ' + yesterdayStr);
+      console.log('Morning window (6-9am UK) — capturing morning bracket for ' + yesterdayStr);
       bracketGPSCapture(yesterdayStr, 'morning');
     }
   }
@@ -2642,17 +2697,23 @@ function checkTodayGPS() {
   // evening, with no reliance on the 9pm push arriving or being tapped. (Readings
   // before 20:00 are kept for the record but treated as weaker evidence — they won't
   // override a conflicting booking, only corroborate; see inferMidnightFromBrackets.)
+  // A ping from 9am onward is filed against TODAY (never yesterday), as today's
+  // "latest reading before midnight" proxy. Refresh to the newest reading each new hour
+  // so the closest-to-midnight location wins. Trusted to OVERRIDE a booking/flight only
+  // when near midnight (>=20:00) — a daytime reading is recorded but weak (see
+  // inferMidnightFromBrackets). This also means a late-morning ping lands on the correct
+  // day instead of being mis-filed as yesterday's morning bracket.
   const todayStr = ukDateStr(new Date());
-  if (ukHour >= 18) {
+  if (ukHour >= 9) {
     const evBr = entries[todayStr]?.brackets?.evening;
     if (!evBr?.lat) {
-      console.log('Evening window (6pm+ UK) — capturing evening bracket for ' + todayStr);
+      console.log('Daytime/evening window (9am+ UK) — capturing today reading for ' + todayStr);
       bracketGPSCapture(todayStr, 'evening');
     } else {
       // Refresh at most once per new hour, moving the reading closer to midnight.
       const prevHr = bracketHourUK(evBr.capturedAt);
       if (prevHr === null || prevHr < ukHour) {
-        console.log('Evening refresh (' + prevHr + 'h → ' + ukHour + 'h) — updating evening bracket for ' + todayStr);
+        console.log('Today reading refresh (' + prevHr + 'h → ' + ukHour + 'h) for ' + todayStr);
         bracketGPSCapture(todayStr, 'evening', true);
       }
     }
