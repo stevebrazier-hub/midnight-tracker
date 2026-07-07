@@ -1900,12 +1900,30 @@ async function autoGPSCapture(dateStr, force, source) {
 
   showGpsBanner('pending', 'Capturing GPS for ' + formatDisplayDate(dateStr) + '...');
 
+  // For midnight/backfill captures, refuse cached fixes older than 5 minutes.
+  // Prevents Jul 6 2026 case where a stale Oxford GPS was written into a
+  // Paris night because Safari returned a days-old cached location.
+  const isMidnightCapture = source === '12am' || source === 'backfill';
+  const geoOpts = isMidnightCapture
+    ? { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    : { enableHighAccuracy: true, timeout: 15000 };
+
   return new Promise(resolve => {
     navigator.geolocation.getCurrentPosition(
       async pos => {
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
-        console.log('GPS captured:', lat, lon);
+        const fixAgeMs = Date.now() - pos.timestamp;
+        console.log('GPS captured:', lat, lon, '(fix age: ' + Math.round(fixAgeMs/1000) + 's)');
+        if (isMidnightCapture && fixAgeMs > 5 * 60 * 1000) {
+          console.warn('BLOCKED: midnight capture with stale GPS fix (' +
+            Math.round(fixAgeMs/1000) + 's old). Refusing to write ' + dateStr + '.');
+          showGpsBanner('error', 'Stale GPS fix (' + Math.round(fixAgeMs/60000) +
+            ' min old) — not writing midnight for ' + formatDisplayDate(dateStr));
+          setTimeout(dismissGpsBanner, 6000);
+          resolve(false);
+          return;
+        }
 
         // Try to match against known presets
         const match = matchLocationToPreset(lat, lon);
@@ -1991,7 +2009,7 @@ async function autoGPSCapture(dateStr, force, source) {
         );
         resolve(false);
       },
-      { enableHighAccuracy: true, timeout: 15000 }
+      geoOpts
     );
   });
 }
@@ -2168,9 +2186,37 @@ function reconcileBracketCountries() {
     const ev = e?.brackets?.evening;
     const am = e?.brackets?.morning;
     if (!ev?.country && !am?.country) return; // need at least one bracket with a country
-    const reliableMidnightGps = e.autoGps && !e.bracketInferred && !e.lateBackfill;
+
+    // Distance sanity check (Jul 6 2026 fix): if the stored autoGps coords are
+    // far from every bracket we have, that "midnight GPS" is almost certainly
+    // a stale/cached fix (cached Oxford written into a Paris night). Treat
+    // autoGps as stale so brackets can override it below.
+    let staleAutoGps = false;
+    if (e.autoGps && typeof e.lat === 'number' && typeof e.lon === 'number') {
+      const evFar = ev?.lat && gpsDistance(e.lat, e.lon, ev.lat, ev.lon) > 100;
+      const amFar = am?.lat && gpsDistance(e.lat, e.lon, am.lat, am.lon) > 100;
+      if (ev?.lat && am?.lat) staleAutoGps = evFar && amFar;      // both far away
+      else if (ev?.lat)       staleAutoGps = evFar;               // only evening
+      else if (am?.lat)       staleAutoGps = amFar;               // only morning
+      if (staleAutoGps) {
+        console.log('reconcile: stored autoGps on ' + dateStr +
+          ' is >100km from bracket(s) — treating as stale');
+      }
+    }
+    const reliableMidnightGps = e.autoGps && !e.bracketInferred && !e.lateBackfill && !staleAutoGps;
     const userSet = e.city && !e.autoGps && !e.autoBooking;
     if (reliableMidnightGps || e.gpsConfirmed || userSet) return;
+
+    // Clear the stale autoGps so inferMidnightFromBrackets treats this entry as
+    // fresh input rather than skipping it as "already reliable".
+    if (staleAutoGps) {
+      delete e.autoGps;
+      delete e.lat;
+      delete e.lon;
+      delete e.captureSource;
+      e.notes = (e.notes || '') + (e.notes ? ' | ' : '') +
+        'Discarded stale autoGps: coords were >100km from every bracket';
+    }
 
     // HEAL: undo bad flips made by the earlier over-aggressive override. Any entry we
     // set via 'bracket-overrides-booking' that was driven by a LATE/suspect morning
@@ -2288,7 +2334,22 @@ function inferMidnightFromBrackets(dateStr, silent) {
   // In particular, brackets MUST be allowed to override booking-only data (autoBooking)
   // and previous bracket inferences (bracketInferred) — see Apr 29 2026 case where a
   // bad email parse stuffed city="Gmail", country="UK" into a Berlin night.
-  const reliableMidnightGps = entry.autoGps && !entry.bracketInferred && !entry.lateBackfill;
+  // Distance sanity check (Jul 6 2026): if the stored autoGps coords are far
+  // from every present bracket, treat the "reliable" midnight GPS as stale
+  // (cached Oxford GPS in a Paris night).
+  let staleAutoGps = false;
+  if (entry.autoGps && typeof entry.lat === 'number' && typeof entry.lon === 'number') {
+    const evFar = ev?.lat && gpsDistance(entry.lat, entry.lon, ev.lat, ev.lon) > 100;
+    const amFar = am?.lat && gpsDistance(entry.lat, entry.lon, am.lat, am.lon) > 100;
+    if (ev?.lat && am?.lat) staleAutoGps = evFar && amFar;
+    else if (ev?.lat)       staleAutoGps = evFar;
+    else if (am?.lat)       staleAutoGps = amFar;
+    if (staleAutoGps) {
+      console.log('inferMidnightFromBrackets ' + dateStr +
+        ': stored autoGps is >100km from bracket(s) — treating as stale');
+    }
+  }
+  const reliableMidnightGps = entry.autoGps && !entry.bracketInferred && !entry.lateBackfill && !staleAutoGps;
   const userSet = entry.city && !entry.autoGps && !entry.autoBooking;
   const canInfer = !reliableMidnightGps && !entry.gpsConfirmed && !userSet;
   if (!canInfer) return;
