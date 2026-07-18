@@ -20,7 +20,7 @@
  *   GOOGLE_REFRESH_TOKEN      - Google OAuth2 refresh token (from one-time consent)
  */
 
-const SYNC_VERSION = '1.5.0';
+const SYNC_VERSION = '1.6.0';
 
 const admin = require('firebase-admin');
 const https = require('https');
@@ -58,6 +58,23 @@ const AIRPORTS = {
   'CTA': { city: 'Catania', country: 'Italy' }, 'BHX': { city: 'Birmingham', country: 'UK' },
   'MAN': { city: 'Manchester', country: 'UK' }, 'EDI': { city: 'Edinburgh', country: 'UK' },
   'OXF': { city: 'Oxford', country: 'UK' },
+  'OLB': { city: 'Olbia', country: 'Italy' }, 'AHO': { city: 'Alghero', country: 'Italy' },
+  'CAG': { city: 'Cagliari', country: 'Italy' }, 'DUB': { city: 'Dublin', country: 'Ireland' },
+  'NCE': { city: 'Nice', country: 'France' }, 'FLR': { city: 'Florence', country: 'Italy' },
+};
+
+// City / airport display names that appear in calendar subjects and booking emails
+// instead of IATA codes (July 2026 case: "Flight BA608: LHR - Venice" — "Venice" isn't
+// a code, so the route parsed as destination LHR, i.e. BACKWARDS). Used ONLY in the
+// adjacent route-pair pattern ("X - Y" / "X to Y"), where adjacency makes false
+// positives unlikely; never for loose scanning of whole email bodies.
+const CITY_AIRPORTS = {
+  'VENICE': 'VCE', 'VENEZIA': 'VCE', 'OLBIA': 'OLB', 'CAGLIARI': 'CAG', 'ALGHERO': 'AHO',
+  'LONDON': 'LHR', 'HEATHROW': 'LHR', 'GATWICK': 'LGW', 'STANSTED': 'STN',
+  'MILAN': 'MXP', 'MILANO': 'MXP', 'MALPENSA': 'MXP', 'LINATE': 'LIN',
+  'ROME': 'FCO', 'ROMA': 'FCO', 'NAPLES': 'NAP', 'NAPOLI': 'NAP',
+  'DUBLIN': 'DUB', 'PARIS': 'CDG', 'NICE': 'NCE', 'FLORENCE': 'FLR',
+  'OXFORD': 'OXF', 'MANCHESTER': 'MAN', 'EDINBURGH': 'EDI', 'BIRMINGHAM': 'BHX',
 };
 
 // Normalise country names so variants map to canonical short forms
@@ -74,6 +91,31 @@ function normalizeCountry(c) {
     'Republic of Korea': 'South Korea',
   };
   return map[c] || c;
+}
+
+// ===== PASSENGER GUARD =====
+// Steve books flights for other people from the same mailbox (July 3 2026 case:
+// Claire Wince's BA591 MXP→LHR confirmation made the sync record STEVE arriving in
+// London, and the gap-fill then stamped London on every night 4 Jul – 2 Aug).
+// If a booking's text names its passengers and NONE of them is Steve, the trip is
+// not his and must not feed the tracker. Names are only trusted when they appear
+// near a passenger/traveller label, so signatures and staff names don't trigger it.
+const SELF_NAME = (process.env.SELF_NAME || 'BRAZIER').toUpperCase();
+function bookedForSomeoneElse(text) {
+  if (!text) return false;
+  const t = String(text);
+  const names = [];
+  const label = /\b(?:passenger|traveller|traveler)s?(?:\s*name)?s?\b[:\s]*/gi;
+  let m;
+  while ((m = label.exec(t)) !== null) {
+    // Look at the 250 chars after the label for honorific + name tokens
+    const windowText = t.slice(m.index, m.index + 250);
+    const nameRe = /\b(?:mr|mrs|ms|miss|mstr|master|dr)\.?\s+([A-Za-z][A-Za-z''-]+(?:\s+[A-Za-z][A-Za-z''-]+){0,3})/gi;
+    let n;
+    while ((n = nameRe.exec(windowText)) !== null) names.push(n[1]);
+  }
+  if (!names.length) return false; // no named passengers → cannot judge, allow
+  return !names.some(n => n.toUpperCase().includes(SELF_NAME));
 }
 
 // ===== FIREBASE INIT =====
@@ -227,6 +269,12 @@ async function processGoogleCalendar(token) {
     const allText = subject + ' ' + body + ' ' + location;
     const allTextUpper = allText.toUpperCase();
 
+    // Skip events for someone else's booking (passenger list doesn't include Steve)
+    if (bookedForSomeoneElse(allText)) {
+      console.log(`  👤 SKIP event for someone else: ${subject.slice(0, 60)}`);
+      continue;
+    }
+
     // Skip car rentals
     if (/\b(car\s*rental|hertz|avis|europcar|sixt|enterprise|rent.?a.?car|pick.?up.*drop.?off|vehicle\s*collect)/i.test(allText)) continue;
 
@@ -341,6 +389,12 @@ async function processGmailFolder(token, labelId, folderType) {
     const snippet = msg.snippet || '';
     const allText = subject + ' ' + snippet;
     const allTextUpper = allText.toUpperCase();
+
+    // Skip bookings made for someone else (passenger list doesn't include Steve)
+    if (bookedForSomeoneElse(allText)) {
+      console.log(`  👤 SKIP booking for someone else: ${subject.slice(0, 60)}`);
+      continue;
+    }
 
     // Skip car rentals
     if (/\b(car\s*rental|hertz|avis|europcar|sixt|enterprise|rent.?a.?car)/i.test(allText)) {
@@ -620,7 +674,20 @@ function extractRoute(text) {
   if (pair && AIRPORTS[pair[1].toUpperCase()] && AIRPORTS[pair[2].toUpperCase()]) {
     origCode = pair[1].toUpperCase();
     destCode = pair[2].toUpperCase();
-  } else {
+  }
+  if (!destCode) {
+    // "LHR - Venice" style: one or both sides written as a city name, not a code.
+    // Both sides must resolve to a known airport for the pair to count.
+    const tok = '(' + ['[A-Z]{3}'].concat(Object.keys(CITY_AIRPORTS)).join('|') + ')';
+    const cityPair = new RegExp('\\b' + tok + '\\s*(?:TO|→|->|>|–|—|-|\\/)\\s*' + tok + '\\b')
+      .exec(text.toUpperCase());
+    if (cityPair) {
+      const resolve = t => AIRPORTS[t] ? t : (CITY_AIRPORTS[t] || null);
+      const o = resolve(cityPair[1]), d = resolve(cityPair[2]);
+      if (o && d) { origCode = o; destCode = d; }
+    }
+  }
+  if (!destCode) {
     const aps = extractAirports(text.toUpperCase());
     if (aps.length >= 2) { origCode = aps[0]; destCode = aps[aps.length - 1]; }
     else if (aps.length === 1) { destCode = aps[0]; }
@@ -822,6 +889,12 @@ async function processCalendar(token) {
     const allText = subject + ' ' + body + ' ' + location;
     const allTextUpper = allText.toUpperCase();
 
+    // Skip events for someone else's booking (passenger list doesn't include Steve)
+    if (bookedForSomeoneElse(allText)) {
+      console.log(`  👤 SKIP event for someone else: ${subject.slice(0, 60)}`);
+      continue;
+    }
+
     // Skip car rentals
     if (/\b(car\s*rental|hertz|avis|europcar|sixt|enterprise|rent.?a.?car|pick.?up.*drop.?off|vehicle\s*collect)/i.test(allText)) continue;
 
@@ -972,6 +1045,12 @@ async function processEmailsFromFolder(token, folderId, folderType) {
     // Use subject + preview for keyword matching (avoids noise from full HTML body)
     const allText = subject + ' ' + preview;
     const allTextUpper = allText.toUpperCase();
+
+    // Skip bookings made for someone else (passenger list doesn't include Steve)
+    if (bookedForSomeoneElse(subject + ' ' + fullBody)) {
+      console.log(`  👤 SKIP booking for someone else: ${subject.slice(0, 60)}`);
+      continue;
+    }
 
     // Skip car rental emails
     if (/\b(car\s*rental|hertz|avis|europcar|sixt|enterprise|rent.?a.?car|pick.?up.*drop.?off|vehicle\s*collect)/i.test(allText)) {
@@ -1355,9 +1434,46 @@ async function updateFirebase(bookings) {
     }
   }
 
+  // ===== STALE FLIGHT-INFERENCE RETRACTION =====
+  // A gap-fill night is only as good as the leg pair that produced it. If a later run
+  // no longer derives a hint for that night (the seed flight was someone else's, was
+  // cancelled, or new legs broke the pair), the old stamped country must be RETRACTED,
+  // not left behind. (July 2026 case: Claire's BA591 seeded "London" onto 4 Jul–2 Aug;
+  // the passenger guard now drops the seed, and this pass clears the residue.)
+  // Only entries that are PURELY flight-inference (no other booking source, no GPS,
+  // no manual data) are touched, and only within the window the calendar scan covers —
+  // older entries legitimately have no hints this run. Field-level updates preserve
+  // brackets and notes.
+  let retracted = 0;
+  const windowStart = addDaysISO(fmtDate(new Date()), -3);
+  const windowEnd = addDaysISO(fmtDate(new Date()), DAYS_AHEAD);
+  for (const dateStr of Object.keys(existing)) {
+    if (dateStr < windowStart || dateStr > windowEnd) continue;
+    const cur = existing[dateStr];
+    if (!cur || !cur.autoBooking || cur.autoGps || cur.gpsConfirmed) continue;
+    const bs = cur.bookingSource || '';
+    if (!/^flight-inference/.test(bs) || bs.includes('|')) continue; // mixed sources → keep
+    if (flightHints[dateStr]) continue;      // still supported (merge path handles changes)
+    if (updates['locations/' + dateStr]) continue; // a real booking claimed it this run
+    console.log(`  ↩ RETRACT stale flight-inference on ${dateStr}: was ${cur.country || '(empty)'} (${bs})`);
+    updates['locations/' + dateStr + '/country'] = '';
+    updates['locations/' + dateStr + '/city'] = '';
+    updates['locations/' + dateStr + '/place'] = '';
+    updates['locations/' + dateStr + '/autoBooking'] = null;
+    updates['locations/' + dateStr + '/bookingSource'] = null;
+    updates['locations/' + dateStr + '/countryConflict'] = null;
+    updates['locations/' + dateStr + '/unconfirmed'] = null;
+    updates['locations/' + dateStr + '/captureSource'] = 'flight-inference-retracted';
+    updates['locations/' + dateStr + '/notes'] =
+      (cur.notes ? cur.notes + ' | ' : '') +
+      'Retracted stale flight-inference (' + bs.slice(0, 80) + ') — supporting flights no longer found.';
+    retracted++;
+  }
+  if (retracted > 0) console.log(`Retracted ${retracted} stale flight-inference night(s)`);
+
   if (Object.keys(updates).length > 0) {
     await db.ref().update(updates);
-    console.log(`Updated Firebase: ${newCount} new, ${mergedCount} merged, ${skippedCount} skipped`);
+    console.log(`Updated Firebase: ${newCount} new, ${mergedCount} merged, ${skippedCount} skipped, ${retracted} retracted`);
   } else {
     console.log(`No updates needed (${skippedCount} skipped)`);
   }

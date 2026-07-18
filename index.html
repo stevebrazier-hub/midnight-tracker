@@ -495,7 +495,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-07-05a';
+const APP_VERSION = '2026-07-18a';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -1792,6 +1792,33 @@ function clearDay() {
 
 // ===== AUTO-GPS MIDNIGHT SYSTEM =====
 
+// Reverse geocode with an at-sea fallback. Nominatim returns nothing for open water
+// (Jul 17 2026: the 7am bracket at 41.18, 9.49 — on the boat off NE Sardinia — came
+// back with no country, so the bracket could never correct the wrong London booking
+// stamped by flight-inference). BigDataCloud's free client API resolves territorial
+// waters / nearest land, so a ping on the water still yields a country.
+async function reverseGeocodeSafe(lat, lon) {
+  let city = '', country = '', place = '';
+  try {
+    const r = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json&accept-language=en');
+    const data = await r.json();
+    city = data.address?.city || data.address?.town || data.address?.village || '';
+    country = normalizeCountry(data.address?.country || '');
+    place = data.display_name?.split(',')[0] || '';
+  } catch(e) { console.warn('Nominatim geocode failed', e); }
+  if (!country) {
+    try {
+      const r = await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=en');
+      const d = await r.json();
+      country = normalizeCountry(d.countryName || '');
+      if (!city) city = d.city || d.locality || '';
+      if (!place) place = d.locality || d.city || (country ? 'At sea near ' + country : '');
+      if (country) console.log('Geocode fallback (BigDataCloud): ' + lat + ',' + lon + ' → ' + country);
+    } catch(e) { console.warn('Fallback geocode failed', e); }
+  }
+  return { city, country, place };
+}
+
 // Known location coordinates for preset matching (lat, lon, radius in km)
 const KNOWN_LOCATIONS = [
   { lat: 45.8472, lon: 9.0853, radius: 5, preset: 'cernobbio' },    // Cernobbio, Italy
@@ -1961,11 +1988,8 @@ async function autoGPSCapture(dateStr, force, source) {
           // Unknown location — reverse geocode and flag
           let city = '', country = '', placeName = '';
           try {
-            const r = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json&accept-language=en');
-            const data = await r.json();
-            city = data.address?.city || data.address?.town || data.address?.village || '';
-            country = normalizeCountry(data.address?.country || '');
-            placeName = data.display_name?.split(',')[0] || '';
+            const g = await reverseGeocodeSafe(lat, lon);
+            city = g.city; country = g.country; placeName = g.place;
           } catch(e) { console.warn('Geocode failed', e); }
 
           // Save with what we have, flagged as unconfirmed, preserving all existing data
@@ -2052,13 +2076,10 @@ async function bracketGPSCapture(dateStr, bracketType, allowRefresh) {
           country = match.preset.country;
           place = match.preset.place || match.preset.city;
         } else {
-          // Reverse geocode
+          // Reverse geocode (with at-sea fallback)
           try {
-            const r = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json&accept-language=en');
-            const data = await r.json();
-            city = data.address?.city || data.address?.town || data.address?.village || '';
-            country = normalizeCountry(data.address?.country || '');
-            place = data.display_name?.split(',')[0] || '';
+            const g = await reverseGeocodeSafe(lat, lon);
+            city = g.city; country = g.country; place = g.place;
           } catch(e) { console.warn('Bracket geocode failed', e); }
         }
 

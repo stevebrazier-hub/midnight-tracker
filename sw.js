@@ -111,7 +111,7 @@ firebase.initializeApp({
 firebase.messaging();
 
 // ===== CACHING (PWA offline support) =====
-const CACHE_NAME = 'midnight-tracker-v34';
+const CACHE_NAME = 'midnight-tracker-v35';
 const ASSETS = [
   './index.html',
   './manifest.json',
