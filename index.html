@@ -495,7 +495,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-07-18a';
+const APP_VERSION = '2026-08-06a';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -2229,7 +2229,7 @@ function reconcileBracketCountries() {
       }
     }
     const reliableMidnightGps = e.autoGps && !e.bracketInferred && !e.lateBackfill && !staleAutoGps;
-    const userSet = e.city && !e.autoGps && !e.autoBooking;
+    const userSet = e.city && !e.autoGps && !e.autoBooking && !e.flightInferred;
     if (reliableMidnightGps || e.gpsConfirmed || userSet) return;
 
     // Clear the stale autoGps so inferMidnightFromBrackets treats this entry as
@@ -2386,7 +2386,7 @@ function inferMidnightFromBrackets(dateStr, silent) {
     }
   }
   const reliableMidnightGps = entry.autoGps && !entry.bracketInferred && !entry.lateBackfill && !staleAutoGps;
-  const userSet = entry.city && !entry.autoGps && !entry.autoBooking;
+  const userSet = entry.city && !entry.autoGps && !entry.autoBooking && !entry.flightInferred;
   const canInfer = !reliableMidnightGps && !entry.gpsConfirmed && !userSet;
   if (!canInfer) return;
 
