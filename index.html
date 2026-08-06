@@ -495,7 +495,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-08-06a';
+const APP_VERSION = '2026-08-06b';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -924,7 +924,7 @@ function renderList() {
       // FLIGHT = flew that day but have reliable midnight GPS (we know where they were)
       let transitFlag = '';
       if (flights && hasData) {
-        const reliableMidnightGps = entry?.autoGps && !entry?.bracketInferred && !entry?.lateBackfill;
+        const reliableMidnightGps = hasReliableMidnightGps(entry);
         const prevDs = fmtDate(new Date(y, m, d - 1));
         const nextDs = fmtDate(new Date(y, m, d + 1));
         const prevCountry = entries[prevDs]?.country || '';
@@ -1728,7 +1728,7 @@ function openDay(dateStr) {
     const prevCountry = entries[prevDs]?.country || '';
     const nextCountry = entries[nextDs]?.country || '';
     const countryChanged = (prevCountry && prevCountry !== entry.country) || (nextCountry && nextCountry !== entry.country);
-    const reliableMidnightGps = entry?.autoGps && !entry?.bracketInferred && !entry?.lateBackfill;
+    const reliableMidnightGps = hasReliableMidnightGps(entry);
     const isTransit = countryChanged && !reliableMidnightGps;
     transitDiv.style.display = isTransit ? '' : 'none';
   } else {
@@ -2228,7 +2228,7 @@ function reconcileBracketCountries() {
           ' is >100km from bracket(s) — treating as stale');
       }
     }
-    const reliableMidnightGps = e.autoGps && !e.bracketInferred && !e.lateBackfill && !staleAutoGps;
+    const reliableMidnightGps = e.autoGps && typeof e.lat === 'number' && !e.bracketInferred && !e.lateBackfill && !staleAutoGps;
     const userSet = e.city && !e.autoGps && !e.autoBooking && !e.flightInferred;
     if (reliableMidnightGps || e.gpsConfirmed || userSet) return;
 
@@ -2358,6 +2358,18 @@ function bracketClockLabel(capturedAt) {
 // Also supports single-bracket inference when the bracket is at a known preset location.
 // `silent` skips per-entry render() and the GPS banner — used when batch-reconciling
 // many entries on data load (otherwise we render-storm and hang the UI).
+function hasReliableMidnightGps(e) {
+  if (!e || !e.autoGps) return false;
+  if (typeof e.lat !== 'number' || typeof e.lon !== 'number') return false;
+  if (e.lateBackfill) return false;
+  if (e.bracketInferred) {
+    const ev = e.brackets && e.brackets.evening;
+    const am = e.brackets && e.brackets.morning;
+    return !!(ev && am && ev.country && am.country && ev.country === am.country);
+  }
+  return true;
+}
+
 function inferMidnightFromBrackets(dateStr, silent) {
   const entry = entries[dateStr];
   if (!entry?.brackets) return;
@@ -2385,7 +2397,7 @@ function inferMidnightFromBrackets(dateStr, silent) {
         ': stored autoGps is >100km from bracket(s) — treating as stale');
     }
   }
-  const reliableMidnightGps = entry.autoGps && !entry.bracketInferred && !entry.lateBackfill && !staleAutoGps;
+  const reliableMidnightGps = entry.autoGps && typeof entry.lat === 'number' && !entry.bracketInferred && !entry.lateBackfill && !staleAutoGps;
   const userSet = entry.city && !entry.autoGps && !entry.autoBooking && !entry.flightInferred;
   const canInfer = !reliableMidnightGps && !entry.gpsConfirmed && !userSet;
   if (!canInfer) return;
@@ -2457,6 +2469,7 @@ function inferMidnightFromBrackets(dateStr, silent) {
       ', morning=' + am.city + ' ' + am.capturedAt;
     if (entry.lateBackfill) delete entry.lateBackfill;
     if (entry.unconfirmed) delete entry.unconfirmed;
+    if (entry.countryConflict) delete entry.countryConflict;
 
     syncEntry(dateStr, entry);
     saveLocal();
