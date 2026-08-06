@@ -61,6 +61,17 @@ const AIRPORTS = {
   'OLB': { city: 'Olbia', country: 'Italy' }, 'AHO': { city: 'Alghero', country: 'Italy' },
   'CAG': { city: 'Cagliari', country: 'Italy' }, 'DUB': { city: 'Dublin', country: 'Ireland' },
   'NCE': { city: 'Nice', country: 'France' }, 'FLR': { city: 'Florence', country: 'Italy' },
+  'BER': { city: 'Berlin', country: 'Germany' }, 'TXL': { city: 'Berlin', country: 'Germany' },
+  'SXF': { city: 'Berlin', country: 'Germany' }, 'LEJ': { city: 'Leipzig', country: 'Germany' },
+  'HAM': { city: 'Hamburg', country: 'Germany' }, 'DUS': { city: 'Dusseldorf', country: 'Germany' },
+  'CGN': { city: 'Cologne', country: 'Germany' }, 'STR': { city: 'Stuttgart', country: 'Germany' },
+  'VIE': { city: 'Vienna', country: 'Austria' },
+  'PRG': { city: 'Prague', country: 'Czechia' }, 'BRU': { city: 'Brussels', country: 'Belgium' },
+  'CPH': { city: 'Copenhagen', country: 'Denmark' }, 'ARN': { city: 'Stockholm', country: 'Sweden' },
+  'OSL': { city: 'Oslo', country: 'Norway' }, 'HEL': { city: 'Helsinki', country: 'Finland' },
+  'WAW': { city: 'Warsaw', country: 'Poland' }, 'BUD': { city: 'Budapest', country: 'Hungary' },
+  'FAO': { city: 'Faro', country: 'Portugal' }, 'OPO': { city: 'Porto', country: 'Portugal' },
+  'AGP': { city: 'Malaga', country: 'Spain' }, 'PMI': { city: 'Palma', country: 'Spain' },
 };
 
 // City / airport display names that appear in calendar subjects and booking emails
@@ -75,6 +86,16 @@ const CITY_AIRPORTS = {
   'ROME': 'FCO', 'ROMA': 'FCO', 'NAPLES': 'NAP', 'NAPOLI': 'NAP',
   'DUBLIN': 'DUB', 'PARIS': 'CDG', 'NICE': 'NCE', 'FLORENCE': 'FLR',
   'OXFORD': 'OXF', 'MANCHESTER': 'MAN', 'EDINBURGH': 'EDI', 'BIRMINGHAM': 'BHX',
+  'BERLIN': 'BER', 'SCHONEFELD': 'BER', 'SCHOENEFELD': 'BER', 'TEGEL': 'BER',
+  'BRANDENBURG': 'BER', 'LEIPZIG': 'LEJ', 'HAMBURG': 'HAM', 'MUNICH': 'MUC',
+  'MUNCHEN': 'MUC', 'MUENCHEN': 'MUC', 'FRANKFURT': 'FRA', 'DUSSELDORF': 'DUS',
+  'DUESSELDORF': 'DUS', 'COLOGNE': 'CGN', 'KOLN': 'CGN', 'STUTTGART': 'STR',
+  'VIENNA': 'VIE', 'WIEN': 'VIE', 'PRAGUE': 'PRG', 'BRUSSELS': 'BRU',
+  'AMSTERDAM': 'AMS', 'SCHIPHOL': 'AMS', 'ZURICH': 'ZRH', 'GENEVA': 'GVA',
+  'BARCELONA': 'BCN', 'MADRID': 'MAD', 'LISBON': 'LIS', 'ATHENS': 'ATH',
+  'COPENHAGEN': 'CPH', 'STOCKHOLM': 'ARN', 'OSLO': 'OSL', 'HELSINKI': 'HEL',
+  'WARSAW': 'WAW', 'BUDAPEST': 'BUD', 'FARO': 'FAO', 'PORTO': 'OPO',
+  'MALAGA': 'AGP', 'PALMA': 'PMI', 'ISTANBUL': 'IST', 'DUBAI': 'DXB',
 };
 
 // Normalise country names so variants map to canonical short forms
@@ -665,6 +686,15 @@ function extractDestination(text) {
   return null;
 }
 
+// Parse the UK hour (0-23) out of a bracket capturedAt like "2026-08-04 21:46:10 BST".
+// Mirrors bracketHourUK() in index.html so client and server judge bracket
+// trustworthiness by the same rule.
+function bracketHourUK(capturedAt) {
+  if (!capturedAt) return null;
+  const m = String(capturedAt).match(/(\d{1,2}):(\d{2})/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
 // Determine BOTH origin and destination airports/countries from flight text.
 // e.g. "MXP to LHR" → { origCode:'MXP', origCountry:'Italy', destCode:'LHR', destCountry:'UK' }
 function extractRoute(text) {
@@ -688,6 +718,20 @@ function extractRoute(text) {
     }
   }
   if (!destCode) {
+    // "LHR - Berlin" with an unknown city on one side: the pair SHAPE is there but we
+    // could not resolve both ends. Guessing here is what reversed BA0998 (LHR - Berlin)
+    // into a UK night on Aug 4 2026 - a lone LHR was taken as the DESTINATION. Refuse to
+    // infer instead, and log the token so the missing city can be added to CITY_AIRPORTS.
+    const unresolved = /\b([A-Z]{3}|[A-Z]{4,})\s*(?:TO|\u2192|->|>|\u2013|\u2014|-|\/)\s*([A-Z]{3}|[A-Z]{4,})\b/
+      .exec(text.toUpperCase());
+    if (unresolved) {
+      const res = t => (AIRPORTS[t] ? t : (CITY_AIRPORTS[t] || null));
+      if (!res(unresolved[1]) || !res(unresolved[2])) {
+        console.log('  Unrecognised route "' + unresolved[1] + ' - ' + unresolved[2] +
+          '" - no flight direction inferred (add the city to CITY_AIRPORTS)');
+        return null;
+      }
+    }
     const aps = extractAirports(text.toUpperCase());
     if (aps.length >= 2) { origCode = aps[0]; destCode = aps[aps.length - 1]; }
     else if (aps.length === 1) { destCode = aps[0]; }
@@ -1270,7 +1314,24 @@ async function updateFirebase(bookings) {
       // day Cernobbio ping both say Italy, so the flight corrects the bracket guess.
       const fh = flightHints[dateStr];
       const isGuess = current.bracketInferred && !current.gpsConfirmed && current.captureSource !== '12am';
-      if (fh && !fh.airborne && fh.country && isGuess &&
+      // Two AGREEING brackets, at least one taken close to midnight, are stronger than a
+      // flight direction - they are real GPS on the ground either side of midnight, and
+      // the flight may be misparsed or replanned. Same rule as the client. (Aug 4 2026:
+      // 21:46 Schonefeld + 07:04 Berlin must not lose to a mis-read "LHR - Berlin".)
+      const brs = current.brackets || {};
+      const evB = brs.evening, amB = brs.morning;
+      const bothBracketsAgree = !!(evB && amB && evB.country && amB.country &&
+        normalizeCountry(evB.country) === normalizeCountry(amB.country) &&
+        fh && normalizeCountry(evB.country) !== normalizeCountry(fh.country || ''));
+      const evH = bracketHourUK(evB && evB.capturedAt);
+      const amH = bracketHourUK(amB && amB.capturedAt);
+      const oneNearMidnight = (evH !== null && evH >= 20) || (amH !== null && amH < 9);
+      const bracketsBeatFlight = bothBracketsAgree && oneNearMidnight;
+      if (bracketsBeatFlight) {
+        console.log('  Kept bracket country ' + evB.country + ' on ' + dateStr +
+          ': both brackets agree and one is near midnight (flight said ' + fh.country + ')');
+      }
+      if (fh && !fh.airborne && fh.country && isGuess && !bracketsBeatFlight &&
           normalizeCountry(fh.country) !== normalizeCountry(current.country || '')) {
         const sourceInfo = booking.source + ': ' + (booking.raw || '').slice(0, 120);
         const existingSource = current.bookingSource || '';
@@ -1283,7 +1344,6 @@ async function updateFirebase(bookings) {
         // GPS in the right country. Otherwise use the airport city and CLEAR the stale
         // coords/place left by the wrong bracket guess (don't show e.g. Oxford coords
         // labelled Italy).
-        const brs = current.brackets || {};
         const agree = [brs.evening, brs.morning].find(b => b && normalizeCountry(b.country) === fhC);
         updates['locations/' + dateStr + '/country'] = fhC;
         if (agree) {
@@ -1296,6 +1356,10 @@ async function updateFirebase(bookings) {
           updates['locations/' + dateStr + '/place'] = '';
           updates['locations/' + dateStr + '/lat'] = null;
           updates['locations/' + dateStr + '/lon'] = null;
+          // No coordinates behind this entry any more, so it is NOT a GPS entry. Leaving
+          // autoGps:true here made the client treat it as an untouchable real midnight
+          // fix and locked bracket inference out for good (Jul 9 + Aug 4 2026).
+          updates['locations/' + dateStr + '/autoGps'] = null;
         }
         updates['locations/' + dateStr + '/flights'] = mergeFlights(current.flights, booking.flights);
         updates['locations/' + dateStr + '/flightInferred'] = true;
