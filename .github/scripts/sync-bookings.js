@@ -72,6 +72,12 @@ const AIRPORTS = {
   'WAW': { city: 'Warsaw', country: 'Poland' }, 'BUD': { city: 'Budapest', country: 'Hungary' },
   'FAO': { city: 'Faro', country: 'Portugal' }, 'OPO': { city: 'Porto', country: 'Portugal' },
   'AGP': { city: 'Malaga', country: 'Spain' }, 'PMI': { city: 'Palma', country: 'Spain' },
+  // Rail-served cities (no/!minor airport) needed so Eurostar & TGV routes resolve
+  'LIL': { city: 'Lille', country: 'France' }, 'RTM': { city: 'Rotterdam', country: 'Netherlands' },
+  'LYS': { city: 'Lyon', country: 'France' }, 'MRS': { city: 'Marseille', country: 'France' },
+  'BOD': { city: 'Bordeaux', country: 'France' }, 'TRN': { city: 'Turin', country: 'Italy' },
+  'ANR': { city: 'Antwerp', country: 'Belgium' }, 'LGG': { city: 'Liege', country: 'Belgium' },
+  'AVN': { city: 'Avignon', country: 'France' }, 'SXB': { city: 'Strasbourg', country: 'France' },
 };
 
 // City / airport display names that appear in calendar subjects and booking emails
@@ -96,7 +102,100 @@ const CITY_AIRPORTS = {
   'COPENHAGEN': 'CPH', 'STOCKHOLM': 'ARN', 'OSLO': 'OSL', 'HELSINKI': 'HEL',
   'WARSAW': 'WAW', 'BUDAPEST': 'BUD', 'FARO': 'FAO', 'PORTO': 'OPO',
   'MALAGA': 'AGP', 'PALMA': 'PMI', 'ISTANBUL': 'IST', 'DUBAI': 'DXB',
+  // ===== RAIL STATIONS =====
+  // Eurostar/TGV/Thalys subjects name STATIONS, not airports ("London St Pancras -
+  // Paris Gare du Nord"). Without these the route never resolves, the trip is
+  // invisible, and a flight gap-fill quietly stamps the wrong country over it
+  // (Aug 13-16 2026: BA512 gap-fill said UK while Steve was in France by Eurostar).
+  'ST PANCRAS': 'LHR', 'LONDON ST PANCRAS': 'LHR', 'PANCRAS': 'LHR',
+  'KINGS CROSS': 'LHR', "KING'S CROSS": 'LHR', 'ST PANCRAS INTERNATIONAL': 'LHR',
+  'EBBSFLEET': 'LHR', 'ASHFORD': 'LHR', 'STRATFORD INTERNATIONAL': 'LHR',
+  'GARE DU NORD': 'CDG', 'PARIS NORD': 'CDG', 'PARIS GARE DU NORD': 'CDG',
+  'GARE DE LYON': 'CDG', 'GARE DE L EST': 'CDG', 'PARIS EST': 'CDG',
+  'MARNE LA VALLEE': 'CDG', 'DISNEYLAND': 'CDG',
+  'LILLE': 'LIL', 'LILLE EUROPE': 'LIL', 'LILLE FLANDRES': 'LIL',
+  'CALAIS': 'LIL', 'CALAIS FRETHUN': 'LIL',
+  'BRUSSELS MIDI': 'BRU', 'BRUXELLES MIDI': 'BRU', 'BRUSSELS SOUTH': 'BRU',
+  'BRUSSEL ZUID': 'BRU', 'MIDI': 'BRU',
+  'AMSTERDAM CENTRAAL': 'AMS', 'AMSTERDAM CENTRAL': 'AMS',
+  'ROTTERDAM': 'RTM', 'ROTTERDAM CENTRAAL': 'RTM',
+  'LYON': 'LYS', 'MARSEILLE': 'MRS', 'BORDEAUX': 'BOD', 'AVIGNON': 'AVN',
+  'STRASBOURG': 'SXB', 'ANTWERP': 'ANR', 'ANTWERPEN': 'ANR', 'LIEGE': 'LGG',
+  'TURIN': 'TRN', 'TORINO': 'TRN', 'MILANO CENTRALE': 'MXP', 'MILAN CENTRALE': 'MXP',
+  'ROMA TERMINI': 'FCO', 'ROME TERMINI': 'FCO', 'TERMINI': 'FCO',
+  'KOLN HBF': 'CGN', 'COLOGNE HBF': 'CGN', 'FRANKFURT HBF': 'FRA',
 };
+
+// City / station name -> country, for bookings that name a place but no airport code.
+// Used to give HOTEL bookings a country: until Aug 2026 every hotel booking was pushed
+// with country:'' so a hotel could never establish where Steve slept, and any flight
+// hint (even a speculative gap-fill) won by default.
+const EXTRA_CITY_COUNTRY = {
+  'CERNOBBIO': 'Italy', 'COMO': 'Italy', 'BELLAGIO': 'Italy', 'SARDINIA': 'Italy',
+  'PORTO CERVO': 'Italy', 'OXFORD': 'UK', 'READING': 'UK', 'WINDSOR': 'UK',
+  'BICESTER': 'UK', 'HENLEY': 'UK', 'BATH': 'UK', 'CAMBRIDGE': 'UK',
+  'ROUBAIX': 'France', 'TOURCOING': 'France', 'ARRAS': 'France', 'AMIENS': 'France',
+  'PHUKET': 'Thailand', 'CHIANG MAI': 'Thailand', 'KOH SAMUI': 'Thailand',
+  'ALGARVE': 'Portugal', 'CASCAIS': 'Portugal', 'SINTRA': 'Portugal',
+};
+
+// Country names that may appear literally in a booking subject/location.
+const COUNTRY_WORDS = [
+  ['UNITED KINGDOM', 'UK'], ['GREAT BRITAIN', 'UK'], ['ENGLAND', 'UK'],
+  ['SCOTLAND', 'UK'], ['WALES', 'UK'], ['UK', 'UK'],
+  ['FRANCE', 'France'], ['ITALY', 'Italy'], ['ITALIA', 'Italy'],
+  ['SPAIN', 'Spain'], ['ESPANA', 'Spain'], ['PORTUGAL', 'Portugal'],
+  ['GERMANY', 'Germany'], ['DEUTSCHLAND', 'Germany'], ['BELGIUM', 'Belgium'],
+  ['NETHERLANDS', 'Netherlands'], ['HOLLAND', 'Netherlands'],
+  ['SWITZERLAND', 'Switzerland'], ['AUSTRIA', 'Austria'], ['IRELAND', 'Ireland'],
+  ['THAILAND', 'Thailand'], ['GREECE', 'Greece'], ['TURKEY', 'Turkey'],
+  ['UNITED STATES', 'USA'], ['USA', 'USA'], ['CANADA', 'Canada'],
+  ['AUSTRALIA', 'Australia'], ['SINGAPORE', 'Singapore'], ['JAPAN', 'Japan'],
+  ['UAE', 'UAE'], ['DENMARK', 'Denmark'], ['SWEDEN', 'Sweden'], ['NORWAY', 'Norway'],
+  ['POLAND', 'Poland'], ['CZECHIA', 'Czechia'], ['HUNGARY', 'Hungary'],
+];
+
+// Resolve a city/station name to a country (via the airport map, then the extras).
+function countryFromCity(city) {
+  if (!city) return '';
+  const key = String(city).toUpperCase().replace(/[^A-Z' ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!key) return '';
+  if (EXTRA_CITY_COUNTRY[key]) return EXTRA_CITY_COUNTRY[key];
+  if (AIRPORTS[key]) return AIRPORTS[key].country;
+  if (CITY_AIRPORTS[key] && AIRPORTS[CITY_AIRPORTS[key]]) return AIRPORTS[CITY_AIRPORTS[key]].country;
+  // Try each word (e.g. "Lille Europe", "Hotel Barriere Lille")
+  for (const w of key.split(' ')) {
+    if (w.length < 4) continue;
+    if (EXTRA_CITY_COUNTRY[w]) return EXTRA_CITY_COUNTRY[w];
+    if (CITY_AIRPORTS[w] && AIRPORTS[CITY_AIRPORTS[w]]) return AIRPORTS[CITY_AIRPORTS[w]].country;
+  }
+  return '';
+}
+
+// Find a country named literally in SHORT text (subject/location only — never a whole
+// email body, where footers and addresses produce false positives).
+function countryFromText(text) {
+  if (!text) return '';
+  const t = ' ' + String(text).toUpperCase().replace(/[^A-Z ]+/g, ' ').replace(/\s+/g, ' ') + ' ';
+  for (const [word, country] of COUNTRY_WORDS) {
+    if (t.includes(' ' + word + ' ')) return country;
+  }
+  return '';
+}
+
+// Country for a hotel booking: prefer the resolved city, fall back to a literal
+// country name in the subject/location.
+function hotelCountry(city, shortText) {
+  return countryFromCity(city) || countryFromText(shortText) || '';
+}
+
+// Does this text describe a TRAIN journey? Eurostar/TGV/Thalys/Trenitalia legs are
+// exactly as directional as flights and must feed the same inference.
+function isRailText(text) {
+  if (!text) return false;
+  return /\b(eurostar|thalys|trenitalia|italo\s*treno|tgv|sncf|deutsche\s*bahn|db\s*bahn|ice\s*\d|avanti\s*west|lner|gwr|great\s*western|renfe|ave\s*\d|railway|\brail\b|train)\b/i.test(text) ||
+    /\b(st\s*pancras|gare\s*du\s*nord|lille\s*europe|brussels?\s*midi|bruxelles\s*midi|amsterdam\s*centraal|milano\s*centrale|roma\s*termini)\b/i.test(text);
+}
 
 // Normalise country names so variants map to canonical short forms
 function normalizeCountry(c) {
@@ -302,8 +401,9 @@ async function processGoogleCalendar(token) {
     // Skip events that don't look like travel
     const isFlight = /\b(flight|fly|depart|arrive|airport|boarding|BA\d|EK\d|LH\d|AF\d|AZ\d|FR\d|U2\d|QR\d|EY\d|SQ\d|CX\d|TK\d)/i.test(allText);
     const isHotel = /\b(hotel|check.?in|check.?out|booking|reservation|stay|accommodation|airbnb)/i.test(allText);
+    const isRail = isRailText(allText);
 
-    if (!isFlight && !isHotel) continue;
+    if (!isFlight && !isHotel && !isRail) continue;
 
     // Google Calendar uses date or dateTime
     const startStr = event.start?.dateTime || event.start?.date;
@@ -312,17 +412,23 @@ async function processGoogleCalendar(token) {
     const endDt = parseDate(endStr);
     if (!startDt) continue;
 
-    if (isFlight) {
+    if (isFlight || isRail) {
       const flights = extractFlights(allTextUpper);
       const dest = extractDestination(allTextUpper);
+      const leg = buildFlightLeg(allTextUpper, startDt, endDt);
+      if (isRail && !isFlight && !leg) {
+        console.log('  🚆 rail event with no resolvable route: ' + subject.slice(0, 70));
+      }
       bookings.push({
         type: 'flight',
+        rail: isRail && !isFlight,
         date: fmtDate(startDt),
         flights: flights.join(', '),
-        city: dest?.city || extractCity(allText) || '',
-        country: dest?.country || '',
+        city: (leg && leg.destCode && AIRPORTS[leg.destCode] ? AIRPORTS[leg.destCode].city : '') ||
+              dest?.city || extractCity(allText) || '',
+        country: (leg && leg.destCountry) || dest?.country || '',
         place: '',
-        flightLeg: buildFlightLeg(allTextUpper, startDt, endDt),
+        flightLeg: leg,
         source: 'google-calendar',
         raw: subject
       });
@@ -339,7 +445,7 @@ async function processGoogleCalendar(token) {
           nights: nights.length,
           flights: '',
           city: extractCity(allText) || location || '',
-          country: '',
+          country: hotelCountry(extractCity(allText) || location || hotelName, subject + ' ' + location),
           place: hotelName,
           source: 'google-calendar',
           raw: subject
@@ -708,7 +814,10 @@ function extractRoute(text) {
   if (!destCode) {
     // "LHR - Venice" style: one or both sides written as a city name, not a code.
     // Both sides must resolve to a known airport for the pair to count.
-    const tok = '(' + ['[A-Z]{3}'].concat(Object.keys(CITY_AIRPORTS)).join('|') + ')';
+    // Longest names FIRST so "LILLE EUROPE" is not eaten by the bare [A-Z]{3} branch.
+    const tok = '(' + Object.keys(CITY_AIRPORTS).sort((a, b) => b.length - a.length)
+      .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .concat(['[A-Z]{3}']).join('|') + ')';
     const cityPair = new RegExp('\\b' + tok + '\\s*(?:TO|→|->|>|–|—|-|\\/)\\s*' + tok + '\\b')
       .exec(text.toUpperCase());
     if (cityPair) {
@@ -798,15 +907,15 @@ function flightNightLocations(leg) {
   const out = [];
   // Night before departure = origin (only if we know the origin country)
   if (leg.origCountry) {
-    out.push({ date: addDaysISO(depDate, -1), country: leg.origCountry, code: leg.origCode });
+    out.push({ date: addDaysISO(depDate, -1), country: leg.origCountry, code: leg.origCode, role: 'origin' });
   }
   if (arrDate <= depDate) {
     // Lands the same UK day → at the midnight ending depDate he's at the destination
-    out.push({ date: depDate, country: leg.destCountry, code: leg.destCode });
+    out.push({ date: depDate, country: leg.destCountry, code: leg.destCode, role: 'dest' });
   } else {
     // Overnight: airborne at the midnight ending depDate; at destination by arrival day's midnight
-    out.push({ date: depDate, airborne: true, country: leg.destCountry, code: leg.destCode });
-    out.push({ date: arrDate, country: leg.destCountry, code: leg.destCode });
+    out.push({ date: depDate, airborne: true, country: leg.destCountry, code: leg.destCode, role: 'dest' });
+    out.push({ date: arrDate, country: leg.destCountry, code: leg.destCode, role: 'dest' });
   }
   return out;
 }
@@ -945,24 +1054,31 @@ async function processCalendar(token) {
     // Skip events that don't look like travel
     const isFlight = /\b(flight|fly|depart|arrive|airport|boarding|BA\d|EK\d|LH\d|AF\d|AZ\d|FR\d|U2\d|QR\d|EY\d|SQ\d|CX\d|TK\d)/i.test(allText);
     const isHotel = /\b(hotel|check.?in|check.?out|booking|reservation|stay|accommodation|airbnb)/i.test(allText);
+    const isRail = isRailText(allText);
 
-    if (!isFlight && !isHotel) continue;
+    if (!isFlight && !isHotel && !isRail) continue;
 
     const startDate = parseDate(event.start?.dateTime || event.start?.date);
     const endDate = parseDate(event.end?.dateTime || event.end?.date);
     if (!startDate) continue;
 
-    if (isFlight) {
+    if (isFlight || isRail) {
       const flights = extractFlights(allTextUpper);
       const dest = extractDestination(allTextUpper);
+      const leg = buildFlightLeg(allTextUpper, startDate, endDate);
+      if (isRail && !isFlight && !leg) {
+        console.log('  🚆 rail event with no resolvable route: ' + subject.slice(0, 70));
+      }
       bookings.push({
         type: 'flight',
+        rail: isRail && !isFlight,
         date: fmtDate(startDate),
         flights: flights.join(', '),
-        city: dest?.city || extractCity(allText) || '',
-        country: dest?.country || '',
+        city: (leg && leg.destCode && AIRPORTS[leg.destCode] ? AIRPORTS[leg.destCode].city : '') ||
+              dest?.city || extractCity(allText) || '',
+        country: (leg && leg.destCountry) || dest?.country || '',
         place: '',
-        flightLeg: buildFlightLeg(allTextUpper, startDate, endDate),
+        flightLeg: leg,
         source: 'calendar',
         raw: subject
       });
@@ -980,7 +1096,7 @@ async function processCalendar(token) {
           nights: nights.length,
           flights: '',
           city: extractCity(allText) || location || '',
-          country: '',
+          country: hotelCountry(extractCity(allText) || location || hotelName, subject + ' ' + location),
           place: hotelName,
           source: 'calendar',
           raw: subject
@@ -1162,7 +1278,7 @@ async function processEmailsFromFolder(token, folderId, folderType) {
           nights: nights.length,
           flights: '',
           city: city,
-          country: '',
+          country: hotelCountry(city || hotelName, subject),
           place: hotelName,
           source: 'email',
           raw: subject
@@ -1251,36 +1367,56 @@ async function updateFirebase(bookings) {
   // down transit days that GPS pings get wrong, and a round trip cross-checks itself
   // (a night is both the outbound destination and the return origin).
   const flightHints = {}; // dateStr -> { country, code, airborne?, flight, conflict? }
-  for (const b of bookings) {
-    if (b.type !== 'flight' || !b.flightLeg) continue;
-    for (const loc of flightNightLocations(b.flightLeg)) {
-      const cur = flightHints[loc.date];
-      if (!cur) {
-        flightHints[loc.date] = { country: loc.country, code: loc.code, airborne: !!loc.airborne, flight: b.flightLeg.flight || (b.flights || '') };
-      } else if (cur.airborne && !loc.airborne) {
-        // A definite location supersedes an airborne marker for the same night.
-        flightHints[loc.date] = { country: loc.country, code: loc.code, airborne: false, flight: cur.flight };
-      } else if (!cur.airborne && !loc.airborne &&
-                 normalizeCountry(cur.country) !== normalizeCountry(loc.country)) {
-        cur.conflict = normalizeCountry(cur.country) + ' vs ' + normalizeCountry(loc.country);
-      }
-    }
-  }
 
-  // Fill the nights BETWEEN a flight's arrival and the matching return departure
-  // (destination country carries through the stay). Deduped + sorted by departure.
+  // Dedupe and sort the legs BEFORE building hints. Order matters: on an out-and-back
+  // day (Steve does London->France->London by Eurostar) the LAST arrival of the day is
+  // where he sleeps, so later legs must be applied last. The dedupe key includes the
+  // route and departure time because rail legs often have no service number at all —
+  // keying on "flight number + date" alone silently dropped the return leg.
   const seenLegs = new Set();
   const sortedLegs = bookings
     .filter(b => b.type === 'flight' && b.flightLeg && b.flightLeg.depUKdate)
     .map(b => b.flightLeg)
     .filter(l => {
-      const k = (l.flight || '') + '|' + l.depUKdate;
+      const k = (l.flight || '') + '|' + l.depUKdate + '|' + (l.origCode || '') + '>' +
+                (l.destCode || '') + '|' + (l.depUKmin == null ? '' : l.depUKmin);
       if (seenLegs.has(k)) return false;
       seenLegs.add(k);
       return true;
     })
     .sort((a, b) => (a.depUKdate + String(a.depUKmin == null ? 720 : a.depUKmin).padStart(4, '0'))
       .localeCompare(b.depUKdate + String(b.depUKmin == null ? 720 : b.depUKmin).padStart(4, '0')));
+
+  for (const leg of sortedLegs) {
+    for (const loc of flightNightLocations(leg)) {
+      const cur = flightHints[loc.date];
+      const mk = () => ({ country: loc.country, code: loc.code, airborne: !!loc.airborne,
+                          flight: leg.flight || '', role: loc.role });
+      if (!cur) { flightHints[loc.date] = mk(); continue; }
+      if (cur.airborne && !loc.airborne) {
+        // A definite location supersedes an airborne marker for the same night.
+        flightHints[loc.date] = mk();
+      } else if (loc.role === 'dest' && !loc.airborne) {
+        // Legs are in departure order, so a later arrival on the same night wins — that
+        // is where he actually went to bed. An 'origin' hint (the night BEFORE a
+        // departure) never overwrites an arrival: it is the weaker, earlier claim.
+        if (cur.role === 'dest' && !cur.airborne &&
+            normalizeCountry(cur.country) !== normalizeCountry(loc.country)) {
+          const c = normalizeCountry(cur.country) + ' vs ' + normalizeCountry(loc.country);
+          flightHints[loc.date] = mk();
+          flightHints[loc.date].conflict = c + ' (took the later arrival)';
+        } else {
+          flightHints[loc.date] = mk();
+        }
+      } else if (loc.role === 'origin' && cur.role === 'origin' && !cur.airborne &&
+                 normalizeCountry(cur.country) !== normalizeCountry(loc.country)) {
+        cur.conflict = normalizeCountry(cur.country) + ' vs ' + normalizeCountry(loc.country);
+      }
+    }
+  }
+
+  // Fill the nights BETWEEN an arrival and the matching return departure (destination
+  // country carries through the stay).
   const gapFilled = fillFlightGaps(flightHints, sortedLegs);
   if (gapFilled > 0) console.log(`Flight gap-fill: ${gapFilled} night(s) carried through between flights`);
 
@@ -1331,7 +1467,10 @@ async function updateFirebase(bookings) {
         console.log('  Kept bracket country ' + evB.country + ' on ' + dateStr +
           ': both brackets agree and one is near midnight (flight said ' + fh.country + ')');
       }
-      if (fh && !fh.airborne && fh.country && isGuess && !bracketsBeatFlight &&
+      // A GAP-FILL is not a flight, it is an ASSUMPTION that Steve stayed put between
+      // two real legs. It must never overrule GPS on the ground, not even a bracket
+      // guess. (Aug 2026: a BA512 gap-fill stamped UK over a France trip by Eurostar.)
+      if (fh && !fh.gapFill && !fh.airborne && fh.country && isGuess && !bracketsBeatFlight &&
           normalizeCountry(fh.country) !== normalizeCountry(current.country || '')) {
         const sourceInfo = booking.source + ': ' + (booking.raw || '').slice(0, 120);
         const existingSource = current.bookingSource || '';
@@ -1407,8 +1546,17 @@ async function updateFirebase(bookings) {
     // A manually-set entry (user typed it; not GPS, not booking) is authoritative for
     // location — keep it. Otherwise the freshly-resolved booking wins, so a newly
     // synced specific booking can CORRECT a previous booking's wrong country.
-    const manualSet = !!(current && current.city && !current.autoGps &&
-                         !current.autoBooking && !current.gpsConfirmed);
+    // `manualOverride` is set by the client when Steve types a day in by hand. Before
+    // Aug 2026 the only test was "has a city and no auto flags", but the client keeps
+    // autoBooking on an edited entry, so every manual correction on a booking/flight day
+    // silently lost to the next 6-hourly sync. An explicit flag cannot be argued with.
+    const manualSet = !!(current && (current.manualOverride ||
+                        (current.city && !current.autoGps &&
+                         !current.autoBooking && !current.gpsConfirmed)));
+    if (current && current.manualOverride) {
+      console.log('  ✋ MANUAL OVERRIDE held on ' + dateStr + ': ' +
+        (current.country || '') + ' (' + (current.city || '') + ')');
+    }
 
     const entry = {
       place: manualSet ? current.place : (booking.place || current?.place || ''),
@@ -1427,6 +1575,7 @@ async function updateFirebase(bookings) {
     if (current?.lon) entry.lon = current.lon;
     if (current?.working) entry.working = current.working;
     if (current?.autoGps) entry.autoGps = current.autoGps;
+    if (current?.manualOverride) entry.manualOverride = true;
 
     // Record overlapping-booking disagreement for the audit trail
     if (booking.bookingConflict) entry.bookingConflict = booking.bookingConflict;
@@ -1448,7 +1597,18 @@ async function updateFirebase(bookings) {
         }
       } else if (fh.country) {
         const fhCountry = normalizeCountry(fh.country);
-        if (fhCountry !== entry.country) {
+        // A gap-fill is a guess that Steve stayed in the country he last landed in. A
+        // HOTEL BOOKED FOR THAT NIGHT is a booked bed and beats the guess. (Aug 13-16
+        // 2026: BA512 gap-fill stamped UK over a booked French hotel reached by
+        // Eurostar, which the parser could not see at all.)
+        const hotelBeatsGapFill = !!(fh.gapFill && booking.country &&
+          normalizeCountry(booking.country) !== fhCountry);
+        if (hotelBeatsGapFill) {
+          console.log('  🏨 Kept booking country ' + entry.country + ' on ' + dateStr +
+            ': a booked stay beats a flight gap-fill guess (' + fhCountry + ')');
+          entry.bookingConflict = 'Flight gap-fill guessed ' + fhCountry +
+            '; booked stay says ' + entry.country + ' — kept the booking.';
+        } else if (fhCountry !== entry.country) {
           entry.notes = (entry.notes ? entry.notes + ' | ' : '') +
             'Flight-inferred country ' + fhCountry + ' from ' + (fh.flight || 'flight') +
             (fh.gapFill ? ' stay — night between arrival and return flight' : ' direction') +
@@ -1465,10 +1625,24 @@ async function updateFirebase(bookings) {
           }
           flightChanged = true;
         }
-        entry.flightInferred = true;
-        if (fh.conflict) entry.bookingConflict = 'Flight direction conflict: ' + fh.conflict;
+        if (!hotelBeatsGapFill) {
+          entry.flightInferred = true;
+          if (fh.gapFill) entry.flightGapFill = true;
+          if (fh.conflict) entry.bookingConflict = 'Flight direction conflict: ' + fh.conflict;
+        }
       }
     }
+
+    // NEVER destroy raw GPS evidence. This is a whole-node write, so anything not
+    // copied across is deleted. `brackets` are observations, not conclusions — they must
+    // survive every sync so the client can re-infer the night from them. Until Aug 2026
+    // they were dropped, which is why booking/flight days came back with no pings.
+    if (current?.brackets) entry.brackets = current.brackets;
+    // Keep the derived-from-brackets markers only while the country is unchanged; if a
+    // flight hint moved the night, the old bracket conclusion no longer describes it.
+    if (current?.bracketInferred && !flightChanged) entry.bracketInferred = true;
+    if (current?.captureSource && !flightChanged) entry.captureSource = current.captureSource;
+    if (current?.capturedAt && !flightChanged) entry.capturedAt = current.capturedAt;
 
     // Check for country conflict — GPS vs booking disagree on country
     if (current?.autoGps && current?.country && booking.country &&
@@ -1487,7 +1661,8 @@ async function updateFirebase(bookings) {
                    (booking.bookingConflict && booking.bookingConflict !== current.bookingConflict) ||
                    flightChanged ||
                    (entry.flightInferred && !current?.flightInferred) ||
-                   (!current.bookingSource && entry.bookingSource);
+                   (!current.bookingSource && entry.bookingSource) ||
+                   (entry.brackets && !current.brackets);
 
     if (hasNew) {
       updates['locations/' + dateStr] = entry;

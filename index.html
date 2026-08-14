@@ -495,7 +495,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-08-06b';
+const APP_VERSION = '2026-08-14a';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -821,6 +821,8 @@ function syncEntry(date, entry) {
   if (entry.lateBackfill) data.lateBackfill = true;
   if (entry.bracketInferred) data.bracketInferred = true;
   if (entry.flightInferred) data.flightInferred = true;
+  if (entry.flightGapFill) data.flightGapFill = true;
+  if (entry.manualOverride) data.manualOverride = true;
   if (entry.airborneTransit) data.airborneTransit = true;
   if (entry.bookingConflict) data.bookingConflict = entry.bookingConflict;
   if (entry.brackets) data.brackets = entry.brackets;
@@ -950,7 +952,7 @@ function renderList() {
         (ds <= todayStr && entry?.bracketInferred ? '<div class="working-tag" style="background:#fef9c3;color:#92400e;">📐 INFERRED</div>' : '') +
         (entry?.autoGps && !entry?.unconfirmed && !entry?.gpsConfirmed && !entry?.bracketInferred ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS</div>' : '') +
         (entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS + MANUAL</div>' : '') +
-        (entry && !entry.autoGps && !entry.autoBooking && !entry.gpsConfirmed && !entry.bracketInferred && !entry.brackets && entry.city ? '<div class="working-tag" style="background:#f3e8ff;color:#6b21a8;">MANUAL</div>' : '') +
+        (entry && (entry.manualOverride || (!entry.autoGps && !entry.autoBooking && !entry.gpsConfirmed && !entry.bracketInferred && !entry.brackets && entry.city)) ? '<div class="working-tag" style="background:#f3e8ff;color:#6b21a8;">MANUAL</div>' : '') +
         (entry?.autoBooking && !entry?.autoGps && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f0fe;color:#1a73e8;">BOOKING' + (entry.flights && entry.place ? ' ✈+🏨' : entry.flights ? ' ✈' : entry.place ? ' 🏨' : '') + '</div>' : '') +
         (isUnconfirmed && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#fff3cd;color:#92400e;">📌 CHECK</div>' : '') +
         (entry?.countryConflict && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#fff3cd;color:#856404;">CTRY</div>' : '') +
@@ -1214,7 +1216,7 @@ function exportHMRCReport() {
     if (entry?.working) ukWorkDays++;
 
     // Build audit row
-    const source = entry ? (entry.gpsConfirmed ? 'GPS + Manual' : entry.autoBooking ? 'Booking' : entry.autoGps ? 'GPS' : entry.city ? 'Manual' : '') : '';
+    const source = entry ? (entry.gpsConfirmed ? 'GPS + Manual' : entry.manualOverride ? 'Manual' : entry.autoBooking ? 'Booking' : entry.autoGps ? 'GPS' : entry.city ? 'Manual' : '') : '';
     dayRows.push({
       date: ds, day: daysFull[new Date(ds + 'T00:00:00').getDay()],
       place: entry?.place || '', city: entry?.city || '', country: country || 'UNRECORDED',
@@ -1678,7 +1680,7 @@ function openDay(dateStr) {
   // Source icons — show which inputs contributed
   const sourcesDiv = document.getElementById('modalSources');
   const sources = [];
-  if (entry.city && !entry.autoGps && !entry.autoBooking && !entry.gpsConfirmed && !entry.bracketInferred && !entry.brackets) {
+  if (entry.manualOverride || (entry.city && !entry.autoGps && !entry.autoBooking && !entry.gpsConfirmed && !entry.bracketInferred && !entry.brackets)) {
     sources.push({ icon: '✏️', label: 'Manual', color: '#f3e8ff', text: '#6b21a8' });
   }
   if (entry.gpsConfirmed) {
@@ -1769,9 +1771,16 @@ function saveDay() {
   };
   // GPS was captured at some point — mark as confirmed by manual save
   if (existing?.autoGps) entry.gpsConfirmed = true;
+  // Steve typed this day in by hand. Say so EXPLICITLY. The old test for "manual" was
+  // "has a city and no auto flags", but an edited booking/flight day keeps autoBooking,
+  // so the server never recognised the edit and the next 6-hourly sync overwrote it
+  // (Aug 13 2026). An explicit flag survives that.
+  entry.manualOverride = true;
   // Manual save clears unconfirmed and conflict flags
   delete entry.unconfirmed;
   delete entry.countryConflict;
+  // A hand-typed day is no longer a flight/gap-fill guess.
+  delete entry.flightGapFill;
 
   if (entry.place || entry.city || entry.country) {
     entries[savedDate] = entry;
@@ -2229,7 +2238,8 @@ function reconcileBracketCountries() {
       }
     }
     const reliableMidnightGps = e.autoGps && typeof e.lat === 'number' && !e.bracketInferred && !e.lateBackfill && !staleAutoGps;
-    const userSet = e.city && !e.autoGps && !e.autoBooking && !e.flightInferred;
+    const userSet = !!e.manualOverride ||
+      (e.city && !e.autoGps && !e.autoBooking && !e.flightInferred);
     if (reliableMidnightGps || e.gpsConfirmed || userSet) return;
 
     // Clear the stale autoGps so inferMidnightFromBrackets treats this entry as
@@ -2398,7 +2408,8 @@ function inferMidnightFromBrackets(dateStr, silent) {
     }
   }
   const reliableMidnightGps = entry.autoGps && typeof entry.lat === 'number' && !entry.bracketInferred && !entry.lateBackfill && !staleAutoGps;
-  const userSet = entry.city && !entry.autoGps && !entry.autoBooking && !entry.flightInferred;
+  const userSet = !!entry.manualOverride ||
+    (entry.city && !entry.autoGps && !entry.autoBooking && !entry.flightInferred);
   const canInfer = !reliableMidnightGps && !entry.gpsConfirmed && !userSet;
   if (!canInfer) return;
 
@@ -2410,7 +2421,10 @@ function inferMidnightFromBrackets(dateStr, silent) {
   // country and just flag the conflict. (June 9 2026: BA590 flew to Italy in the evening;
   // a midday Oxford ping must NOT flip the night to UK when the 7am Cernobbio ping and
   // the flight both say Italy.)
-  if (entry.flightInferred && entry.country) {
+  // NOTE: flightGapFill is excluded. A gap-fill is not a flight, it is an assumption
+  // that Steve stayed put between two real legs — it has no business out-ranking a
+  // trustworthy GPS bracket the way a booked, timed flight does.
+  if (entry.flightInferred && !entry.flightGapFill && entry.country) {
     const F = entry.country;
     const evC = ev?.country, amC = am?.country;
     const bothAgreeDifferent = evC && amC && evC === amC && evC !== F;
@@ -3022,7 +3036,7 @@ function exportCSV() {
   allDates.forEach(ds => {
     const e = entries[ds];
     const d = new Date(ds + 'T00:00:00');
-    csv += ds + ',' + daysFull[d.getDay()] + ',' + esc(e.place) + ',' + esc(e.city) + ',' + esc(e.country) + ',' + esc(e.flights) + ',' + esc(e.notes) + ',' + (e.lat||'') + ',' + (e.lon||'') + ',' + (e.working ? 'Yes' : '') + ',' + (e.gpsConfirmed ? 'GPS + Manual' : e.autoBooking ? 'Booking' : e.autoGps ? 'GPS' : 'Manual') + ',' + esc(e.countryConflict || '') + ',' + esc(e.bookingSource || '') + '\n';
+    csv += ds + ',' + daysFull[d.getDay()] + ',' + esc(e.place) + ',' + esc(e.city) + ',' + esc(e.country) + ',' + esc(e.flights) + ',' + esc(e.notes) + ',' + (e.lat||'') + ',' + (e.lon||'') + ',' + (e.working ? 'Yes' : '') + ',' + (e.gpsConfirmed ? 'GPS + Manual' : e.manualOverride ? 'Manual' : e.autoBooking ? 'Booking' : e.autoGps ? 'GPS' : 'Manual') + ',' + esc(e.countryConflict || '') + ',' + esc(e.bookingSource || '') + '\n';
   });
   download(csv, 'midnight-tracker-export-' + fmtDate(new Date()) + '.csv', 'text/csv');
   toast('Exported CSV');
