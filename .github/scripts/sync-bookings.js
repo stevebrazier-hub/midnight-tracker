@@ -28,7 +28,10 @@ const https = require('https');
 // ===== CONFIG =====
 const USER_EMAIL = process.env.MS_USER_EMAIL || 'steveb@canapii.com';
 const DAYS_AHEAD = 90;  // Look 90 days ahead for calendar events
-const DAYS_BACK = 7;    // Look 7 days back for recent emails
+const DAYS_BACK = 7;    // Look 7 days back for recent HOTEL emails
+// Flights and trains are booked weeks ahead, and unlike hotels the confirmation is the
+// only record of the journey. A 7-day window missed a Eurostar booked 11 days earlier.
+const FLIGHT_DAYS_BACK = 120;
 const HOTEL_FOLDERS = ['Hotels', 'Hotel'];
 const FLIGHT_FOLDERS = ['Flights', 'Flight'];
 
@@ -952,6 +955,142 @@ function fillFlightGaps(flightHints, legs) {
   return filled;
 }
 
+// ===== RAIL TICKET EMAILS =====
+// Unlike airlines, Eurostar/TGV confirmations are the ONLY record of the journey —
+// there is usually no calendar event — and they lay the legs out in a fixed shape:
+//   Outbound  Thursday, 13 August 2026  London St Pancras Int'l  Lille Europe  17:04 19:27
+//   Return    Saturday, 15 August 2026  Lille Europe  London St Pancras Int'l   08:35 08:57
+// Times are printed in each STATION's local time, so the continental end is +1h on UK.
+
+const MONTHS = { JANUARY:1, FEBRUARY:2, MARCH:3, APRIL:4, MAY:5, JUNE:6, JULY:7,
+  AUGUST:8, SEPTEMBER:9, OCTOBER:10, NOVEMBER:11, DECEMBER:12 };
+
+// Minutes a country's wall clock runs AHEAD of UK time. Central European countries are
+// always exactly +1 on the UK (both observe DST on the same dates), so no tz database
+// is needed to convert a printed local time to UK time.
+const MINUTES_AHEAD_OF_UK = {
+  'France': 60, 'Belgium': 60, 'Netherlands': 60, 'Germany': 60, 'Italy': 60,
+  'Spain': 60, 'Switzerland': 60, 'Austria': 60, 'Denmark': 60, 'Sweden': 60,
+  'Norway': 60, 'Poland': 60, 'Czechia': 60, 'Hungary': 60,
+  'UK': 0, 'Ireland': 0, 'Portugal': 0,
+};
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+// Find known place/station names in TEXT ORDER, longest name first so
+// "London St Pancras Int'l" yields LONDON and ST PANCRAS rather than splitting badly.
+function extractPlaceCodesInOrder(text) {
+  if (!text) return [];
+  const up = text.toUpperCase();
+  const keys = Object.keys(CITY_AIRPORTS).sort((a, b) => b.length - a.length);
+  const taken = [];
+  const hits = [];
+  for (const k of keys) {
+    let from = 0, idx;
+    while ((idx = up.indexOf(k, from)) !== -1) {
+      const end = idx + k.length;
+      const before = idx === 0 ? ' ' : up[idx - 1];
+      const after = end >= up.length ? ' ' : up[end];
+      const bounded = !/[A-Z]/.test(before) && !/[A-Z]/.test(after);
+      if (bounded && !taken.some(r => idx < r[1] && end > r[0])) {
+        taken.push([idx, end]);
+        hits.push({ idx, code: CITY_AIRPORTS[k] });
+      }
+      from = idx + 1;
+    }
+  }
+  hits.sort((a, b) => a.idx - b.idx);
+  // Collapse consecutive duplicates (LONDON then ST PANCRAS are both LHR)
+  const out = [];
+  for (const h of hits) if (out[out.length - 1] !== h.code) out.push(h.code);
+  return out;
+}
+
+// A rail confirmation forwarded from a colleague is THEIR trip. The Eurostar template
+// addresses the traveller by name ("Dear Steven Brazier,"), which is the only reliable
+// signal here — there is no "Passenger:" label for the generic guard to find.
+function railBookedForSomeoneElse(text) {
+  if (!text) return false;
+  const names = [];
+  const re = /\bDear\s+([A-Za-z][A-Za-z'’\- ]{2,40}?)\s*,/g;
+  let m;
+  while ((m = re.exec(text)) !== null) names.push(m[1].toUpperCase());
+  if (!names.length) return false; // cannot judge → allow
+  return !names.some(n => n.includes(SELF_NAME));
+}
+
+// Parse every leg out of a rail confirmation email body. Returns leg objects in the
+// same shape buildFlightLeg() produces, so they feed the identical night inference.
+function parseRailEmailLegs(fullBody, subject) {
+  if (!fullBody || !isRailText(fullBody + ' ' + (subject || ''))) return [];
+  // Split on the leg headings, keeping the heading with its block.
+  const marks = [];
+  const headRe = /\b(Outbound|Return|Inbound|Leg\s*\d)\b/gi;
+  let h;
+  while ((h = headRe.exec(fullBody)) !== null) marks.push(h.index);
+  const chunks = [];
+  if (marks.length) {
+    for (let i = 0; i < marks.length; i++) {
+      chunks.push(fullBody.slice(marks[i], marks[i + 1] === undefined
+        ? Math.min(fullBody.length, marks[i] + 600) : marks[i + 1]));
+    }
+  } else {
+    chunks.push(fullBody.slice(0, 900));
+  }
+
+  const legs = [];
+  const seen = new Set();
+  for (const chunk of chunks) {
+    const dm = /\b(\d{1,2})\s+([A-Za-z]+)\s+(20\d\d)\b/.exec(chunk);
+    if (!dm) continue;
+    const mon = MONTHS[dm[2].toUpperCase()];
+    if (!mon) continue;
+    const day = parseInt(dm[1], 10), year = parseInt(dm[3], 10);
+    const dateStr = year + '-' + pad2(mon) + '-' + pad2(day);
+
+    const times = [];
+    const tRe = /\b([01]?\d|2[0-3]):([0-5]\d)\b/g;
+    let t;
+    while ((t = tRe.exec(chunk)) !== null && times.length < 2) {
+      times.push(parseInt(t[1], 10) * 60 + parseInt(t[2], 10));
+    }
+    if (!times.length) continue;
+
+    const codes = extractPlaceCodesInOrder(chunk);
+    if (codes.length < 2) continue;
+    const origCode = codes[0], destCode = codes[1];
+    if (!AIRPORTS[origCode] || !AIRPORTS[destCode]) continue;
+    const origCountry = AIRPORTS[origCode].country, destCountry = AIRPORTS[destCode].country;
+
+    // Printed times are LOCAL to each station — convert both ends to UK time.
+    const oOff = MINUTES_AHEAD_OF_UK[origCountry] || 0;
+    const dOff = MINUTES_AHEAD_OF_UK[destCountry] || 0;
+    let depUKdate = dateStr, depUKmin = times[0] - oOff;
+    if (depUKmin < 0) { depUKmin += 1440; depUKdate = addDaysISO(dateStr, -1); }
+
+    let arrUKdate = null, arrUKmin = null;
+    if (times.length > 1) {
+      arrUKmin = times[1] - dOff;
+      arrUKdate = dateStr;
+      if (arrUKmin < 0) { arrUKmin += 1440; arrUKdate = addDaysISO(dateStr, -1); }
+      // Arrival before departure in UK terms means the journey ran past UK midnight.
+      if (arrUKdate < depUKdate || (arrUKdate === depUKdate && arrUKmin < depUKmin)) {
+        arrUKdate = addDaysISO(arrUKdate, 1);
+      }
+    }
+
+    const key = depUKdate + '|' + origCode + '>' + destCode;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    legs.push({
+      flight: (/(eurostar)/i.test(chunk) ? 'Eurostar' : 'Train'),
+      origCode, origCountry, destCode, destCountry,
+      depUKdate, depUKmin, arrUKdate, arrUKmin
+    });
+  }
+  return legs;
+}
+
 // Extract hotel name from text
 function extractHotelName(text) {
   if (!text) return null;
@@ -1179,7 +1318,7 @@ async function processEmails(token) {
 
 async function processEmailsFromFolder(token, folderId, folderType) {
   const since = new Date();
-  since.setDate(since.getDate() - DAYS_BACK);
+  since.setDate(since.getDate() - (folderType === 'flight' ? FLIGHT_DAYS_BACK : DAYS_BACK));
 
   const filter = `receivedDateTime ge ${since.toISOString()}`;
   const path = `/users/${USER_EMAIL}/mailFolders/${folderId}/messages?$filter=${encodeURIComponent(filter)}&$top=50&$select=subject,body,bodyPreview,receivedDateTime,from`;
@@ -1236,6 +1375,34 @@ async function processEmailsFromFolder(token, folderId, folderType) {
 
     // Sort dates and take first as check-in, last as check-out
     extractedDates.sort((a, b) => a - b);
+
+    // RAIL TICKETS FIRST. A Eurostar confirmation carries real, timed, directional legs
+    // — far better evidence than the generic "dates mentioned in this email" path, which
+    // would file it as a country-less flight and let a gap-fill guess win the night.
+    const railLegs = parseRailEmailLegs(fullBody, subject);
+    if (railLegs.length) {
+      if (railBookedForSomeoneElse(fullBody)) {
+        console.log(`  👤 SKIP rail booking for someone else: ${subject.slice(0, 60)}`);
+        continue;
+      }
+      for (const leg of railLegs) {
+        console.log('  🚆 rail leg ' + leg.depUKdate + ' ' + leg.origCode + '→' + leg.destCode +
+          ' (' + leg.origCountry + '→' + leg.destCountry + ')');
+        bookings.push({
+          type: 'flight',
+          rail: true,
+          date: leg.depUKdate,
+          flights: '',
+          city: AIRPORTS[leg.destCode] ? AIRPORTS[leg.destCode].city : '',
+          country: leg.destCountry,
+          place: '',
+          flightLeg: leg,
+          source: 'email-rail',
+          raw: subject
+        });
+      }
+      continue;
+    }
 
     if (isFlight && extractedDates.length > 0) {
       const flights = extractFlights(allTextUpper);
