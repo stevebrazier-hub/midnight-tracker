@@ -28,6 +28,12 @@ const https = require('https');
 // ===== CONFIG =====
 const USER_EMAIL = process.env.MS_USER_EMAIL || 'steveb@canapii.com';
 const DAYS_AHEAD = 90;  // Look 90 days ahead for calendar events
+// Calendar lookback. Was 3 days, which meant a flight dropped out of the leg list a
+// few days after it flew - and fillFlightGaps then paired the two REMAINING legs
+// either side of it and stamped their country over the whole trip in between.
+// (Aug 2026: BA512/BA513 Faro aged out, leaving Eurostar 12 Aug -> TG917 26 Aug
+// adjacent, which back-filled UK across the Portugal week.)
+const CAL_DAYS_BACK = 45;
 const DAYS_BACK = 7;    // Look 7 days back for recent HOTEL emails
 // Flights and trains are booked weeks ahead, and unlike hotels the confirmation is the
 // only record of the journey. A 7-day window missed a Eurostar booked 11 days earlier.
@@ -366,13 +372,13 @@ async function googleGet(token, url) {
 async function processGoogleCalendar(token) {
   const now = new Date();
   const startDate = new Date(now);
-  startDate.setDate(startDate.getDate() - 3);
+  startDate.setDate(startDate.getDate() - CAL_DAYS_BACK);
   const endDate = new Date(now);
   endDate.setDate(endDate.getDate() + DAYS_AHEAD);
 
   console.log(`Reading Google Calendar events from ${fmtDate(startDate)} to ${fmtDate(endDate)}...`);
 
-  const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${startDate.toISOString()}&timeMax=${endDate.toISOString()}&maxResults=250&singleEvents=true&orderBy=startTime`;
+  const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${startDate.toISOString()}&timeMax=${endDate.toISOString()}&maxResults=2500&singleEvents=true&orderBy=startTime`;
   const result = await googleGet(token, url);
 
   if (result.error) {
@@ -1152,7 +1158,7 @@ function extractCity(text) {
 async function processCalendar(token) {
   const now = new Date();
   const startDate = new Date(now);
-  startDate.setDate(startDate.getDate() - 3); // Include a few days back
+  startDate.setDate(startDate.getDate() - CAL_DAYS_BACK);
   const endDate = new Date(now);
   endDate.setDate(endDate.getDate() + DAYS_AHEAD);
 
@@ -1161,7 +1167,7 @@ async function processCalendar(token) {
 
   console.log(`Reading calendar events from ${fmtDate(startDate)} to ${fmtDate(endDate)}...`);
 
-  const path = `/users/${USER_EMAIL}/calendarview?startDateTime=${start}&endDateTime=${end}&$top=100&$select=subject,bodyPreview,start,end,location,categories`;
+  const path = `/users/${USER_EMAIL}/calendarview?startDateTime=${start}&endDateTime=${end}&$top=999&$select=subject,bodyPreview,start,end,location,categories`;
   const result = await graphGet(token, path);
 
   if (result.error) {
@@ -1770,7 +1776,34 @@ async function updateFirebase(bookings) {
         // Eurostar, which the parser could not see at all.)
         const hotelBeatsGapFill = !!(fh.gapFill && booking.country &&
           normalizeCountry(booking.country) !== fhCountry);
-        if (hotelBeatsGapFill) {
+        // GPS on the ground beats a gap-fill guess, ALWAYS - even a daytime ping that is
+        // too far from midnight to flip a real booking. A gap-fill is not evidence, it is
+        // an assumption that Steve stayed where he last landed; a phone sitting in Albufeira
+        // at any hour outranks it. (Aug 20/23 2026: a 10:30 and an 08:05 Portugal ping lost
+        // to a fabricated Eurostar->TG917 UK stay.)
+        const gapBrs = (current && current.brackets) || {};
+        const gpsOther = [gapBrs.evening, gapBrs.morning].find(b =>
+          b && b.country && normalizeCountry(b.country) !== fhCountry);
+        const gpsBeatsGapFill = !!(fh.gapFill && gpsOther && !hotelBeatsGapFill);
+        if (gpsBeatsGapFill) {
+          const gpsC = normalizeCountry(gpsOther.country);
+          console.log('  \ud83d\udce1 GPS beats flight gap-fill on ' + dateStr + ': ping says ' +
+            gpsC + ' (' + (gpsOther.capturedAt || '') + '), gap-fill guessed ' + fhCountry);
+          if (gpsC !== entry.country) {
+            entry.notes = (entry.notes ? entry.notes + ' | ' : '') +
+              'GPS ping (' + (gpsOther.city || gpsC) + ' ' + (gpsOther.capturedAt || '') +
+              ') beat flight gap-fill guess ' + fhCountry + ' - a gap-fill is an assumption, GPS is not.';
+          }
+          entry.country = gpsC;
+          entry.city = gpsOther.city || '';
+          entry.place = gpsOther.place || gpsOther.city || '';
+          if (typeof gpsOther.lat === 'number') entry.lat = gpsOther.lat;
+          if (typeof gpsOther.lon === 'number') entry.lon = gpsOther.lon;
+          entry.unconfirmed = true;
+          entry.bookingConflict = 'Flight gap-fill guessed ' + fhCountry + '; GPS ping says ' +
+            gpsC + ' - kept the GPS.';
+          delete entry.flightGapFill;
+        } else if (hotelBeatsGapFill) {
           console.log('  🏨 Kept booking country ' + entry.country + ' on ' + dateStr +
             ': a booked stay beats a flight gap-fill guess (' + fhCountry + ')');
           entry.bookingConflict = 'Flight gap-fill guessed ' + fhCountry +
@@ -1792,7 +1825,7 @@ async function updateFirebase(bookings) {
           }
           flightChanged = true;
         }
-        if (!hotelBeatsGapFill) {
+        if (!hotelBeatsGapFill && !gpsBeatsGapFill) {
           entry.flightInferred = true;
           if (fh.gapFill) entry.flightGapFill = true;
           if (fh.conflict) entry.bookingConflict = 'Flight direction conflict: ' + fh.conflict;

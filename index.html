@@ -495,7 +495,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-08-14a';
+const APP_VERSION = '2026-08-31a';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -788,6 +788,7 @@ function initFirebaseSync() {
       try { clearJunkBookingCities(); } catch(e) { console.warn('clearJunkBookingCities failed:', e); }
       try { healMisattributedMorningBrackets(); } catch(e) { console.warn('healMisattributedMorningBrackets failed:', e); }
       try { reconcileBracketCountries(); } catch(e) { console.warn('reconcileBracketCountries failed:', e); }
+      try { reinferGapFillOverGps(); } catch(e) { console.warn('reinferGapFillOverGps failed:', e); }
       render();
     }
   });
@@ -2176,6 +2177,31 @@ function addDaysStr(dateStr, n) {
 // and if that day's recorded location was inferred FROM this bracket, demote it back to
 // booking data (flagged for confirmation). Runs once on load. (July 2/3 2026: an 11:23
 // ping on Fri 3rd shown on Thu 2nd.)
+// HEAL: nights a flight GAP-FILL stamped with a country while a GPS bracket sat there
+// saying somewhere else. Until Aug 31 2026 a gap-fill was treated exactly like a booked
+// stay, so a daytime ping ("too far from midnight") could not flip it - and a morning
+// reading misfiled into the evening slot was read as an early-evening ping and ignored.
+// Both are fixed above; this re-runs inference on the days that were already written.
+function reinferGapFillOverGps() {
+  let fixed = 0;
+  Object.keys(entries).forEach(dateStr => {
+    const e = entries[dateStr];
+    if (!e || !e.brackets) return;
+    if (e.gpsConfirmed || e.manualOverride) return;
+    const suspect = e.flightGapFill ||
+      /too far from midnight/i.test(e.countryConflict || '');
+    if (!suspect) return;
+    const brs = [e.brackets.evening, e.brackets.morning].filter(b => b && b.country);
+    if (!brs.length) return;
+    if (brs.every(b => b.country === e.country)) return;
+    console.log('Re-inferring ' + dateStr + ': stored ' + e.country +
+      ' but GPS bracket says ' + brs.map(b => b.country).join('/'));
+    inferMidnightFromBrackets(dateStr, true);
+    fixed++;
+  });
+  if (fixed > 0) console.log('Re-inferred ' + fixed + ' gap-fill-over-GPS night(s)');
+}
+
 function healMisattributedMorningBrackets() {
   let moved = 0;
   Object.keys(entries).forEach(dateStr => {
@@ -2601,19 +2627,30 @@ function inferMidnightFromBrackets(dateStr, silent) {
     // So: trustworthy bracket → override the booking. Suspect late-morning bracket →
     // do NOT flip; flag unconfirmed + countryConflict + alert for manual confirmation.
     if (entry.autoBooking && entry.country && entry.country !== singleBracket.country) {
-      const bracketName = ev ? 'evening' : 'morning';
+      let bracketName = ev ? 'evening' : 'morning';
       const oldCountry = entry.country;
       const oldCity = entry.city || '';
       const hr = bracketHourUK(singleBracket.capturedAt);
       // Trustworthy as a midnight proxy: a late-evening reading (>=20:00, close to
-      // midnight) or a genuine early-morning wake-up reading (<09:00). An early-evening
-      // (18-19:59) or late-morning reading is too far from midnight to flip a booking.
-      const trustworthy = ev ? (hr !== null && hr >= 20) : (hr !== null && hr < 9);
+      // midnight) or a genuine early-morning wake-up reading (<09:00) taken the MORNING
+      // AFTER this night. Judge that by the reading's own capture DATE, never by which
+      // slot it happens to sit in: a 9pm push tapped the next morning stores an 08:05
+      // reading in the "evening" slot, and reading it as an early-evening ping threw away
+      // real wake-up GPS. (Aug 23 2026: 08:05 Albufeira sat in the evening slot and lost
+      // to a fabricated UK stay.)
+      const capDay = (String(singleBracket.capturedAt || '').match(/^(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+      const nextDayReading = capDay ? capDay > dateStr : !ev;   // morning-after reading
+      const trustworthy = nextDayReading ? (hr !== null && hr < 9) : (hr !== null && hr >= 20);
+      // Label by when it was really taken, not the slot it was stored in.
+      bracketName = nextDayReading ? 'morning-after' : 'evening';
+      // A flight GAP-FILL is not evidence, it is an assumption that Steve stayed where he
+      // last landed. Any GPS ping in another country beats it, whatever hour it was taken.
+      const vsGapFill = !!entry.flightGapFill;
 
-      if (!trustworthy) {
+      if (!trustworthy && !vsGapFill) {
         // SUSPECT reading — too far from midnight (late-morning arrival, or an early-
         // evening reading before he'd settled). Keep the booking country; flag for review.
-        const proxyDesc = ev ? 'early-evening' : 'late-morning';
+        const proxyDesc = nextDayReading ? 'late-morning' : 'early-evening';
         console.log('Single-bracket CONFLICT (suspect ' + proxyDesc + ') for ' + dateStr +
           ': GPS ' + singleBracket.country + ' @ ' + singleBracket.capturedAt +
           ' kept booking ' + oldCountry + ' (not flipped)');
@@ -2646,7 +2683,8 @@ function inferMidnightFromBrackets(dateStr, silent) {
       }
 
       console.log('Single-bracket OVERRIDE for ' + dateStr + ': ' + bracketName +
-        ' GPS bracket (' + singleBracket.country + ') overrides booking (' + oldCountry + ')');
+        ' GPS bracket (' + singleBracket.country + ') overrides ' +
+        (vsGapFill && !trustworthy ? 'flight gap-fill guess' : 'booking') + ' (' + oldCountry + ')');
 
       entry.country = singleBracket.country;
       entry.city = singleBracket.city || '';
@@ -2658,7 +2696,8 @@ function inferMidnightFromBrackets(dateStr, silent) {
       entry.capturedAt = singleBracket.capturedAt || ukTimestamp();
       entry.captureSource = 'bracket-overrides-booking';
       entry.countryConflict = 'GPS bracket says ' + singleBracket.country +
-        ', booking said ' + oldCountry;
+        ', ' + (vsGapFill ? 'flight gap-fill guessed ' : 'booking said ') + oldCountry;
+      if (vsGapFill) delete entry.flightGapFill;
       entry.unconfirmed = true;
       entry.notes = (entry.notes || '') +
         (entry.notes ? ' | ' : '') +
