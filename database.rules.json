@@ -35,7 +35,9 @@
         "captureSource": { ".validate": "newData.isString()" },
         "lateBackfill": { ".validate": "newData.isBoolean()" },
         "bracketInferred": { ".validate": "newData.isBoolean()" },
-        "brackets": { ".read": "auth != null", ".write": "auth != null" }
+        "pingConsensus": { ".validate": "newData.isBoolean()" },
+        "brackets": { ".read": "auth != null", ".write": "auth != null" },
+        "pings": { ".read": "auth != null", ".write": "auth != null" }
       }
     }
   }

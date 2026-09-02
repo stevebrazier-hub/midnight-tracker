@@ -1838,6 +1838,11 @@ async function updateFirebase(bookings) {
     // survive every sync so the client can re-infer the night from them. Until Aug 2026
     // they were dropped, which is why booking/flight days came back with no pings.
     if (current?.brackets) entry.brackets = current.brackets;
+    // Same rule for the continuous ping log: it is the raw evidence trail, and on an
+    // Asia trip it may be the ONLY GPS the day has (the UK-hour bracket windows fall
+    // while Steve is asleep or at lunch). Losing it loses the proof.
+    if (current?.pings) entry.pings = current.pings;
+    if (current?.pingConsensus && !flightChanged) entry.pingConsensus = true;
     // Keep the derived-from-brackets markers only while the country is unchanged; if a
     // flight hint moved the night, the old bracket conclusion no longer describes it.
     if (current?.bracketInferred && !flightChanged) entry.bracketInferred = true;
@@ -1862,7 +1867,8 @@ async function updateFirebase(bookings) {
                    flightChanged ||
                    (entry.flightInferred && !current?.flightInferred) ||
                    (!current.bookingSource && entry.bookingSource) ||
-                   (entry.brackets && !current.brackets);
+                   (entry.brackets && !current.brackets) ||
+                   (entry.pings && !current.pings);
 
     if (hasNew) {
       updates['locations/' + dateStr] = entry;

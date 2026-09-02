@@ -475,6 +475,10 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       <div id="modalBracketMorning" style="margin-bottom:6px;display:none;font-size:11px;border-left:3px solid #e5e7eb;padding-left:8px;">
         <span id="morningBracketLabel" style="color:var(--text-light);">🌅 morning:</span> <span id="morningBracketText" style="font-family:monospace;"></span>
       </div>
+      <div id="modalPingLog" style="display:none;margin-top:6px;font-size:11px;border-left:3px solid #a7f3d0;padding-left:8px;">
+        <div style="color:var(--text-light);margin-bottom:2px;">📡 <span id="pingLogCount"></span></div>
+        <div id="pingLogList" style="font-family:monospace;font-size:10px;line-height:1.6;color:#555;max-height:170px;overflow-y:auto;"></div>
+      </div>
       <div id="modalBracketGps" style="display:none;"></div>
       <div id="modalSources" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
       <div id="modalBookingSource" style="display:none;margin-top:6px;font-size:11px;">
@@ -495,7 +499,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-08-31a';
+const APP_VERSION = '2026-09-02a';
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -827,6 +831,8 @@ function syncEntry(date, entry) {
   if (entry.airborneTransit) data.airborneTransit = true;
   if (entry.bookingConflict) data.bookingConflict = entry.bookingConflict;
   if (entry.brackets) data.brackets = entry.brackets;
+  if (entry.pings) data.pings = entry.pings;
+  if (entry.pingConsensus) data.pingConsensus = true;
 
   if (!fbReady || !navigator.onLine) {
     // Offline or Firebase not ready — queue for later
@@ -942,6 +948,7 @@ function renderList() {
 
       const isWorking = entry?.working;
       const isUnconfirmed = entry?.unconfirmed;
+      const pingCount = pingsFor(ds).length;
       monthHtml += '<div class="' + cls + '" onclick="openDay(\'' + ds + '\')">' +
         '<div class="list-date"><div class="day-num">' + d + '</div><div class="day-name">' + DAY_NAMES[dt.getDay()] + '</div></div>' +
         '<div class="list-info"><div class="place">' + (place || (!hasData ? '<span style="color:var(--text-light);font-style:italic;">No data</span>' : '')) + '</div><div class="city-country">' + city + (country ? ', ' + country : '') + '</div>' +
@@ -950,7 +957,9 @@ function renderList() {
         (ds <= todayStr && entry?.brackets?.evening ? '<div class="working-tag" style="background:#fef3e8;color:#92400e;font-size:10px;">🌆 ' + (bracketClockLabel(entry.brackets.evening.capturedAt) || 'evening') + ' ' + (entry.brackets.evening.lat ? shortGps(entry.brackets.evening.lat, entry.brackets.evening.lon) + (entry.brackets.evening.city ? ' → ' + entry.brackets.evening.city + (entry.brackets.evening.country ? ', ' + entry.brackets.evening.country : '') : '') : (entry.brackets.evening.city ? entry.brackets.evening.city + (entry.brackets.evening.country ? ', ' + entry.brackets.evening.country : '') : 'pending')) + (entry.brackets.evening.capturedAt ? ' @ ' + shortTs(entry.brackets.evening.capturedAt).split(' ').slice(1).join(' ') : '') + '</div>' : '') +
         (ds <= todayStr && (entry?.lat || entry?.city) ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;font-size:10px;">📍 12am ' + (entry.lat ? shortGps(entry.lat, entry.lon) + (entry.city ? ' → ' + entry.city + (entry.country ? ', ' + entry.country : '') : '') : (entry.city ? entry.city + (entry.country ? ', ' + entry.country : '') : '')) + (entry.capturedAt ? ' @ ' + shortTs(entry.capturedAt).split(' ').slice(1).join(' ') : '') + '</div>' : '') +
         (ds <= todayStr && entry?.brackets?.morning ? '<div class="working-tag" style="background:#eff6ff;color:#1e40af;font-size:10px;">🌅 ' + (bracketClockLabel(entry.brackets.morning.capturedAt) || 'morning') + ' ' + (entry.brackets.morning.lat ? shortGps(entry.brackets.morning.lat, entry.brackets.morning.lon) + (entry.brackets.morning.city ? ' → ' + entry.brackets.morning.city + (entry.brackets.morning.country ? ', ' + entry.brackets.morning.country : '') : '') : (entry.brackets.morning.city ? entry.brackets.morning.city + (entry.brackets.morning.country ? ', ' + entry.brackets.morning.country : '') : 'pending')) + (entry.brackets.morning.capturedAt ? ' @ ' + shortTs(entry.brackets.morning.capturedAt).split(' ').slice(1).join(' ') : '') + '</div>' : '') +
-        (ds <= todayStr && entry?.bracketInferred ? '<div class="working-tag" style="background:#fef9c3;color:#92400e;">📐 INFERRED</div>' : '') +
+        (ds <= todayStr && pingCount ? '<div class="working-tag" style="background:#ecfdf5;color:#047857;font-size:10px;">📡 ' + pingCount + ' ping' + (pingCount === 1 ? '' : 's') + '</div>' : '') +
+        (ds <= todayStr && entry?.captureSource === 'ping-consensus' ? '<div class="working-tag" style="background:#d1fae5;color:#065f46;">📡 CONSENSUS</div>' : '') +
+        (ds <= todayStr && entry?.bracketInferred && entry?.captureSource !== 'ping-consensus' ? '<div class="working-tag" style="background:#fef9c3;color:#92400e;">📐 INFERRED</div>' : '') +
         (entry?.autoGps && !entry?.unconfirmed && !entry?.gpsConfirmed && !entry?.bracketInferred ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS</div>' : '') +
         (entry?.gpsConfirmed ? '<div class="working-tag" style="background:#e8f5e9;color:#2e7d32;">GPS + MANUAL</div>' : '') +
         (entry && (entry.manualOverride || (!entry.autoGps && !entry.autoBooking && !entry.gpsConfirmed && !entry.bracketInferred && !entry.brackets && entry.city)) ? '<div class="working-tag" style="background:#f3e8ff;color:#6b21a8;">MANUAL</div>' : '') +
@@ -1626,7 +1635,12 @@ function openDay(dateStr) {
   if (entry.lat && entry.lon) {
     gpsText.textContent = shortGps(entry.lat, entry.lon) + (entry.city ? '  →  ' + entry.city + (entry.country ? ', ' + entry.country : '') : '');
     // Set label based on how the GPS was obtained
-    if (entry.bracketInferred) {
+    if (entry.captureSource === 'ping-consensus') {
+      gpsLabel.textContent = '📡 Location (from the day\'s GPS pings):';
+      capturedAtDiv.textContent = 'Every GPS reading that day agreed on the country';
+      capturedAtDiv.style.color = '#047857';
+      capturedAtDiv.style.display = '';
+    } else if (entry.bracketInferred) {
       gpsLabel.textContent = '📐 Location (inferred from brackets):';
       capturedAtDiv.textContent = 'Evening + morning GPS matched — midnight location inferred';
       capturedAtDiv.style.color = '#d97706';
@@ -1677,6 +1691,32 @@ function openDay(dateStr) {
       '🌅 ' + (bracketClockLabel(am.capturedAt) || 'morning') + ':';
     amDiv.style.display = '';
   } else { amDiv.style.display = 'none'; }
+
+  // Ping trail - every GPS reading logged on this UK day, plus the morning-after
+  // readings that bear on this midnight. Both clocks are shown: an "odd" UK hour is
+  // usually a perfectly normal local hour in another time zone.
+  const pingDiv = document.getElementById('modalPingLog');
+  const dayPings = pingsFor(dateStr);
+  const morningAfter = pingsFor(shiftDate(dateStr, 1))
+    .filter(p => { const h = bracketHourUK(p.capturedAt); return h !== null && h < 9; });
+  const allPings = dayPings.concat(morningAfter);
+  if (allPings.length) {
+    const con = pingConsensusFor(dateStr);
+    document.getElementById('pingLogCount').textContent =
+      allPings.length + ' GPS ping' + (allPings.length === 1 ? '' : 's') +
+      (con ? '  ·  all in ' + con.country + ' over ' + Math.round(con.span / 60) + 'h' : '  ·  mixed countries');
+    document.getElementById('pingLogList').innerHTML = allPings.map(p => {
+      const uk = String(p.capturedAt || '').slice(11, 16);
+      const loc = String(p.localAt || '');
+      const lt = loc.slice(11, 16), zone = loc.split(' ').slice(2).join(' ');
+      const nextDay = pingDateUK(p) > dateStr;
+      return '<div>' + (nextDay ? '<span style="color:#2563eb;">+1d </span>' : '') +
+        uk + ' UK' + (lt && lt !== uk ? '  /  ' + lt + ' ' + zone : '') + '  —  ' +
+        (p.city ? p.city + (p.country ? ', ' + p.country : '') : (p.country || shortGps(p.lat, p.lon))) +
+        '</div>';
+    }).join('');
+    pingDiv.style.display = '';
+  } else { pingDiv.style.display = 'none'; }
 
   // Source icons — show which inputs contributed
   const sourcesDiv = document.getElementById('modalSources');
@@ -2056,6 +2096,377 @@ async function autoGPSCapture(dateStr, force, source) {
 // Captures GPS at 9pm and 7am as corroborating evidence for HMRC.
 // If both brackets match (same country), we can infer midnight location.
 
+// ===== CONTINUOUS PING LOG (timezone-proof GPS evidence) =====
+// The bracket windows are anchored to UK clock hours. That works in Europe, but on an
+// Asia trip it silences the app almost completely: Bangkok is UK+6 in BST, so the old
+// 06:00-08:59 UK morning window falls at 12:00-15:00 local and the 18:00+ UK evening
+// window falls after local midnight. Steve's entire waking day (UK 09:00-17:59)
+// captured nothing at all, and whole trips came back with no pings.
+//
+// Diligence rule: MORE readings always beat fewer. Record EVERY GPS reading the app can
+// get, at any UK hour, and let the inference layer decide which are close enough to UK
+// midnight to be TRUSTED. A 3pm-UK ping in Bangkok proves nothing on its own, but a
+// whole day of them in one country, with no flight, is strong corroboration that he was
+// not in the UK at that midnight.
+const PING_MAX_PER_DAY  = 24;   // one per UK hour is plenty; the log is thinned above this
+const PING_MIN_GAP_MIN  = 40;   // throttle: no new reading within 40 minutes of the last
+const PING_SAME_SPOT_KM = 3;    // collapse repeat readings from the same spot in one hour
+
+// Timestamp in an arbitrary IANA zone: "YYYY-MM-DD HH:MM:SS <label>".
+function tsInZone(d, tz, label) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+  }).formatToParts(d || new Date());
+  const g = t => (parts.find(x => x.type === t) || {}).value || '';
+  let hh = g('hour'); if (hh === '24') hh = '00';
+  return g('year') + '-' + g('month') + '-' + g('day') + ' ' + hh + ':' +
+    g('minute') + ':' + g('second') + (label ? ' ' + label : '');
+}
+
+// Device-local timestamp + zone, e.g. "2026-09-02 21:14:03 Asia/Bangkok". Stored next to
+// the UK timestamp so an "odd" UK hour reads correctly later: 15:04 UK is 22:04 Bangkok.
+function localTimestamp(d) {
+  let tz = '';
+  try { tz = (Intl.DateTimeFormat().resolvedOptions() || {}).timeZone || ''; } catch(e) {}
+  return tsInZone(d || new Date(), tz || 'UTC', tz || 'local');
+}
+
+function ukHourNow() {
+  return parseInt(new Date().toLocaleTimeString('en-GB',
+    { timeZone: 'Europe/London', hour: '2-digit', hour12: false }), 10);
+}
+
+function ukNowMinutes() {
+  const m = tsInZone(new Date(), 'Europe/London').match(/(\d{2}):(\d{2})/);
+  return m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : 0;
+}
+
+// Shift a YYYY-MM-DD string by n days (noon UTC anchor, so DST can never slip a day).
+function shiftDate(dateStr, days) {
+  const d = new Date(dateStr + 'T12:00:00Z');
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function pingMinutesUK(p) {
+  const m = String((p && p.capturedAt) || '').match(/(\d{1,2}):(\d{2})/);
+  return m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : null;
+}
+function pingDateUK(p) {
+  return (String((p && p.capturedAt) || '').match(/^(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+}
+// Firebase turns a sparse array into an object, so accept either shape and always hand
+// back a clean, chronologically sorted array.
+function pingsFor(dateStr) {
+  const raw = entries[dateStr] && entries[dateStr].pings;
+  if (!raw) return [];
+  const arr = Array.isArray(raw) ? raw : Object.keys(raw).map(k => raw[k]);
+  return arr.filter(p => p && typeof p.lat === 'number')
+    .sort((a, b) => String(a.capturedAt || '').localeCompare(String(b.capturedAt || '')));
+}
+
+// Thin an over-long log without losing its shape: always keep the first and last reading
+// of the day (they bracket the midnights either side) and drop whichever middle reading
+// sits closest in time to its neighbours, i.e. the least informative one.
+function thinPings(list) {
+  const out = list.slice();
+  while (out.length > PING_MAX_PER_DAY) {
+    let dropAt = 1, bestGap = Infinity;
+    for (let i = 1; i < out.length - 1; i++) {
+      const a = pingMinutesUK(out[i - 1]), b = pingMinutesUK(out[i + 1]);
+      const gap = (a === null || b === null) ? 0 : Math.abs(b - a);
+      if (gap < bestGap) { bestGap = gap; dropAt = i; }
+    }
+    out.splice(dropAt, 1);
+  }
+  return out;
+}
+
+// Capture a GPS reading and file it in the UK-day ping log, WHATEVER the hour.
+// force=true skips the throttle (push taps and the 21:00 UK timer).
+async function logPingCapture(reason, force) {
+  if (!navigator.geolocation) return false;
+  const openStr = ukDateStr(new Date());
+  const log = pingsFor(openStr);
+  const last = log[log.length - 1];
+  if (!force && last && pingDateUK(last) === openStr) {
+    const lastMin = pingMinutesUK(last);
+    const nowMin = ukNowMinutes();
+    if (lastMin !== null && nowMin - lastMin >= 0 && nowMin - lastMin < PING_MIN_GAP_MIN) {
+      console.log('Ping throttled (' + (nowMin - lastMin) + ' min since last reading)');
+      return false;
+    }
+  }
+
+  return new Promise(resolve => {
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        let city = '', country = '', place = '';
+        const match = matchLocationToPreset(lat, lon);
+        if (match) {
+          city = match.preset.city;
+          country = match.preset.country;
+          place = match.preset.place || match.preset.city;
+        } else {
+          try {
+            const g = await reverseGeocodeSafe(lat, lon);
+            city = g.city; country = g.country; place = g.place;
+          } catch(e) { console.warn('Ping geocode failed', e); }
+        }
+
+        const ping = {
+          lat, lon, city: city || '', country: country || '', place: place || '',
+          capturedAt: ukTimestamp(), localAt: localTimestamp(),
+          reason: reason || 'foreground'
+        };
+
+        // Re-read the UK date: the reverse geocode may have straddled UK midnight.
+        const dateStr = pingDateUK(ping) || ukDateStr(new Date());
+        let list = pingsFor(dateStr);
+        const prev = list[list.length - 1];
+        if (prev && typeof prev.lat === 'number' &&
+            gpsDistance(prev.lat, prev.lon, lat, lon) < PING_SAME_SPOT_KM &&
+            bracketHourUK(prev.capturedAt) === bracketHourUK(ping.capturedAt)) {
+          list[list.length - 1] = ping;   // same spot, same UK hour: keep the later one
+        } else {
+          list.push(ping);
+        }
+        list = thinPings(list);
+
+        if (!entries[dateStr]) entries[dateStr] = {};
+        entries[dateStr].pings = list;
+        syncEntry(dateStr, entries[dateStr]);
+        saveLocal();
+        console.log('Ping logged for ' + dateStr + ' (' + ping.reason + '): ' +
+          shortGps(lat, lon) + (city ? ' -> ' + city : '') + (country ? ', ' + country : '') +
+          ' | UK ' + ping.capturedAt + ' | local ' + ping.localAt);
+        showGpsBanner('ok', 'Ping logged: ' + (city || shortGps(lat, lon)) +
+          (country ? ', ' + country : '') + '  (UK ' + ping.capturedAt.slice(11, 16) +
+          ' / local ' + ping.localAt.slice(11, 16) + ')');
+        setTimeout(dismissGpsBanner, 4000);
+
+        // A ping is raw evidence; refresh everything derived from it.
+        syncBracketsFromPings(dateStr);
+        resolve(true);
+      },
+      err => {
+        console.warn('Ping GPS error:', err.message);
+        resolve(false);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 5 * 60 * 1000 }
+    );
+  });
+}
+
+// ===== BRACKETS DERIVED FROM THE PING LOG =====
+// Timezone-proof definition, replacing the old fixed UK capture windows:
+//   evening bracket for day D = the LAST reading taken on UK day D   (nearest before midnight)
+//   morning bracket for day D = the FIRST reading taken on UK day D+1, and only when it
+//                               is a genuine wake-up reading (before 09:00 UK)
+// The downstream TRUST rules are unchanged: a bracket only overrides a booking when it is
+// a real midnight proxy (evening >= 20:00 UK, or morning < 09:00 UK). Everything else is
+// recorded and corroborates, but does not flip a day on its own.
+function syncBracketsFromPings(dateStr, silent) {
+  const prevStr = shiftDate(dateStr, -1);
+  const nextStr = shiftDate(dateStr, 1);
+  const touched = [];
+
+  const todayPings = pingsFor(dateStr);
+  const latest = todayPings[todayPings.length - 1];
+  if (latest && setBracketFromPing(dateStr, 'evening', latest)) touched.push(dateStr);
+
+  const first = todayPings[0];
+  const firstHr = first ? bracketHourUK(first.capturedAt) : null;
+  if (first && firstHr !== null && firstHr < 9) {
+    if (setBracketFromPing(prevStr, 'morning', first)) touched.push(prevStr);
+  }
+
+  const nextPings = pingsFor(nextStr);
+  const nextFirst = nextPings[0];
+  const nextHr = nextFirst ? bracketHourUK(nextFirst.capturedAt) : null;
+  if (nextFirst && nextHr !== null && nextHr < 9) {
+    if (setBracketFromPing(dateStr, 'morning', nextFirst)) touched.push(dateStr);
+  }
+
+  const days = Array.from(new Set(touched.concat([prevStr, dateStr])));
+  for (const d of days) {
+    if (!entries[d]) continue;
+    inferMidnightFromBrackets(d, true);
+    applyPingConsensus(d, true);
+  }
+  if (!silent) render();
+}
+
+// Write a ping into a bracket slot. Only moves the slot when the new reading is a BETTER
+// midnight proxy than what is already there (later for evening, earlier for morning), so
+// a refresh can never walk the evidence away from midnight.
+function setBracketFromPing(dateStr, slot, ping) {
+  if (!ping || typeof ping.lat !== 'number') return false;
+  if (!entries[dateStr]) entries[dateStr] = {};
+  const entry = entries[dateStr];
+  const brackets = entry.brackets = entry.brackets || {};
+  const cur = brackets[slot];
+  if (cur && cur.capturedAt === ping.capturedAt) return false;
+  if (cur && cur.capturedAt) {
+    const better = slot === 'evening'
+      ? String(ping.capturedAt) > String(cur.capturedAt)
+      : String(ping.capturedAt) < String(cur.capturedAt);
+    if (!better) return false;
+  }
+  brackets[slot] = {
+    lat: ping.lat, lon: ping.lon,
+    city: ping.city || '', country: ping.country || '', place: ping.place || '',
+    capturedAt: ping.capturedAt, fromPingLog: true
+  };
+  syncEntry(dateStr, entry);
+  saveLocal();
+  return true;
+}
+
+// ===== PING CONSENSUS =====
+// A day's worth of readings all in one country is real evidence about that day's
+// midnight. It is weaker than a reading taken next to midnight, so it ranks BELOW a real
+// 12am GPS fix, a confirmed entry and a manual entry, and it never overrules a booked,
+// timed flight (that gets FLAGGED instead). But it beats a hotel/booking guess and it
+// annihilates a flight gap-fill, which is only an assumption that he stayed put.
+const PING_CONSENSUS_MIN_READINGS = 2;
+const PING_CONSENSUS_MIN_SPAN_MIN = 180;   // readings must span at least 3 hours
+
+function pingConsensusFor(dateStr) {
+  // Readings bearing on the midnight that ENDS dateStr: everything on day D, plus the
+  // early readings on D+1 (before 09:00 UK), which are "where I woke up".
+  const list = pingsFor(dateStr).slice();
+  for (const p of pingsFor(shiftDate(dateStr, 1))) {
+    const h = bracketHourUK(p.capturedAt);
+    if (h !== null && h < 9) list.push(p);
+  }
+  const withCountry = list.filter(p => p.country);
+  if (withCountry.length < PING_CONSENSUS_MIN_READINGS) return null;
+  const c0 = normalizeCountry(withCountry[0].country);
+  if (!c0) return null;
+  if (!withCountry.every(p => normalizeCountry(p.country) === c0)) return null;
+
+  // Measure the span ACROSS midnight: morning-after readings count as +1 day.
+  const mins = withCountry.map(p => {
+    const m = pingMinutesUK(p);
+    return m === null ? null : (pingDateUK(p) > dateStr ? m + 1440 : m);
+  }).filter(m => m !== null);
+  if (mins.length < PING_CONSENSUS_MIN_READINGS) return null;
+  const span = Math.max.apply(null, mins) - Math.min.apply(null, mins);
+  const nearMidnight = withCountry.some(p => {
+    const h = bracketHourUK(p.capturedAt);
+    if (h === null) return false;
+    return pingDateUK(p) > dateStr ? h < 9 : h >= 20;
+  });
+  if (span < PING_CONSENSUS_MIN_SPAN_MIN && !nearMidnight) return null;
+
+  // Best coordinates = the reading closest to the midnight that ends this day.
+  let best = null, bestDist = Infinity;
+  for (const p of withCountry) {
+    const m = pingMinutesUK(p);
+    if (m === null) continue;
+    const dist = pingDateUK(p) > dateStr ? m : (1440 - m);
+    if (dist < bestDist) { bestDist = dist; best = p; }
+  }
+  return {
+    country: c0, count: withCountry.length, span, nearMidnight, best,
+    first: withCountry[0], last: withCountry[withCountry.length - 1]
+  };
+}
+
+function applyPingConsensus(dateStr, silent) {
+  const entry = entries[dateStr];
+  if (!entry) return;
+  const con = pingConsensusFor(dateStr);
+  if (!con) return;
+
+  // Never touch evidence stronger than a day of readings.
+  const userSet = !!entry.manualOverride ||
+    (entry.city && !entry.autoGps && !entry.autoBooking && !entry.flightInferred);
+  if (entry.gpsConfirmed || userSet) return;
+  if (entry.captureSource === '12am' && hasReliableMidnightGps(entry)) return;
+
+  if (normalizeCountry(entry.country || '') === con.country) {
+    if (!entry.pingConsensus) {
+      entry.pingConsensus = true;
+      syncEntry(dateStr, entry);
+      saveLocal();
+      if (!silent) render();
+    }
+    return;
+  }
+
+  // A booked, timed flight is a hard directional fact. Pings that disagree get FLAGGED,
+  // never silently applied. (A gap-fill is NOT a flight - see below.)
+  if (entry.flightInferred && !entry.flightGapFill && entry.country) {
+    const msg = 'Flight says ' + entry.country + '; ' + con.count + ' GPS pings that day ' +
+      'were all in ' + con.country + ' - please confirm midnight country';
+    if (entry.countryConflict !== msg) {
+      entry.unconfirmed = true;
+      entry.countryConflict = msg;
+      entry.pingConsensus = true;
+      syncEntry(dateStr, entry);
+      saveLocal();
+      if (!silent) render();
+    }
+    return;
+  }
+
+  // Only a booking, a gap-fill guess, an earlier ping/bracket guess, or an empty day may
+  // be corrected by consensus.
+  const correctable = !entry.country || entry.autoBooking || entry.flightGapFill ||
+    (entry.bracketInferred && !hasReliableMidnightGps(entry));
+  if (!correctable) return;
+
+  const oldCountry = entry.country || '';
+  console.log('Ping consensus for ' + dateStr + ': ' + con.count + ' readings all in ' +
+    con.country + ' (span ' + Math.round(con.span / 60) + 'h) - was ' + (oldCountry || 'empty'));
+
+  entry.country = con.country;
+  entry.city = (con.best && con.best.city) || entry.city || '';
+  entry.place = (con.best && (con.best.place || con.best.city)) || entry.place || '';
+  if (con.best && typeof con.best.lat === 'number') {
+    entry.lat = con.best.lat;
+    entry.lon = con.best.lon;
+  }
+  entry.autoGps = true;
+  entry.bracketInferred = true;          // GPS-derived GUESS, not a 12am fix
+  entry.pingConsensus = true;
+  entry.captureSource = 'ping-consensus';
+  entry.capturedAt = (con.best && con.best.capturedAt) || ukTimestamp();
+  if (entry.flightGapFill) delete entry.flightGapFill;
+  if (entry.lateBackfill) delete entry.lateBackfill;
+  // A daytime-only consensus still wants an eyeball. Never CLEAR an existing flag here -
+  // it may have been raised by something this function knows nothing about.
+  if (!con.nearMidnight) entry.unconfirmed = true;
+  if (oldCountry) {
+    entry.countryConflict = con.count + ' GPS pings on ' + dateStr + ' were all in ' +
+      con.country + '; previous source said ' + oldCountry;
+  } else if (entry.countryConflict) {
+    delete entry.countryConflict;
+  }
+  entry.notes = String(entry.notes || '').split(' | ')
+    .filter(n => n && n.indexOf('Ping consensus:') !== 0).join(' | ');
+  entry.notes = (entry.notes ? entry.notes + ' | ' : '') +
+    'Ping consensus: ' + con.count + ' GPS readings between ' + con.first.capturedAt +
+    ' and ' + con.last.capturedAt + ' were all in ' + con.country + '.';
+
+  syncEntry(dateStr, entry);
+  saveLocal();
+  if (!silent) {
+    render();
+    showGpsBanner('ok', con.count + ' pings all in ' + con.country +
+      ' - midnight set to ' + con.country);
+    setTimeout(dismissGpsBanner, 6000);
+  }
+}
+
+// LEGACY - no longer called. Bracket slots are now filled by setBracketFromPing() from
+// the continuous ping log, so a reading is never lost just because the UK clock hour was
+// outside a window. Kept only as a manual escape hatch.
 async function bracketGPSCapture(dateStr, bracketType, allowRefresh) {
   if (!navigator.geolocation) {
     console.log('Bracket GPS: geolocation not available');
@@ -2791,13 +3202,10 @@ function scheduleEveningBracket() {
   console.log('Next 21:00 UK evening bracket in ' + Math.round(msToEvening / 60000) + ' minutes');
   eveningBracketTimer = setTimeout(() => {
     const todayStr = ukDateStr(new Date());
-    const todayBrackets = entries[todayStr]?.brackets || {};
-    if (!todayBrackets.evening?.lat) {
-      console.log('21:00 UK! Auto-capturing evening bracket for ' + todayStr);
-      bracketGPSCapture(todayStr, 'evening');
-    } else {
-      console.log('21:00 UK reached — evening bracket already captured for ' + todayStr + ', skipping');
-    }
+    // 21:00 UK is the most valuable reading of the day (3h before midnight), so always
+    // take a fresh one - never skip because an earlier, weaker reading already exists.
+    console.log('21:00 UK! Forcing a ping for ' + todayStr);
+    logPingCapture('21:00-timer', true);
     // Reschedule for tomorrow
     scheduleEveningBracket();
   }, msToEvening);
@@ -2808,26 +3216,23 @@ function scheduleEveningBracket() {
 // We only ever capture/backfill for YESTERDAY's entry on app open.
 // The only thing that creates today's entry is the actual midnight push at 00:00.
 function checkTodayGPS() {
-  const ukHour = parseInt(new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hour12: false }));
-
-  // Yesterday's midnight entry (the most recent one that has passed)
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = ukDateStr(yesterday);
+  const todayStr = ukDateStr(new Date());
+  const yesterdayStr = shiftDate(todayStr, -1);
   const yEntry = entries[yesterdayStr];
 
-  // 1. Morning bracket (6am–9am ONLY): corroborates YESTERDAY's midnight — a genuine
-  // "where I woke up = where I slept last night" reading. A ping from 9am onward is a
-  // TODAY reading (Steve may already have moved/travelled), so it must NOT be filed as
-  // yesterday's morning bracket. (July 2/3 2026: an 11:23 ping on Fri 3rd was wrongly
-  // shown on Thu 2nd because the old window ran to noon.)
-  if (ukHour >= 6 && ukHour < 9) {
-    const ydayBrackets = yEntry?.brackets || {};
-    if (!ydayBrackets.morning?.lat) {
-      console.log('Morning window (6-9am UK) — capturing morning bracket for ' + yesterdayStr);
-      bracketGPSCapture(yesterdayStr, 'morning');
-    }
-  }
+  // 1. ALWAYS log a ping, whatever the UK hour. Time zones are the whole reason: in
+  // Bangkok the old 06:00-08:59 / 18:00+ UK windows land while Steve is at lunch or
+  // asleep, so the app recorded nothing for entire trips. Log everything the phone can
+  // see; syncBracketsFromPings then files the readings nearest UK midnight into the
+  // evening/morning bracket slots, and the existing trust rules (evening >= 20:00,
+  // morning < 09:00) still decide what is allowed to flip a day.
+  logPingCapture('foreground');
+
+  // Re-derive brackets and consensus from what is already logged, even when the ping
+  // above was throttled or GPS permission was refused.
+  syncBracketsFromPings(todayStr, true);
+  syncBracketsFromPings(yesterdayStr, true);
+  render();
 
   // 2. If yesterday's midnight was missed entirely, try to backfill
   if (!yEntry || (!yEntry.city && !yEntry.place)) {
@@ -2853,34 +3258,6 @@ function checkTodayGPS() {
     }
   }
 
-  // 3. Evening bracket: belongs to TODAY's entry (tonight's midnight).
-  // PUSH-INDEPENDENT: capture on ANY app-open from 18:00 onward, and REFRESH to the
-  // latest reading before midnight so the closest-to-midnight location wins. This is
-  // the "last GPS of the day" proxy — it works whenever the app is opened in the
-  // evening, with no reliance on the 9pm push arriving or being tapped. (Readings
-  // before 20:00 are kept for the record but treated as weaker evidence — they won't
-  // override a conflicting booking, only corroborate; see inferMidnightFromBrackets.)
-  // A ping from 9am onward is filed against TODAY (never yesterday), as today's
-  // "latest reading before midnight" proxy. Refresh to the newest reading each new hour
-  // so the closest-to-midnight location wins. Trusted to OVERRIDE a booking/flight only
-  // when near midnight (>=20:00) — a daytime reading is recorded but weak (see
-  // inferMidnightFromBrackets). This also means a late-morning ping lands on the correct
-  // day instead of being mis-filed as yesterday's morning bracket.
-  const todayStr = ukDateStr(new Date());
-  if (ukHour >= 18) {
-    const evBr = entries[todayStr]?.brackets?.evening;
-    if (!evBr?.lat) {
-      console.log('Evening window (18:00+ UK) — capturing today reading for ' + todayStr);
-      bracketGPSCapture(todayStr, 'evening');
-    } else {
-      // Refresh at most once per new hour, moving the reading closer to midnight.
-      const prevHr = bracketHourUK(evBr.capturedAt);
-      if (prevHr === null || prevHr < ukHour) {
-        console.log('Today reading refresh (' + prevHr + 'h → ' + ukHour + 'h) for ' + todayStr);
-        bracketGPSCapture(todayStr, 'evening', true);
-      }
-    }
-  }
 }
 
 // ===== PUSH NOTIFICATIONS (FCM) =====
@@ -3218,7 +3595,7 @@ if ('serviceWorker' in navigator) {
       const captureType = event.data.captureType || 'midnight';
       console.log('Push notification tapped — ' + captureType + ' capture for ' + dateStr);
       if (captureType === 'evening' || captureType === 'morning') {
-        bracketGPSCapture(dateStr, captureType);
+        logPingCapture('push-' + captureType, true);
       } else {
         autoGPSCapture(dateStr, true, '12am');
       }
@@ -3238,7 +3615,7 @@ if (window.location.search.includes('capture=')) {
     const dateStr = captureDate || ukDateStr(new Date());
     console.log('Opened from notification — ' + captureType + ' capture for ' + dateStr);
     if (captureType === 'evening' || captureType === 'morning') {
-      bracketGPSCapture(dateStr, captureType);
+      logPingCapture('push-' + captureType, true);
     } else {
       autoGPSCapture(dateStr, true, '12am');
     }

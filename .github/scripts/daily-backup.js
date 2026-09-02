@@ -81,6 +81,17 @@ async function main() {
     const d = new Date(dateStr + 'T00:00:00');
     const ev = e.brackets?.evening;
     const am = e.brackets?.morning;
+    // Ping trail: every GPS reading logged that UK day. On an Asia trip this is often
+    // the only GPS evidence a day has, so it belongs in the HMRC export, not just in
+    // the app. Both clocks are kept - "15:30 UK" is 22:30 in Bangkok.
+    const pings = Array.isArray(e.pings) ? e.pings : [];
+    const pingTrail = pings.map(p => {
+      const uk = String(p.capturedAt || '').slice(11, 16);
+      const loc = String(p.localAt || '');
+      const lt = loc.slice(11, 16), zone = (loc.split(' ')[2] || '');
+      return uk + ' UK' + (lt && lt !== uk ? '/' + lt + ' ' + zone : '') + ' ' +
+        (p.city || '') + (p.country ? ', ' + p.country : '');
+    }).join(' | ');
     const row = {
       'Date': dateStr,
       'Day': dayNames[d.getDay()],
@@ -94,7 +105,7 @@ async function main() {
       'GPS captured at': e.capturedAt || '',
       'GPS trigger': e.captureSource || '',
       'Working': e.working ? 'Yes' : '',
-      'Source': e.bracketInferred ? 'Bracket GPS' : e.gpsConfirmed ? 'GPS + Manual' : e.autoBooking ? 'Booking' : e.autoGps ? 'GPS' : (e.city ? 'Manual' : ''),
+      'Source': e.captureSource === 'ping-consensus' ? 'Ping consensus' : e.bracketInferred ? 'Bracket GPS' : e.gpsConfirmed ? 'GPS + Manual' : e.autoBooking ? 'Booking' : e.autoGps ? 'GPS' : (e.city ? 'Manual' : ''),
       'Evening city': ev?.city || '',
       'Evening country': ev?.country || '',
       'Evening GPS': ev?.lat ? ev.lat.toFixed(5) + ', ' + ev.lon.toFixed(5) : '',
@@ -104,6 +115,9 @@ async function main() {
       'Morning GPS': am?.lat ? am.lat.toFixed(5) + ', ' + am.lon.toFixed(5) : '',
       'Morning captured at': am?.capturedAt || '',
       'Bracket inferred': e.bracketInferred ? 'Yes' : '',
+      'Pings': pings.length || '',
+      'Ping trail': pingTrail,
+      'Ping consensus': e.pingConsensus ? 'Yes' : '',
       'Country conflict': e.countryConflict || '',
       'Booking source': e.bookingSource || '',
       'Auto GPS': e.autoGps ? 'Yes' : '',
