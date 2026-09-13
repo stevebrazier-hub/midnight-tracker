@@ -30,6 +30,20 @@ function fmtDate(d) {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
+// Working day: `worked` + `workCountry` (country names, same vocabulary as entry.country).
+// The legacy UK-only `working` boolean is read as a fallback until every client has migrated.
+function workedOn(e) {
+  if (!e) return false;
+  if (e.worked !== undefined) return !!e.worked;
+  return !!e.working;
+}
+function workCountryOf(e) {
+  if (!workedOn(e)) return '';
+  if (e.workCountry) return e.workCountry;
+  if (e.worked === undefined && e.working) return 'UK';
+  return e.country || '';
+}
+
 // Excel hard limit per cell. Anything longer crashes XLSX.writeFile.
 const XLSX_CELL_LIMIT = 32767;
 const CLAMP_WARN_AT = 1000;
@@ -104,7 +118,8 @@ async function main() {
       'Longitude': e.lon || '',
       'GPS captured at': e.capturedAt || '',
       'GPS trigger': e.captureSource || '',
-      'Working': e.working ? 'Yes' : '',
+      'Worked': workedOn(e) ? 'Yes' : '',
+      'Work country': workCountryOf(e),
       'Source': e.captureSource === 'ping-consensus' ? 'Ping consensus' : e.bracketInferred ? 'Bracket GPS' : e.gpsConfirmed ? 'GPS + Manual' : e.autoBooking ? 'Booking' : e.autoGps ? 'GPS' : (e.city ? 'Manual' : ''),
       'Evening city': ev?.city || '',
       'Evening country': ev?.country || '',
@@ -173,13 +188,19 @@ async function main() {
   const countryCounts = {};
   let ukNights = 0;
   let italyDays = 0;
-  let workDays = 0;
+  let workDays = 0, ukWorkDays = 0, italyWorkDays = 0, rowWorkDays = 0;
   Object.values(locations).forEach(e => {
     const c = e.country || 'Unrecorded';
     countryCounts[c] = (countryCounts[c] || 0) + 1;
     if (e.country === 'UK') ukNights++;
     if (e.country === 'Italy') italyDays++;
-    if (e.working) workDays++;
+    if (workedOn(e)) {
+      workDays++;
+      const wc = workCountryOf(e);
+      if (wc === 'UK') ukWorkDays++;
+      else if (wc === 'Italy') italyWorkDays++;
+      else rowWorkDays++;
+    }
   });
   const statsRows = Object.entries(countryCounts)
     .sort((a, b) => b[1] - a[1])
@@ -187,7 +208,10 @@ async function main() {
   statsRows.push({});
   statsRows.push({ 'Country': 'UK nights (max 90)', 'Nights': ukNights });
   statsRows.push({ 'Country': 'Italy days (target 183+)', 'Nights': italyDays });
-  statsRows.push({ 'Country': 'UK work days (max 30)', 'Nights': workDays });
+  statsRows.push({ 'Country': 'UK work days (max 30)', 'Nights': ukWorkDays });
+  statsRows.push({ 'Country': 'Italian work days', 'Nights': italyWorkDays });
+  statsRows.push({ 'Country': 'Rest-of-world work days', 'Nights': rowWorkDays });
+  statsRows.push({ 'Country': 'Total work days', 'Nights': workDays });
   statsRows.push({ 'Country': 'Total entries', 'Nights': entryCount });
   statsRows.push({});
   statsRows.push({ 'Country': 'Backup date', 'Nights': today });

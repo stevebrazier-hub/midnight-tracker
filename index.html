@@ -452,9 +452,14 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
     </div>
     <div class="field" id="workingField">
       <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-        <input type="checkbox" id="editWorking" style="width:18px;height:18px;accent-color:var(--primary);flex:none;" />
-        <span>UK working day</span>
+        <input type="checkbox" id="editWorked" style="width:18px;height:18px;accent-color:var(--primary);flex:none;" onchange="onWorkedToggle()" />
+        <span>Worked this day</span>
       </label>
+      <div id="workCountryRow" style="display:none;margin-top:8px;">
+        <label style="font-size:12px;color:var(--text-light);">Worked in</label>
+        <select id="editWorkCountry" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:15px;background:var(--card);color:var(--text);"></select>
+        <div style="font-size:11px;color:var(--text-light);margin-top:4px;">Defaults to where you slept. Change it for a day trip.</div>
+      </div>
     </div>
 
     <div id="modalTransitWarning" style="display:none;margin-top:10px;padding:10px;background:#fdf2f8;border:1px solid #f9a8d4;border-radius:8px;font-size:12px;color:#be185d;">
@@ -499,7 +504,64 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-09-02a';
+const APP_VERSION = '2026-09-13a';
+
+// ===== WORKING DAYS =====
+// ONE concept of a working day: `worked` (bool) + `workCountry` (country name, the
+// same vocabulary as entry.country — 'UK', 'Italy', ... — not ISO codes, so every
+// country comparison in this app stays on one vocabulary).
+// A missing `worked` means false: we do not write thousands of false records.
+// The UK three-hour rule and Italy's any-work rule are applied by Steve at the point
+// of tapping. The app does not model both.
+const WORK_CONFIG_DEFAULTS = {
+  italy_ratio_threshold: 50,      // % of total work days in Italy = breach
+  italy_ratio_warn: 45,           // % = early warning
+  italy_day_cap: 90,              // Italian work days per calendar year = breach
+  italy_day_warn: 80,             // Italian work days = early warning
+  italy_partial_day_counts: true, // a day worked in Italy but slept elsewhere still counts
+  italy_ratio_min_days: 20,       // ignore rolling windows thinner than this
+  uk_work_day_cap: 30             // existing UK working-day limit
+};
+let WORK_CONFIG = Object.assign({}, WORK_CONFIG_DEFAULTS);
+
+function loadWorkConfig() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('mt_work_config'));
+    if (saved) WORK_CONFIG = Object.assign({}, WORK_CONFIG_DEFAULTS, saved);
+  } catch(e) {}
+  if (fbReady) {
+    fbListen('settings/workConfig', data => {
+      WORK_CONFIG = Object.assign({}, WORK_CONFIG_DEFAULTS, data || {});
+      localStorage.setItem('mt_work_config', JSON.stringify(WORK_CONFIG));
+      render();
+    });
+  }
+}
+
+// Did Steve work this day? Falls back to the legacy UK-only `working` flag for any
+// entry written by a client that has not yet run the migration.
+function didWork(entry) {
+  if (!entry) return false;
+  if (entry.worked !== undefined) return !!entry.worked;
+  return !!entry.working;
+}
+
+// Which country did he work in? Never empty for a worked day.
+function workCountryOf(entry) {
+  if (!didWork(entry)) return '';
+  if (entry.workCountry) return normalizeCountry(entry.workCountry);
+  if (entry.worked === undefined && entry.working) return 'UK'; // legacy: UK working day
+  return normalizeCountry(entry.country || HOME.country);
+}
+
+// An Italian work day where he slept elsewhere — the day-trip case.
+function isPartialItalyWorkDay(entry) {
+  return workCountryOf(entry) === 'Italy' && normalizeCountry(entry?.country || '') !== 'Italy';
+}
+function countsForItaly(entry) {
+  if (workCountryOf(entry) !== 'Italy') return false;
+  return WORK_CONFIG.italy_partial_day_counts || !isPartialItalyWorkDay(entry);
+}
 
 // Short date for display: "2026-03-02 07:22:53 GMT" → "26-03-02 07:22:53 GMT"
 function shortTs(ts) { return ts ? ts.replace(/^20(\d{2})/, '$1') : ''; }
@@ -595,6 +657,7 @@ function showApp(user) {
   loadLocal();
   loadPresets();
   loadHomeSettings();
+  loadWorkConfig();
   loadTeamsWebhook();
   render();
   initFirebaseSync();
@@ -793,6 +856,7 @@ function initFirebaseSync() {
       try { healMisattributedMorningBrackets(); } catch(e) { console.warn('healMisattributedMorningBrackets failed:', e); }
       try { reconcileBracketCountries(); } catch(e) { console.warn('reconcileBracketCountries failed:', e); }
       try { reinferGapFillOverGps(); } catch(e) { console.warn('reinferGapFillOverGps failed:', e); }
+      try { migrateWorkingDays(); } catch(e) { console.warn('migrateWorkingDays failed:', e); }
       render();
     }
   });
@@ -814,7 +878,15 @@ function syncEntry(date, entry) {
   };
   if (entry.lat) data.lat = entry.lat;
   if (entry.lon) data.lon = entry.lon;
-  if (entry.working) data.working = true;
+  if (entry.worked) {
+    data.worked = true;
+    data.workCountry = entry.workCountry || workCountryOf(entry) || HOME.country;
+  } else if (entry.worked === false) {
+    data.worked = false;
+    data.workCountry = null;
+  }
+  // The legacy UK-only boolean is retired. update() would otherwise leave it behind.
+  data.working = null;
   if (entry.autoGps) data.autoGps = true;
   if (entry.unconfirmed) data.unconfirmed = true;
   if (entry.autoBooking) data.autoBooking = true;
@@ -946,7 +1018,7 @@ function renderList() {
         }
       }
 
-      const isWorking = entry?.working;
+      const isWorking = didWork(entry);
       const isUnconfirmed = entry?.unconfirmed;
       const pingCount = pingsFor(ds).length;
       monthHtml += '<div class="' + cls + '" onclick="openDay(\'' + ds + '\')">' +
@@ -967,7 +1039,7 @@ function renderList() {
         (isUnconfirmed && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#fff3cd;color:#92400e;">📌 CHECK</div>' : '') +
         (entry?.countryConflict && !entry?.gpsConfirmed ? '<div class="working-tag" style="background:#fff3cd;color:#856404;">CTRY</div>' : '') +
         transitFlag +
-        (isWorking ? '<div class="working-tag">WORKING</div>' : '') +
+        (ds <= todayStr ? workChipHtml(ds, entry) : '') +
         (!entry ? '<div class="working-tag" style="background:#f5f5f5;color:#999;">NO DATA</div>' : '') +
         '</div>' + '</div>' +
         '<div class="list-flag">' + flag + '</div>' +
@@ -1033,6 +1105,69 @@ function normalizeCountry(c) {
   return map[c] || c;
 }
 
+// ===== DERIVED WORK-DAY COUNTERS =====
+// Every counter is derived from `worked` + `workCountry`. Nothing else is stored.
+function workDayTotals(startDate, endDate) {
+  const t = { total: 0, uk: 0, italy: 0, italyCounted: 0, italyPartial: 0, row: 0 };
+  const end = fmtDate(endDate);
+  for (let d = new Date(startDate); fmtDate(d) <= end; d.setDate(d.getDate() + 1)) {
+    const e = entries[fmtDate(d)];
+    if (!didWork(e)) continue;
+    const c = workCountryOf(e);
+    t.total++;
+    if (c === 'UK') t.uk++;
+    else if (c === 'Italy') {
+      t.italy++;
+      if (isPartialItalyWorkDay(e)) t.italyPartial++;
+      if (countsForItaly(e)) t.italyCounted++;
+    } else t.row++;
+  }
+  return t;
+}
+
+// Italian work days in a calendar year (Italy's fiscal year), capped at today.
+function italyWorkDaysInYear(year) {
+  const today = new Date();
+  const end = new Date(year, 11, 31) < today ? new Date(year, 11, 31) : today;
+  if (end < new Date(year, 0, 1)) return { total: 0, uk: 0, italy: 0, italyCounted: 0, italyPartial: 0, row: 0 };
+  return workDayTotals(new Date(year, 0, 1), end);
+}
+
+// The WORST rolling 12-month window, not the current one. Walks every 365-day window
+// that ends on a day with data and reports the highest Italian share. Windows with
+// fewer than italy_ratio_min_days work days are ignored — a 2-day window at 100% is noise.
+function worstItalyRatioWindow() {
+  const keys = Object.keys(entries).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k)).sort();
+  if (!keys.length) return null;
+  const todayStr = fmtDate(new Date());
+  const last = keys[keys.length - 1] > todayStr ? todayStr : keys[keys.length - 1];
+  const days = [];
+  for (let d = new Date(keys[0] + 'T00:00:00'); fmtDate(d) <= last && days.length < 8000; d.setDate(d.getDate() + 1)) {
+    const ds = fmtDate(d);
+    const e = entries[ds];
+    let w = 0, it = 0;
+    if (didWork(e)) { w = 1; if (countsForItaly(e)) it = 1; }
+    days.push({ ds: ds, w: w, it: it });
+  }
+  const WINDOW = 365;
+  const haveFullYear = days.length >= WINDOW;
+  let best = null, sw = 0, si = 0, lo = 0;
+  for (let hi = 0; hi < days.length; hi++) {
+    sw += days[hi].w; si += days[hi].it;
+    while (hi - lo + 1 > WINDOW) { sw -= days[lo].w; si -= days[lo].it; lo++; }
+    // Only score COMPLETE 12-month windows. A short leading window - say the first
+    // three months of data, all worked in Italy - would otherwise report 100% forever.
+    // With less than a year of data there is one window: everything so far.
+    if (haveFullYear ? (hi - lo + 1 < WINDOW) : (hi !== days.length - 1)) continue;
+    if (sw < WORK_CONFIG.italy_ratio_min_days) continue;
+    const ratio = (si / sw) * 100;
+    if (!best || ratio > best.ratio) {
+      best = { ratio: ratio, italy: si, total: sw, from: days[lo].ds, to: days[hi].ds, partial: !haveFullYear };
+    }
+  }
+  return best;
+}
+
 // ===== STATS (UK Tax Year: 6 Apr – 5 Apr) =====
 
 // Get tax year label from a start year, e.g. 2025 => "2025/26"
@@ -1091,7 +1226,7 @@ function renderStats() {
   let daysElapsed = 0;
   let ukNights = 0;
   let italyDays = 0;
-  let ukWorkDays = 0;
+  let ukWorkDays = 0, italyWorkDays = 0, rowWorkDays = 0, totalWorkDays = 0;
 
   for (let d = new Date(taxStart); d <= lastDay; d.setDate(d.getDate() + 1)) {
     const ds = fmtDate(d);
@@ -1105,7 +1240,13 @@ function renderStats() {
     daysElapsed++;
     if (country === 'UK') ukNights++;
     if (country === 'Italy') italyDays++;
-    if (entry?.working) ukWorkDays++;
+    if (didWork(entry)) {
+      totalWorkDays++;
+      const wc = workCountryOf(entry);
+      if (wc === 'UK') ukWorkDays++;
+      else if (wc === 'Italy') italyWorkDays++;
+      else rowWorkDays++;
+    }
   }
 
   const daysRemaining = totalTaxDays - daysElapsed;
@@ -1166,22 +1307,77 @@ function renderStats() {
   }
   html += '</div>';
 
-  // ── UK 30-day working limit ──
-  const ukWorkRemaining = Math.max(0, 30 - ukWorkDays);
+  // ── UK 30-day working limit (worked + UK — existing UK logic, unchanged) ──
+  const ukWorkCap = WORK_CONFIG.uk_work_day_cap;
+  const ukWorkRemaining = Math.max(0, ukWorkCap - ukWorkDays);
   const ukWorkProjected = daysElapsed > 0 ? Math.round((ukWorkDays / daysElapsed) * totalTaxDays) : 0;
-  const ukWorkSafe = ukWorkProjected <= 30;
-  const ukWorkPct = ((ukWorkDays / 30) * 100).toFixed(0);
+  const ukWorkSafe = ukWorkProjected <= ukWorkCap;
+  const ukWorkPct = ((ukWorkDays / ukWorkCap) * 100).toFixed(0);
 
-  html += '<div class="stat-card"><h3>🇬🇧 UK — 30-day working limit</h3>';
-  html += '<div class="stat-bar" style="height:10px;margin-bottom:12px;"><div class="stat-bar-fill" style="width:' + Math.min(100, ukWorkPct) + '%;background:' + (ukWorkDays > 30 ? 'var(--err)' : ukWorkSafe ? 'var(--ok)' : 'var(--warn)') + '"></div></div>';
-  html += '<div class="stat-row"><span>UK working days (actual)</span><span class="days">' + ukWorkDays + ' / 30</span></div>';
+  html += '<div class="stat-card"><h3>\ud83c\uddec\ud83c\udde7 UK — ' + ukWorkCap + '-day working limit</h3>';
+  html += '<div class="stat-bar" style="height:10px;margin-bottom:12px;"><div class="stat-bar-fill" style="width:' + Math.min(100, ukWorkPct) + '%;background:' + (ukWorkDays > ukWorkCap ? 'var(--err)' : ukWorkSafe ? 'var(--ok)' : 'var(--warn)') + '"></div></div>';
+  html += '<div class="stat-row"><span>UK work days (actual)</span><span class="days">' + ukWorkDays + ' / ' + ukWorkCap + '</span></div>';
   html += '<div class="stat-row"><span>Projected full tax year</span><span class="days" style="color:' + (ukWorkSafe ? 'var(--ok)' : 'var(--err)') + '">' + ukWorkProjected + '</span></div>';
-  if (ukWorkDays > 30) {
-    html += '<div class="stat-row"><span>Status</span><span class="days" style="color:var(--err)">⚠ LIMIT EXCEEDED by ' + (ukWorkDays - 30) + ' days</span></div>';
+  if (ukWorkDays > ukWorkCap) {
+    html += '<div class="stat-row"><span>Status</span><span class="days" style="color:var(--err)">⚠ LIMIT EXCEEDED by ' + (ukWorkDays - ukWorkCap) + ' days</span></div>';
   } else {
     html += '<div class="stat-row"><span>Days remaining</span><span class="days">' + ukWorkRemaining + ' UK work days available</span></div>';
   }
-  html += '<div style="font-size:11px;color:var(--text-light);margin-top:8px;">Tag UK working days in the edit modal (defaults to not working)</div>';
+  html += '</div>';
+
+  // ── Work days by country ──
+  html += '<div class="stat-card"><h3>Work days — tax year ' + taxYearLabel(startYear) + '</h3>';
+  html += '<div class="stat-row"><span class="country">\ud83c\uddec\ud83c\udde7 UK</span><span class="days">' + ukWorkDays + '</span></div>';
+  html += '<div class="stat-row"><span class="country">\ud83c\uddee\ud83c\uddf9 Italy</span><span class="days">' + italyWorkDays + '</span></div>';
+  html += '<div class="stat-row"><span class="country">\ud83c\udf0d Rest of world</span><span class="days">' + rowWorkDays + '</span></div>';
+  html += '<div class="stat-row" style="font-weight:700;"><span>Total work days</span><span class="days">' + totalWorkDays + '</span></div>';
+  html += '<div style="font-size:11px;color:var(--text-light);margin-top:8px;">One tap per day in the list, or the toggle in the edit modal. The country defaults to where you slept.</div>';
+  html += '</div>';
+
+  // ── Italian work days — calendar (fiscal) year cap ──
+  const italyCap = WORK_CONFIG.italy_day_cap;
+  const italyDayWarn = WORK_CONFIG.italy_day_warn;
+  html += '<div class="stat-card"><h3>\ud83c\uddee\ud83c\uddf9 Italy — work-day cap (' + italyCap + '/calendar year)</h3>';
+  [startYear, startYear + 1].forEach(yr => {
+    if (new Date(yr, 0, 1) > new Date()) return;
+    const t = italyWorkDaysInYear(yr);
+    const n = t.italyCounted;
+    const pct = ((n / italyCap) * 100).toFixed(0);
+    const col = n > italyCap ? 'var(--err)' : n > italyDayWarn ? 'var(--warn)' : 'var(--ok)';
+    html += '<div class="stat-row"><span>' + yr + '</span><span class="days" style="color:' + col + '">' + n + ' / ' + italyCap + '</span></div>';
+    html += '<div class="stat-bar"><div class="stat-bar-fill" style="width:' + Math.min(100, pct) + '%;background:' + col + '"></div></div>';
+    if (n > italyCap) {
+      html += '<div class="stat-row"><span style="color:var(--err)">⚠ ALERT</span><span style="color:var(--err)">Cap exceeded by ' + (n - italyCap) + ' days</span></div>';
+    } else if (n > italyDayWarn) {
+      html += '<div class="stat-row"><span style="color:var(--warn)">⚠ ALERT</span><span style="color:var(--warn)">Over ' + italyDayWarn + ' Italian work days</span></div>';
+    }
+    if (t.italyPartial) {
+      html += '<div style="font-size:11px;color:var(--text-light);">' + t.italyPartial + ' day trip' + (t.italyPartial === 1 ? '' : 's') + ' (worked in Italy, slept elsewhere) ' + (WORK_CONFIG.italy_partial_day_counts ? 'counted' : 'excluded') + '</div>';
+    }
+  });
+  html += '</div>';
+
+  // ── Italian work ratio — worst rolling 12 months ──
+  const worst = worstItalyRatioWindow();
+  const ratioCap = WORK_CONFIG.italy_ratio_threshold;
+  const ratioWarn = WORK_CONFIG.italy_ratio_warn;
+  html += '<div class="stat-card"><h3>\ud83c\uddee\ud83c\uddf9 Italy — work ratio (worst rolling 12 months)</h3>';
+  if (!worst) {
+    html += '<div class="stat-row"><span>Not enough data</span><span class="days">needs ' + WORK_CONFIG.italy_ratio_min_days + '+ work days in a 12-month window</span></div>';
+  } else {
+    const r = worst.ratio;
+    const col = r > ratioCap ? 'var(--err)' : r > ratioWarn ? 'var(--warn)' : 'var(--ok)';
+    html += '<div class="stat-bar" style="height:10px;margin-bottom:12px;"><div class="stat-bar-fill" style="width:' + Math.min(100, r.toFixed(0)) + '%;background:' + col + '"></div></div>';
+    html += '<div class="stat-row"><span>Worst window</span><span class="days" style="color:' + col + '">' + r.toFixed(1) + '%</span></div>';
+    html += '<div class="stat-row"><span>Italian / total work days</span><span class="days">' + worst.italy + ' / ' + worst.total + '</span></div>';
+    html += '<div class="stat-row"><span>Window</span><span style="color:var(--text-light)">' + worst.from + ' → ' + worst.to + (worst.partial ? ' (all data so far)' : '') + '</span></div>';
+    html += '<div class="stat-row"><span>Threshold</span><span style="color:var(--text-light)">' + ratioCap + '%</span></div>';
+    if (r > ratioCap) {
+      html += '<div class="stat-row"><span style="color:var(--err)">⚠ ALERT</span><span style="color:var(--err)">Above the ' + ratioCap + '% threshold</span></div>';
+    } else if (r > ratioWarn) {
+      html += '<div class="stat-row"><span style="color:var(--warn)">⚠ ALERT</span><span style="color:var(--warn)">Above ' + ratioWarn + '% — approaching the ' + ratioCap + '% threshold</span></div>';
+    }
+  }
   html += '</div>';
 
   // ── HMRC Tax Year Report button ──
@@ -1207,6 +1403,7 @@ function exportHMRCReport() {
   // Accumulate stats
   const countryCounts = {};
   let ukNights = 0, italyDays = 0, ukWorkDays = 0, daysElapsed = 0;
+  let italyWorkDays = 0, rowWorkDays = 0, totalWorkDays = 0;
   let gapDates = [];
   const dayRows = [];
 
@@ -1223,14 +1420,20 @@ function exportHMRCReport() {
       countryCounts['Unrecorded'] = (countryCounts['Unrecorded'] || 0) + 1;
       gapDates.push(ds);
     }
-    if (entry?.working) ukWorkDays++;
+    if (didWork(entry)) {
+      totalWorkDays++;
+      const wc = workCountryOf(entry);
+      if (wc === 'UK') ukWorkDays++;
+      else if (wc === 'Italy') italyWorkDays++;
+      else rowWorkDays++;
+    }
 
     // Build audit row
     const source = entry ? (entry.gpsConfirmed ? 'GPS + Manual' : entry.manualOverride ? 'Manual' : entry.autoBooking ? 'Booking' : entry.autoGps ? 'GPS' : entry.city ? 'Manual' : '') : '';
     dayRows.push({
       date: ds, day: daysFull[new Date(ds + 'T00:00:00').getDay()],
       place: entry?.place || '', city: entry?.city || '', country: country || 'UNRECORDED',
-      flights: entry?.flights || '', working: entry?.working ? 'Yes' : '',
+      flights: entry?.flights || '', worked: didWork(entry) ? 'Yes' : '', workCountry: workCountryOf(entry),
       lat: entry?.lat ? entry.lat.toFixed(6) : '', lon: entry?.lon ? entry.lon.toFixed(6) : '',
       source, conflict: entry?.countryConflict || '', notes: entry?.notes || ''
     });
@@ -1263,11 +1466,38 @@ function exportHMRCReport() {
   csv += 'Projected (full year),' + ukProjected + '\n';
   csv += 'Status,' + (ukNights > 90 ? 'EXCEEDED by ' + (ukNights - 90) : ukProjected <= 90 ? 'Safe — ' + (90 - ukNights) + ' remaining' : 'AT RISK') + '\n\n';
 
-  csv += 'UK 30-day working limit\n';
-  csv += 'Actual UK working days,' + ukWorkDays + '\n';
-  csv += 'Limit,30\n';
+  const ukWorkCap = WORK_CONFIG.uk_work_day_cap;
+  csv += 'UK ' + ukWorkCap + '-day working limit\n';
+  csv += 'Actual UK work days,' + ukWorkDays + '\n';
+  csv += 'Limit,' + ukWorkCap + '\n';
   csv += 'Projected (full year),' + ukWorkProjected + '\n';
-  csv += 'Status,' + (ukWorkDays > 30 ? 'EXCEEDED by ' + (ukWorkDays - 30) : ukWorkProjected <= 30 ? 'Safe — ' + (30 - ukWorkDays) + ' remaining' : 'AT RISK') + '\n\n';
+  csv += 'Status,' + (ukWorkDays > ukWorkCap ? 'EXCEEDED by ' + (ukWorkDays - ukWorkCap) : ukWorkProjected <= ukWorkCap ? 'Safe — ' + (ukWorkCap - ukWorkDays) + ' remaining' : 'AT RISK') + '\n\n';
+
+  csv += 'Work days by country\n';
+  csv += 'UK,' + ukWorkDays + '\n';
+  csv += 'Italy,' + italyWorkDays + '\n';
+  csv += 'Rest of world,' + rowWorkDays + '\n';
+  csv += 'Total work days,' + totalWorkDays + '\n\n';
+
+  csv += 'Italian work-day cap (' + WORK_CONFIG.italy_day_cap + ' per calendar year)\n';
+  [startYear, startYear + 1].forEach(yr => {
+    if (new Date(yr, 0, 1) > new Date()) return;
+    const t = italyWorkDaysInYear(yr);
+    csv += yr + ',' + t.italyCounted + ',' + (t.italyCounted > WORK_CONFIG.italy_day_cap ? 'EXCEEDED' : t.italyCounted > WORK_CONFIG.italy_day_warn ? 'ALERT — over ' + WORK_CONFIG.italy_day_warn : 'OK') + '\n';
+  });
+  csv += '\n';
+
+  const worstWin = worstItalyRatioWindow();
+  csv += 'Italian work ratio — worst rolling 12 months (threshold ' + WORK_CONFIG.italy_ratio_threshold + '%)\n';
+  if (worstWin) {
+    csv += 'Worst window,' + worstWin.from + ' to ' + worstWin.to + '\n';
+    csv += 'Italian work days,' + worstWin.italy + '\n';
+    csv += 'Total work days,' + worstWin.total + '\n';
+    csv += 'Ratio,' + worstWin.ratio.toFixed(1) + '%\n';
+    csv += 'Status,' + (worstWin.ratio > WORK_CONFIG.italy_ratio_threshold ? 'BREACH' : worstWin.ratio > WORK_CONFIG.italy_ratio_warn ? 'ALERT — above ' + WORK_CONFIG.italy_ratio_warn + '%' : 'OK') + '\n\n';
+  } else {
+    csv += 'Status,Not enough work days recorded to report a window\n\n';
+  }
 
   csv += '=== COUNTRY BREAKDOWN ===\n';
   csv += 'Country,Nights,Percentage\n';
@@ -1282,9 +1512,9 @@ function exportHMRCReport() {
   }
 
   csv += '\n=== DAY-BY-DAY AUDIT TRAIL ===\n';
-  csv += 'Date,Day,Place,City,Country,Flights,Working,Lat,Lon,Source,Conflict,Notes\n';
+  csv += 'Date,Day,Place,City,Country,Flights,Worked,Work country,Lat,Lon,Source,Conflict,Notes\n';
   dayRows.forEach(r => {
-    csv += r.date + ',' + r.day + ',' + esc(r.place) + ',' + esc(r.city) + ',' + esc(r.country) + ',' + esc(r.flights) + ',' + r.working + ',' + r.lat + ',' + r.lon + ',' + r.source + ',' + esc(r.conflict) + ',' + esc(r.notes) + '\n';
+    csv += r.date + ',' + r.day + ',' + esc(r.place) + ',' + esc(r.city) + ',' + esc(r.country) + ',' + esc(r.flights) + ',' + r.worked + ',' + esc(r.workCountry) + ',' + r.lat + ',' + r.lon + ',' + r.source + ',' + esc(r.conflict) + ',' + esc(r.notes) + '\n';
   });
 
   download(csv, 'HMRC-Tax-Report-' + label.replace('/', '-') + '.csv', 'text/csv');
@@ -1615,7 +1845,8 @@ function openDay(dateStr) {
   document.getElementById('editCountry').value = entry.country || '';
   document.getElementById('editFlights').value = entry.flights || '';
   document.getElementById('editNotes').value = entry.notes || '';
-  document.getElementById('editWorking').checked = !!entry.working;
+  document.getElementById('editWorked').checked = didWork(entry);
+  onWorkedToggle();
   document.getElementById('editHotelName').value = '';
   selectedPreset = null;
 
@@ -1807,7 +2038,7 @@ function saveDay() {
     country: normalizeCountry(document.getElementById('editCountry').value.trim()),
     flights: document.getElementById('editFlights').value.trim(),
     notes: document.getElementById('editNotes').value.trim(),
-    working: document.getElementById('editWorking').checked ? true : false,
+    worked: document.getElementById('editWorked').checked ? true : false,
     synced: false
   };
   // GPS was captured at some point — mark as confirmed by manual save
@@ -1822,8 +2053,17 @@ function saveDay() {
   delete entry.countryConflict;
   // A hand-typed day is no longer a flight/gap-fill guess.
   delete entry.flightGapFill;
+  // Working day: the country is required whenever worked is true, and is pre-filled
+  // from the sleep location, so it can never be empty.
+  delete entry.working;
+  if (entry.worked) {
+    entry.workCountry = normalizeCountry(
+      document.getElementById('editWorkCountry').value.trim() || entry.country || HOME.country);
+  } else {
+    delete entry.workCountry;
+  }
 
-  if (entry.place || entry.city || entry.country) {
+  if (entry.place || entry.city || entry.country || entry.worked) {
     entries[savedDate] = entry;
     syncEntry(savedDate, entry);
   }
@@ -2546,6 +2786,100 @@ async function bracketGPSCapture(dateStr, bracketType, allowRefresh) {
 // Guard so one-time migrations only run once per session, even though the
 // Firebase listener fires again every time we write back via syncEntry.
 let migrationsRun = false;
+
+// ONE-TIME MIGRATION: the old UK-only `working` boolean becomes `worked` + `workCountry`.
+// Existing UK working days -> worked = true, workCountry = 'UK'. Unflagged days stay
+// unflagged (absent = false). No reinterpretation of past data. One batched write, and
+// it only runs behind the migrationsRun guard so the Firebase listener cannot loop it.
+function migrateWorkingDays() {
+  const updates = {};
+  let migrated = 0;
+  Object.keys(entries).forEach(ds => {
+    const e = entries[ds];
+    if (!e) return;
+    if (e.worked === undefined && e.working) {
+      e.worked = true;
+      e.workCountry = 'UK';
+      updates['locations/' + ds + '/worked'] = true;
+      updates['locations/' + ds + '/workCountry'] = 'UK';
+      migrated++;
+    }
+    if (e.working !== undefined) {
+      delete e.working;
+      updates['locations/' + ds + '/working'] = null;
+    }
+  });
+  if (!Object.keys(updates).length) return;
+  saveLocal();
+  if (!fbReady || !db) return;
+  db.ref().update(updates)
+    .then(() => console.log('Working-day migration: ' + migrated + ' UK working days -> worked + GB'))
+    .catch(err => console.warn('Working-day migration write failed:', err.message));
+}
+
+// Countries offered in the work-country picker: everywhere he has been, plus the
+// usual suspects. Always includes the value we are about to select, so it can never
+// render empty.
+function workCountryOptions(selected) {
+  const set = new Set(['UK', 'Italy']);
+  if (HOME.country) set.add(normalizeCountry(HOME.country));
+  try { presets.forEach(p => { if (p.country) set.add(normalizeCountry(p.country)); }); } catch(e) {}
+  Object.values(entries).forEach(e => {
+    if (e && e.country) set.add(normalizeCountry(e.country));
+    if (e && e.workCountry) set.add(normalizeCountry(e.workCountry));
+  });
+  ['Thailand', 'France', 'Switzerland', 'Singapore', 'USA', 'Germany', 'Spain', 'UAE'].forEach(c => set.add(c));
+  if (selected) set.add(normalizeCountry(selected));
+  return Array.from(set).filter(Boolean).sort();
+}
+
+// Show/hide + (re)fill the work-country picker. Called on open and on every toggle,
+// so the default always reflects the country currently on the day.
+function onWorkedToggle() {
+  const on = document.getElementById('editWorked').checked;
+  document.getElementById('workCountryRow').style.display = on ? '' : 'none';
+  if (!on) return;
+  const existing = editingDate ? entries[editingDate] : null;
+  const typed = normalizeCountry(document.getElementById('editCountry').value.trim());
+  const want = (existing && existing.workCountry) ? normalizeCountry(existing.workCountry)
+             : (existing && existing.worked === undefined && existing.working) ? 'UK'
+             : (typed || HOME.country);
+  const sel = document.getElementById('editWorkCountry');
+  sel.innerHTML = workCountryOptions(want)
+    .map(c => '<option value="' + c + '">' + countryFlag(c) + '  ' + c + '</option>').join('');
+  sel.value = want;
+}
+
+// One tap from the day list: mark the day worked with the country already set from
+// the sleep location, or unmark it.
+function toggleWorked(ev, dateStr) {
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+  const existing = entries[dateStr];
+  const nowWorked = !didWork(existing);
+  const entry = Object.assign({}, existing || {}, { worked: nowWorked, synced: false });
+  delete entry.working;
+  if (nowWorked) {
+    entry.workCountry = (existing && existing.workCountry)
+      ? normalizeCountry(existing.workCountry)
+      : (normalizeCountry(entry.country || '') || HOME.country);
+  } else {
+    delete entry.workCountry;
+  }
+  entries[dateStr] = entry;
+  syncEntry(dateStr, entry);
+  saveLocal();
+  render();
+  toast(nowWorked ? 'Worked in ' + entry.workCountry + ' \u2014 ' + formatDisplayDate(dateStr)
+                  : 'Not a work day \u2014 ' + formatDisplayDate(dateStr));
+}
+
+function workChipHtml(dateStr, entry) {
+  if (didWork(entry)) {
+    const c = workCountryOf(entry);
+    return '<div class="working-tag" style="cursor:pointer;" onclick="toggleWorked(event, \'' + dateStr + '\')" title="Tap to unmark">WORKED ' + countryFlag(c) + ' ' + c + '</div>';
+  }
+  return '<div class="working-tag" style="background:transparent;border:1px dashed #cbd5e1;color:var(--text-light);cursor:pointer;" onclick="toggleWorked(event, \'' + dateStr + '\')" title="Tap to mark as a work day">+ work</div>';
+}
 
 // Heal entries whose city was populated with junk from a misparsed email body
 // (e.g. "in Gmail", "location: Outlook" — see Apr 29 2026 case where city="Gmail").
@@ -3447,12 +3781,12 @@ async function importSpreadsheet() {
 function exportCSV() {
   const allDates = Object.keys(entries).sort();
   if (!allDates.length) { toast('No data to export'); return; }
-  let csv = 'Date,Day,Place,City,Country,Flights,Notes,Lat,Lon,Working,Source,Conflict,Booking source\n';
+  let csv = 'Date,Day,Place,City,Country,Flights,Notes,Lat,Lon,Worked,Work country,Source,Conflict,Booking source\n';
   const daysFull = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   allDates.forEach(ds => {
     const e = entries[ds];
     const d = new Date(ds + 'T00:00:00');
-    csv += ds + ',' + daysFull[d.getDay()] + ',' + esc(e.place) + ',' + esc(e.city) + ',' + esc(e.country) + ',' + esc(e.flights) + ',' + esc(e.notes) + ',' + (e.lat||'') + ',' + (e.lon||'') + ',' + (e.working ? 'Yes' : '') + ',' + (e.gpsConfirmed ? 'GPS + Manual' : e.manualOverride ? 'Manual' : e.autoBooking ? 'Booking' : e.autoGps ? 'GPS' : 'Manual') + ',' + esc(e.countryConflict || '') + ',' + esc(e.bookingSource || '') + '\n';
+    csv += ds + ',' + daysFull[d.getDay()] + ',' + esc(e.place) + ',' + esc(e.city) + ',' + esc(e.country) + ',' + esc(e.flights) + ',' + esc(e.notes) + ',' + (e.lat||'') + ',' + (e.lon||'') + ',' + (didWork(e) ? 'Yes' : '') + ',' + esc(workCountryOf(e)) + ',' + (e.gpsConfirmed ? 'GPS + Manual' : e.manualOverride ? 'Manual' : e.autoBooking ? 'Booking' : e.autoGps ? 'GPS' : 'Manual') + ',' + esc(e.countryConflict || '') + ',' + esc(e.bookingSource || '') + '\n';
   });
   download(csv, 'midnight-tracker-export-' + fmtDate(new Date()) + '.csv', 'text/csv');
   toast('Exported CSV');

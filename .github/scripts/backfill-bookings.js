@@ -541,7 +541,11 @@ async function updateFirebase(bookings) {
 
     if (current?.lat) entry.lat = current.lat;
     if (current?.lon) entry.lon = current.lon;
-    if (current?.working) entry.working = current.working;
+    // Working day: `worked` + `workCountry` replaced the old UK-only `working` boolean.
+    // This is a WHOLE-NODE write, so anything not copied across is deleted.
+    if (current?.worked !== undefined) entry.worked = current.worked;
+    if (current?.workCountry) entry.workCountry = current.workCountry;
+    else if (current?.worked === undefined && current?.working) { entry.worked = true; entry.workCountry = 'UK'; }
     if (current?.autoGps) entry.autoGps = current.autoGps;
 
     const hasNew = (!current) ||
