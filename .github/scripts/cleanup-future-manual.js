@@ -41,8 +41,9 @@ async function main() {
     // Only "manual" entries — no GPS, no booking sync
     if (entry.autoGps || entry.autoBooking || entry.gpsConfirmed || entry.lat) continue;
 
-    // Only entries with no meaningful user data (no flights, no notes)
+    // Only entries with no meaningful user data (no flights, no notes, not a work day)
     if (entry.flights || entry.notes) continue;
+    if (entry.worked !== undefined || entry.working) continue;
 
     console.log(`  DELETE ${dateStr}: ${entry.place || ''}, ${entry.city || ''}, ${entry.country || ''}`);
     removals['locations/' + dateStr] = null;

@@ -491,7 +491,6 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
     </div>
 
     <div class="btn-row">
-      <button class="btn btn-outline" onclick="clearDay()">Clear</button>
       <button class="btn btn-primary" onclick="saveDay()">Save</button>
     </div>
   </div>
@@ -503,7 +502,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-09-13b';
+const APP_VERSION = '2026-09-13c';
 
 // ===== WORKING DAYS =====
 // ONE concept of a working day: `worked` (bool) + `workCountry` (country name, the
@@ -693,7 +692,6 @@ if (auth) {
 
 function fbSet(path, val) { if (db) db.ref(path).set(val); }
 function fbUpdate(path, val) { if (db) db.ref(path).update(val); }
-function fbRemove(path) { if (db) db.ref(path).remove(); }
 function fbListen(path, cb) {
   if (db) db.ref(path).on('value', snap => { const v = snap.val(); cb(v); });
 }
@@ -921,9 +919,11 @@ function syncEntry(date, entry) {
   });
 }
 
-function deleteEntry(date) {
-  if (fbReady) fbRemove('locations/' + date);
-}
+// Deleting a day is no longer possible from the app. A wrong entry is corrected by
+// editing it; deleting one only opens a gap and destroys GPS brackets and the ping
+// trail, which cannot be re-collected. 2026-09-09 was lost that way on 13 Sep 2026.
+// If a day ever genuinely has to go, do it deliberately with the Firebase CLI, with
+// the daily backup as the safety net.
 
 // ===== TABS =====
 document.querySelectorAll('.tab').forEach(tab => {
@@ -2072,46 +2072,6 @@ function saveDay() {
   toast('Saved ' + formatDisplayDate(savedDate));
 }
 
-function clearDay() {
-  if (!editingDate) return;
-  const savedDate = editingDate;
-  const doomed = entries[savedDate];
-  // Clear sits next to Save and permanently deletes a day of HMRC evidence - GPS
-  // brackets, ping trail, flights, the lot. It must never fire on a stray tap.
-  if (doomed) {
-    const what = [doomed.city, doomed.country].filter(Boolean).join(', ') || 'this entry';
-    const bits = [];
-    if (doomed.brackets) bits.push('GPS brackets');
-    if (Array.isArray(doomed.pings) && doomed.pings.length) bits.push(doomed.pings.length + ' pings');
-    if (doomed.flights) bits.push('flights ' + doomed.flights);
-    if (!window.confirm('Delete all data for ' + formatDisplayDate(savedDate) + '?\n\n' +
-        what + (bits.length ? '\n' + bits.join(', ') : '') +
-        '\n\nThis cannot be undone from the app.')) {
-      return;
-    }
-    try { localStorage.setItem('mt_last_cleared', JSON.stringify({ date: savedDate, entry: doomed })); } catch(e) {}
-  }
-  delete entries[savedDate];
-  deleteEntry(savedDate);
-  saveLocal();
-  closeModal();
-  render();
-  toast('Cleared ' + formatDisplayDate(savedDate) + ' — type undoClear() in the console to put it back');
-}
-
-// Last resort if Clear was hit by mistake: the entry is kept locally until the next
-// clear. Call undoClear() from the console.
-function undoClear() {
-  let saved = null;
-  try { saved = JSON.parse(localStorage.getItem('mt_last_cleared')); } catch(e) {}
-  if (!saved || !saved.date) { console.warn('Nothing to undo.'); return false; }
-  entries[saved.date] = Object.assign({}, saved.entry, { synced: false });
-  syncEntry(saved.date, entries[saved.date]);
-  saveLocal();
-  render();
-  toast('Restored ' + formatDisplayDate(saved.date));
-  return true;
-}
 
 // ===== AUTO-GPS MIDNIGHT SYSTEM =====
 

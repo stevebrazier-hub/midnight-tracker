@@ -596,10 +596,24 @@ async function main() {
   const removals = {};
   let removeCount = 0;
   for (const [dateStr, entry] of Object.entries(cleanData)) {
-    // Remove pure auto-booking entries (no GPS or manual confirmation)
-    if (entry.autoBooking && !entry.autoGps && !entry.gpsConfirmed) {
+    // Remove pure auto-booking entries — but ONLY ones carrying no evidence and no
+    // decision of Steve's. The old test was autoGps/gpsConfirmed alone, which would
+    // have deleted days like 2026-09-09: a booking-sourced entry holding two GPS
+    // brackets, a ping trail, a flight and a hand-made edit. Brackets and pings are
+    // observations that cannot be re-collected.
+    const hasEvidence = entry.autoGps || entry.gpsConfirmed || entry.manualOverride ||
+      entry.brackets || (Array.isArray(entry.pings) && entry.pings.length) ||
+      entry.lat != null || entry.worked !== undefined || entry.working;
+    if (entry.autoBooking && !hasEvidence) {
       removals['locations/' + dateStr] = null;
       removeCount++;
+    }
+    else if (entry.autoBooking && !entry.autoGps && !entry.gpsConfirmed) {
+      console.log(`  KEEP ${dateStr}: booking entry has evidence (` +
+        [entry.manualOverride && 'manual edit', entry.brackets && 'brackets',
+         Array.isArray(entry.pings) && entry.pings.length && entry.pings.length + ' pings',
+         entry.lat != null && 'coords', (entry.worked !== undefined || entry.working) && 'work day']
+        .filter(Boolean).join(', ') + ')');
     }
     // Also clean up entries with bad place names from previous runs
     else if (entry.place && /^(check.?in|check.?out|Fw:|Re:|FW:|RE:)/i.test(entry.place)) {
