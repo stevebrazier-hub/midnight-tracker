@@ -451,15 +451,14 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
       </div>
     </div>
     <div class="field" id="workingField">
-      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-        <input type="checkbox" id="editWorked" style="width:18px;height:18px;accent-color:var(--primary);flex:none;" onchange="onWorkedToggle()" />
-        <span>Worked this day</span>
-      </label>
-      <div id="workCountryRow" style="display:none;margin-top:8px;">
-        <label style="font-size:12px;color:var(--text-light);">Worked in</label>
-        <select id="editWorkCountry" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:15px;background:var(--card);color:var(--text);"></select>
-        <div style="font-size:11px;color:var(--text-light);margin-top:4px;">Defaults to where you slept. Change it for a day trip.</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:none;margin:0;">
+          <input type="checkbox" id="editWorked" style="width:18px;height:18px;accent-color:var(--primary);flex:none;" onchange="onWorkedToggle()" />
+          <span>Worked in</span>
+        </label>
+        <select id="editWorkCountry" style="flex:1;min-width:0;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:15px;background:var(--card);color:var(--text);"></select>
       </div>
+      <div id="workCountryHint" style="font-size:11px;color:var(--text-light);margin-top:4px;">Defaults to where you slept. Change it for a day trip.</div>
     </div>
 
     <div id="modalTransitWarning" style="display:none;margin-top:10px;padding:10px;background:#fdf2f8;border:1px solid #f9a8d4;border-radius:8px;font-size:12px;color:#be185d;">
@@ -504,7 +503,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 
 <script>
 // ===== APP VERSION =====
-const APP_VERSION = '2026-09-13a';
+const APP_VERSION = '2026-09-13b';
 
 // ===== WORKING DAYS =====
 // ONE concept of a working day: `worked` (bool) + `workCountry` (country name, the
@@ -2076,12 +2075,42 @@ function saveDay() {
 function clearDay() {
   if (!editingDate) return;
   const savedDate = editingDate;
+  const doomed = entries[savedDate];
+  // Clear sits next to Save and permanently deletes a day of HMRC evidence - GPS
+  // brackets, ping trail, flights, the lot. It must never fire on a stray tap.
+  if (doomed) {
+    const what = [doomed.city, doomed.country].filter(Boolean).join(', ') || 'this entry';
+    const bits = [];
+    if (doomed.brackets) bits.push('GPS brackets');
+    if (Array.isArray(doomed.pings) && doomed.pings.length) bits.push(doomed.pings.length + ' pings');
+    if (doomed.flights) bits.push('flights ' + doomed.flights);
+    if (!window.confirm('Delete all data for ' + formatDisplayDate(savedDate) + '?\n\n' +
+        what + (bits.length ? '\n' + bits.join(', ') : '') +
+        '\n\nThis cannot be undone from the app.')) {
+      return;
+    }
+    try { localStorage.setItem('mt_last_cleared', JSON.stringify({ date: savedDate, entry: doomed })); } catch(e) {}
+  }
   delete entries[savedDate];
   deleteEntry(savedDate);
   saveLocal();
   closeModal();
   render();
-  toast('Cleared ' + formatDisplayDate(savedDate));
+  toast('Cleared ' + formatDisplayDate(savedDate) + ' — type undoClear() in the console to put it back');
+}
+
+// Last resort if Clear was hit by mistake: the entry is kept locally until the next
+// clear. Call undoClear() from the console.
+function undoClear() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem('mt_last_cleared')); } catch(e) {}
+  if (!saved || !saved.date) { console.warn('Nothing to undo.'); return false; }
+  entries[saved.date] = Object.assign({}, saved.entry, { synced: false });
+  syncEntry(saved.date, entries[saved.date]);
+  saveLocal();
+  render();
+  toast('Restored ' + formatDisplayDate(saved.date));
+  return true;
 }
 
 // ===== AUTO-GPS MIDNIGHT SYSTEM =====
@@ -2837,8 +2866,13 @@ function workCountryOptions(selected) {
 // so the default always reflects the country currently on the day.
 function onWorkedToggle() {
   const on = document.getElementById('editWorked').checked;
-  document.getElementById('workCountryRow').style.display = on ? '' : 'none';
-  if (!on) return;
+  const sel0 = document.getElementById('editWorkCountry');
+  // The picker is always on screen, enabled or not, so the modal never changes height
+  // when a worked day is opened. A height change here shifts Clear and Save under the
+  // user's thumb - that is how 2026-09-09 got deleted on 13 Sep 2026.
+  sel0.disabled = !on;
+  sel0.style.opacity = on ? '1' : '0.45';
+  document.getElementById('workCountryHint').style.visibility = on ? 'visible' : 'hidden';
   const existing = editingDate ? entries[editingDate] : null;
   const typed = normalizeCountry(document.getElementById('editCountry').value.trim());
   const want = (existing && existing.workCountry) ? normalizeCountry(existing.workCountry)
