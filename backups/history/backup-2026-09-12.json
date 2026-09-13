@@ -6889,24 +6889,23 @@
       "bracketInferred": true,
       "brackets": {
         "evening": {
-          "capturedAt": "2026-09-12 11:00:53 BST",
-          "city": "Quebec",
+          "capturedAt": "2026-09-12 02:04:15 BST",
+          "city": "Montreal",
           "country": "Canada",
           "fromPingLog": true,
-          "lat": 46.811629,
-          "lon": -71.2058119,
-          "place": "Fairmont Le Château Frontenac"
+          "lat": 45.443249,
+          "lon": -73.6593073,
+          "place": "Boulevard Montréal-Toronto"
         }
       },
       "captureSource": "bracket-booking-inference",
-      "capturedAt": "2026-09-12 11:00:53 BST",
+      "capturedAt": "2026-09-12 02:04:15 BST",
       "city": "1 rue des Carrieres, Quebec City QC G1R 5J5, Canada",
       "country": "Canada",
       "flights": "",
-      "lat": 46.811629,
-      "lon": -71.2058119,
-      "notes": "Flight-inferred country UK from TG910→BA590 stay — night between arrival and return flight (UK midnight rule). | Booking confirmed by evening bracket GPS in same country: Montreal 2026-09-12 02:04:15 BST | Booking confirmed by evening bracket GPS in same country: Montreal 2026-09-12 02:04:15 BST | Booking confirmed by evening bracket GPS in same country: Montreal 2026-09-12 02:04:15 BST | Booking confirmed by evening bracket GPS in same country: Quebec 2026-09-12 11:00:53 BST",
-      "pingConsensus": true,
+      "lat": 45.443249,
+      "lon": -73.6593073,
+      "notes": "Flight-inferred country UK from TG910→BA590 stay — night between arrival and return flight (UK midnight rule). | Booking confirmed by evening bracket GPS in same country: Montreal 2026-09-12 02:04:15 BST | Booking confirmed by evening bracket GPS in same country: Montreal 2026-09-12 02:04:15 BST",
       "pings": [
         {
           "capturedAt": "2026-09-12 02:04:15 BST",
@@ -6916,16 +6915,6 @@
           "localAt": "2026-09-11 21:04:15 America/Toronto",
           "lon": -73.6593073,
           "place": "Boulevard Montréal-Toronto",
-          "reason": "foreground"
-        },
-        {
-          "capturedAt": "2026-09-12 11:00:53 BST",
-          "city": "Quebec",
-          "country": "Canada",
-          "lat": 46.811629,
-          "localAt": "2026-09-12 06:00:53 America/Toronto",
-          "lon": -71.2058119,
-          "place": "Fairmont Le Château Frontenac",
           "reason": "foreground"
         }
       ],
@@ -7061,7 +7050,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-09-13T04:50:20.874Z",
+    "lastBookingSync": "2026-09-12T04:00:15.243Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }

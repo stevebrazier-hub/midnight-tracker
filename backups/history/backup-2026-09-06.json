@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-09-12T01:05:26.043Z"
+      "updatedAt": "2026-09-06T02:27:45.377Z"
     }
   },
   "locations": {
@@ -4981,13 +4981,12 @@
     },
     "2026-07-13": {
       "autoBooking": true,
-      "bookingSource": "flight-inference: BA591→BA590 | calendar: Flight XZ2621: LIN - OLB, departs 09:00 | flight-inference: Eurostar→BA580",
-      "city": "London",
-      "country": "UK",
-      "flightGapFill": true,
+      "bookingSource": "flight-inference: BA591→BA590 | calendar: Flight XZ2621: LIN - OLB, departs 09:00",
+      "city": "Milan",
+      "country": "Italy",
       "flightInferred": true,
       "flights": "XZ2621",
-      "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule). | Flight-inferred country UK from Eurostar→BA580 stay — night between arrival and return flight (UK midnight rule).",
+      "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule).",
       "place": ""
     },
     "2026-07-14": {
@@ -5099,9 +5098,6 @@
       "unconfirmed": true
     },
     "2026-07-17": {
-      "autoBooking": true,
-      "bookingConflict": "Flight gap-fill guessed UK; GPS ping says Italy - kept the GPS.",
-      "bookingSource": "flight-inference: Eurostar→BA580",
       "bracketInferred": true,
       "brackets": {
         "morning": {
@@ -5117,17 +5113,14 @@
       "capturedAt": "2026-07-18 07:51:36 BST",
       "city": "",
       "country": "Italy",
+      "flightInferred": true,
       "flights": "",
       "lat": 41.1821476,
       "lon": 9.4944244,
       "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule). | Corrected 18 Jul 2026: flight-inference BA591-BA590 was wrong (BA591 3 Jul passenger was Miss Wince, not Steve). On boat off Sardinia; 7am 18 Jul ping 41.18,9.49 at sea. | Retracted stale flight-inference (flight-inference: BA591→BA590) — supporting flights no longer found.",
-      "place": "Italy",
-      "unconfirmed": true
+      "place": "Italy"
     },
     "2026-07-18": {
-      "autoBooking": true,
-      "bookingConflict": "Flight gap-fill guessed UK; GPS ping says Italy - kept the GPS.",
-      "bookingSource": "flight-inference: Eurostar→BA580",
       "bracketInferred": true,
       "brackets": {
         "evening": {
@@ -5143,33 +5136,32 @@
       "capturedAt": "2026-07-18 09:37:32 BST",
       "city": "",
       "country": "Italy",
+      "flightInferred": true,
       "flights": "",
       "lat": 41.2161369,
       "lon": 9.4845061,
       "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule). | Corrected 18 Jul 2026: flight-inference BA591-BA590 was wrong (BA591 3 Jul passenger was Miss Wince, not Steve). On boat off Sardinia; 7am 18 Jul ping 41.18,9.49 at sea. | Retracted stale flight-inference (flight-inference: BA591→BA590) — supporting flights no longer found.",
-      "place": "Cala Coticcio",
-      "unconfirmed": true
+      "place": "Cala Coticcio"
     },
     "2026-07-19": {
       "autoBooking": true,
-      "bookingSource": "flight-inference: BA591→BA590 | flight-inference: Eurostar→BA580",
-      "city": "London",
-      "country": "UK",
-      "flightGapFill": true,
+      "bookingSource": "flight-inference: BA591→BA590",
+      "captureSource": "manual-correction",
+      "city": "Sardinia",
+      "country": "Italy",
       "flightInferred": true,
       "flights": "",
-      "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule). | Corrected 18 Jul 2026: flight-inference BA591-BA590 was wrong (BA591 3 Jul passenger was Miss Wince, not Steve). On boat off Sardinia; 7am 18 Jul ping 41.18,9.49 at sea. | Flight-inferred country UK from Eurostar→BA580 stay — night between arrival and return flight (UK midnight rule).",
+      "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule). | Corrected 18 Jul 2026: flight-inference BA591-BA590 was wrong (BA591 3 Jul passenger was Miss Wince, not Steve). On boat off Sardinia; 7am 18 Jul ping 41.18,9.49 at sea.",
       "place": ""
     },
     "2026-07-20": {
       "autoBooking": true,
-      "bookingSource": "flight-inference: BA591→BA590 | calendar: Flight XZ2630: OLB - LIN, Departs 14:00 | email: Reservation Confirmation #71118446 for The Westin Palace, Milan | Fw: Ryanair Travel Itinerary | email: Fw: Ryanair Travel Itinerary",
-      "city": "London",
-      "country": "UK",
-      "flightGapFill": true,
+      "bookingSource": "flight-inference: BA591→BA590 | calendar: Flight XZ2630: OLB - LIN, Departs 14:00 | email: Reservation Confirmation #71118446 for The Westin Palace, Milan | Fw: Ryanair Travel Itinerary",
+      "city": "Milan",
+      "country": "Italy",
       "flightInferred": true,
       "flights": "XZ2630",
-      "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule). | Flight-inferred country UK from Eurostar→BA580 stay — night between arrival and return flight (UK midnight rule).",
+      "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule).",
       "place": "s and experiences worldwide"
     },
     "2026-07-21": {
@@ -5426,8 +5418,6 @@
       "unconfirmed": true
     },
     "2026-07-30": {
-      "autoBooking": true,
-      "bookingSource": "flight-inference: Eurostar→BA0998",
       "bracketInferred": true,
       "brackets": {
         "evening": {
@@ -5451,6 +5441,7 @@
       "capturedAt": "2026-07-30 22:52:05 BST",
       "city": "Calvagese della Riviera",
       "country": "Italy",
+      "flightInferred": true,
       "flights": "",
       "lat": 45.5130473,
       "lon": 10.4772886,
@@ -6523,7 +6514,7 @@
       "flights": "",
       "lat": 13.7180898,
       "lon": 100.5077097,
-      "notes": "Flight-inferred country Thailand from TG404→TG910 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-05 04:14:53 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-05 04:14:53 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-05 10:36:01 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-05 10:36:01 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-05 10:36:01 BST | Inferred from GPS brackets: evening=10600, Bangkok 2026-09-05 10:36:01 BST, morning=10600, Bangkok 2026-09-06 03:27:48 BST | Inferred from GPS brackets: evening=10600, Bangkok 2026-09-05 10:36:01 BST, morning=10600, Bangkok 2026-09-06 03:27:48 BST | Inferred from GPS brackets: evening=10600, Bangkok 2026-09-05 10:36:01 BST, morning=10600, Bangkok 2026-09-06 03:27:48 BST | Inferred from GPS brackets: evening=10600, Bangkok 2026-09-05 10:36:01 BST, morning=10600, Bangkok 2026-09-06 03:27:48 BST | Inferred from GPS brackets: evening=10600, Bangkok 2026-09-05 10:36:01 BST, morning=10600, Bangkok 2026-09-06 03:27:48 BST",
+      "notes": "Flight-inferred country Thailand from TG404→TG910 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-05 04:14:53 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-05 04:14:53 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-05 10:36:01 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-05 10:36:01 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-05 10:36:01 BST | Inferred from GPS brackets: evening=10600, Bangkok 2026-09-05 10:36:01 BST, morning=10600, Bangkok 2026-09-06 03:27:48 BST",
       "pingConsensus": true,
       "pings": [
         {
@@ -6556,26 +6547,25 @@
       "bracketInferred": true,
       "brackets": {
         "evening": {
-          "capturedAt": "2026-09-06 23:27:57 BST",
+          "capturedAt": "2026-09-06 03:27:48 BST",
           "city": "10600, Bangkok",
           "country": "Thailand",
           "fromPingLog": true,
-          "lat": 13.7187557,
-          "lon": 100.5093841,
+          "lat": 13.7186684,
+          "lon": 100.5091909,
           "place": "931/301 Baan Sathorn Chaophraya"
         }
       },
       "captureSource": "single-bracket-inference",
-      "capturedAt": "2026-09-06 23:27:57 BST",
+      "capturedAt": "2026-09-06 03:27:48 BST",
       "city": "10600, Bangkok",
       "country": "Thailand",
       "flightGapFill": true,
       "flightInferred": true,
       "flights": "",
-      "lat": 13.7187557,
-      "lon": 100.5093841,
-      "notes": "Flight-inferred country Thailand from TG404→TG910 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-06 03:27:48 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-06 03:27:48 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-06 23:27:57 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-06 23:27:57 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-06 23:27:57 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-06 23:27:57 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-06 23:27:57 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-06 23:27:57 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-06 23:27:57 BST",
-      "pingConsensus": true,
+      "lat": 13.7186684,
+      "lon": 100.5091909,
+      "notes": "Flight-inferred country Thailand from TG404→TG910 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-06 03:27:48 BST",
       "pings": [
         {
           "capturedAt": "2026-09-06 03:27:48 BST",
@@ -6586,16 +6576,6 @@
           "lon": 100.5091909,
           "place": "931/301 Baan Sathorn Chaophraya",
           "reason": "foreground"
-        },
-        {
-          "capturedAt": "2026-09-06 23:27:57 BST",
-          "city": "10600, Bangkok",
-          "country": "Thailand",
-          "lat": 13.7187557,
-          "localAt": "2026-09-07 05:27:57 Asia/Bangkok",
-          "lon": 100.5093841,
-          "place": "931/301 Baan Sathorn Chaophraya",
-          "reason": "foreground"
         }
       ],
       "place": "931/301 Baan Sathorn Chaophraya"
@@ -6603,332 +6583,63 @@
     "2026-09-07": {
       "autoBooking": true,
       "bookingSource": "flight-inference: TG910",
-      "brackets": {
-        "evening": {
-          "capturedAt": "2026-09-07 09:35:49 BST",
-          "city": "10600, Bangkok",
-          "country": "Thailand",
-          "fromPingLog": true,
-          "lat": 13.7186735,
-          "lon": 100.509129,
-          "place": "931/301 Baan Sathorn Chaophraya"
-        },
-        "morning": {
-          "capturedAt": "2026-09-08 02:27:16 BST",
-          "city": "10600, Bangkok",
-          "country": "Thailand",
-          "fromPingLog": true,
-          "lat": 13.7186812,
-          "lon": 100.5091583,
-          "place": "931/301 Baan Sathorn Chaophraya"
-        }
-      },
       "city": "Bangkok",
       "country": "Thailand",
       "flightInferred": true,
       "flights": "",
       "notes": "Flight-inferred country Thailand from TG910 direction (UK midnight rule).",
-      "pingConsensus": true,
-      "pings": [
-        {
-          "capturedAt": "2026-09-07 09:35:49 BST",
-          "city": "10600, Bangkok",
-          "country": "Thailand",
-          "lat": 13.7186735,
-          "localAt": "2026-09-07 15:35:49 Asia/Bangkok",
-          "lon": 100.509129,
-          "place": "931/301 Baan Sathorn Chaophraya",
-          "reason": "foreground"
-        }
-      ],
       "place": ""
     },
     "2026-09-08": {
-      "airborneTransit": true,
       "autoBooking": true,
-      "autoGps": true,
       "bookingSource": "calendar: Flight TG910: BKK - LHR, departs 00:45",
-      "bracketInferred": true,
-      "brackets": {
-        "evening": {
-          "capturedAt": "2026-09-08 18:07:54 BST",
-          "city": "Nong Prue Subdistrict",
-          "country": "Thailand",
-          "fromPingLog": true,
-          "lat": 13.6910451,
-          "lon": 100.7516938,
-          "place": "Phone charging station"
-        },
-        "morning": {
-          "capturedAt": "2026-09-09 06:59:11 BST",
-          "city": "Greater London",
-          "country": "UK",
-          "fromPingLog": true,
-          "lat": 51.47951,
-          "lon": -0.4463211,
-          "place": "Northern Perimeter Road"
-        }
-      },
-      "captureSource": "bracket-booking-inference",
-      "capturedAt": "2026-09-08 18:07:54 BST",
-      "city": "10600, Bangkok",
-      "country": "Thailand",
-      "flights": "TG910",
-      "lat": 13.6910451,
-      "lon": 100.7516938,
-      "notes": "Airborne at UK midnight (flight TG910) — transit day; confirm HMRC treatment. | Airborne at UK midnight (flight TG910) — transit day; confirm HMRC treatment. | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-08 02:27:16 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-08 02:27:16 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-08 02:27:16 BST | Booking confirmed by evening bracket GPS in same country: Nong Prue Subdistrict 2026-09-08 18:07:54 BST | Booking confirmed by evening bracket GPS in same country: Nong Prue Subdistrict 2026-09-08 18:07:54 BST | Booking confirmed by evening bracket GPS in same country: Nong Prue Subdistrict 2026-09-08 18:07:54 BST | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK",
-      "pingConsensus": true,
-      "pings": [
-        {
-          "capturedAt": "2026-09-08 02:27:16 BST",
-          "city": "10600, Bangkok",
-          "country": "Thailand",
-          "lat": 13.7186812,
-          "localAt": "2026-09-08 08:27:16 Asia/Bangkok",
-          "lon": 100.5091583,
-          "place": "931/301 Baan Sathorn Chaophraya",
-          "reason": "foreground"
-        },
-        {
-          "capturedAt": "2026-09-08 18:07:54 BST",
-          "city": "Nong Prue Subdistrict",
-          "country": "Thailand",
-          "lat": 13.6910451,
-          "localAt": "2026-09-09 00:07:54 Asia/Bangkok",
-          "lon": 100.7516938,
-          "place": "Phone charging station",
-          "reason": "foreground"
-        }
-      ],
-      "place": "931/301 Baan Sathorn Chaophraya",
-      "unconfirmed": true
-    },
-    "2026-09-09": {
-      "autoBooking": true,
-      "bookingSource": "flight-inference: TG910 | calendar: Flight BA574: LHR - LIN, departs 12:00pm",
-      "brackets": {
-        "evening": {
-          "capturedAt": "2026-09-09 15:12:42 BST",
-          "city": "Spencers Wood",
-          "country": "UK",
-          "fromPingLog": true,
-          "lat": 51.3934044,
-          "lon": -0.9967668,
-          "place": "Grazeley Road"
-        },
-        "morning": {
-          "capturedAt": "2026-09-10 06:36:00 BST",
-          "city": "Oxford",
-          "country": "UK",
-          "fromPingLog": true,
-          "lat": 51.7329577,
-          "lon": -1.2372806,
-          "place": "Oxford"
-        }
-      },
       "city": "London",
       "country": "UK",
       "flightInferred": true,
+      "flights": "TG910",
+      "notes": "Airborne at UK midnight (flight TG910) — transit day; confirm HMRC treatment.",
+      "place": ""
+    },
+    "2026-09-09": {
+      "autoBooking": true,
+      "bookingConflict": "Flight direction conflict: UK vs Italy (took the later arrival)",
+      "bookingSource": "flight-inference: TG910 | calendar: Flight BA574: LHR - LIN, departs 12:00pm",
+      "city": "Milan",
+      "country": "Italy",
+      "flightInferred": true,
       "flights": "BA574",
-      "manualOverride": true,
-      "notes": "Flight-inferred country UK from TG910 direction (UK midnight rule). | Flight-inferred country UK from TG910 direction (UK midnight rule).",
-      "pings": [
-        {
-          "capturedAt": "2026-09-09 06:59:11 BST",
-          "city": "Greater London",
-          "country": "UK",
-          "lat": 51.47951,
-          "localAt": "2026-09-09 06:59:11 Europe/London",
-          "lon": -0.4463211,
-          "place": "Northern Perimeter Road",
-          "reason": "foreground"
-        },
-        {
-          "capturedAt": "2026-09-09 15:12:42 BST",
-          "city": "Spencers Wood",
-          "country": "UK",
-          "lat": 51.3934044,
-          "localAt": "2026-09-09 15:12:42 Europe/London",
-          "lon": -0.9967668,
-          "place": "Grazeley Road",
-          "reason": "foreground"
-        }
-      ],
-      "place": "",
-      "working": true
+      "notes": "Flight-inferred country UK from TG910 direction (UK midnight rule).",
+      "place": ""
     },
     "2026-09-10": {
       "autoBooking": true,
-      "bookingSource": "flight-inference: TG910→BA590 | email: Hotel Asnigo Cernobbio - CIN: IT013065A1JK9CNPUY - Booking Confirmation - 2026090451645314 | calendar+email: Flight BA574: LHR - LIN, departs 12:00pm | Hotel Asnigo Cernobbio - CIN: IT013065A1JK9CNPUY - Booking Confirmation - 202",
-      "brackets": {
-        "evening": {
-          "capturedAt": "2026-09-10 10:19:35 BST",
-          "city": "Loudwater",
-          "country": "UK",
-          "fromPingLog": true,
-          "lat": 51.6104121,
-          "lon": -0.7151764,
-          "place": "M40"
-        },
-        "morning": {
-          "capturedAt": "2026-09-11 04:23:27 BST",
-          "city": "Cernobbio",
-          "country": "Italy",
-          "fromPingLog": true,
-          "lat": 45.8437963,
-          "lon": 9.0709091,
-          "place": "Cernobbio"
-        }
-      },
-      "city": "Cernobbio",
+      "bookingSource": "flight-inference: TG910→BA590 | email: Hotel Asnigo Cernobbio - CIN: IT013065A1JK9CNPUY - Booking Confirmation - 2026090451645314",
+      "city": "London",
       "country": "Italy",
-      "countryConflict": "Flight says Italy; GPS brackets differ (ev=UK, am=Italy) — kept flight country, please confirm",
       "flightInferred": true,
-      "flights": "BA574",
-      "lat": 45.8437963,
-      "lon": 9.0709091,
+      "flights": "",
       "notes": "Flight-inferred country UK from TG910→BA590 stay — night between arrival and return flight (UK midnight rule).",
-      "pingConsensus": true,
-      "pings": [
-        {
-          "capturedAt": "2026-09-10 06:36:00 BST",
-          "city": "Oxford",
-          "country": "UK",
-          "lat": 51.7329577,
-          "localAt": "2026-09-10 06:36:00 Europe/London",
-          "lon": -1.2372806,
-          "place": "Oxford",
-          "reason": "foreground"
-        },
-        {
-          "capturedAt": "2026-09-10 10:19:35 BST",
-          "city": "Loudwater",
-          "country": "UK",
-          "lat": 51.6104121,
-          "localAt": "2026-09-10 10:19:35 Europe/London",
-          "lon": -0.7151764,
-          "place": "M40",
-          "reason": "foreground"
-        }
-      ],
-      "place": "Cernobbio",
-      "unconfirmed": true
+      "place": "Asnigo Cernobbio"
     },
     "2026-09-11": {
       "autoBooking": true,
       "bookingConflict": "Overlapping bookings disagree: UK vs Canada — picked UK (flight arrival)",
       "bookingSource": "calendar: Hotel reserved: Quebec | calendar: Flight BA095: LHR - Montreal, departs 18:05 | Hotel reserved: Quebec | calendar: Flight BA095: LHR - Montreal, departs 18:05 | Hotel: Fairmont Le Chateau Frontenac | calendar: Flight BA585: MXP - LHR, departs 14:35 | Hotel: Fairmont Le Chateau Frontenac",
-      "brackets": {
-        "evening": {
-          "capturedAt": "2026-09-11 09:21:56 BST",
-          "city": "Cernobbio",
-          "country": "Italy",
-          "fromPingLog": true,
-          "lat": 45.8454129,
-          "lon": 9.0679207,
-          "place": "Cernobbio"
-        },
-        "morning": {
-          "capturedAt": "2026-09-12 02:04:15 BST",
-          "city": "Montreal",
-          "country": "Canada",
-          "fromPingLog": true,
-          "lat": 45.443249,
-          "lon": -73.6593073,
-          "place": "Boulevard Montréal-Toronto"
-        }
-      },
       "city": "London",
-      "country": "Canada",
-      "countryConflict": "Flight says UK; 2 GPS pings that day were all in Italy - please confirm midnight country",
+      "country": "UK",
       "flightInferred": true,
       "flights": "BA095, BA585",
-      "manualOverride": true,
       "notes": "",
-      "pingConsensus": true,
-      "pings": [
-        {
-          "capturedAt": "2026-09-11 04:23:27 BST",
-          "city": "Cernobbio",
-          "country": "Italy",
-          "lat": 45.8437963,
-          "localAt": "2026-09-11 05:23:27 Europe/Rome",
-          "lon": 9.0709091,
-          "place": "Cernobbio",
-          "reason": "foreground"
-        },
-        {
-          "capturedAt": "2026-09-11 08:28:30 BST",
-          "city": "Cernobbio",
-          "country": "Italy",
-          "lat": 45.8437514,
-          "localAt": "2026-09-11 09:28:30 Europe/Rome",
-          "lon": 9.0709021,
-          "place": "Cernobbio",
-          "reason": "foreground"
-        },
-        {
-          "capturedAt": "2026-09-11 09:21:56 BST",
-          "city": "Cernobbio",
-          "country": "Italy",
-          "lat": 45.8454129,
-          "localAt": "2026-09-11 10:21:56 Europe/Rome",
-          "lon": 9.0679207,
-          "place": "Cernobbio",
-          "reason": "foreground"
-        }
-      ],
-      "place": "",
-      "unconfirmed": true
+      "place": "reserved: Quebec"
     },
     "2026-09-12": {
       "autoBooking": true,
-      "autoGps": true,
       "bookingConflict": "Flight gap-fill guessed UK; booked stay says Canada — kept the booking.",
       "bookingSource": "calendar: Hotel reserved: Quebec | calendar: Hotel: Fairmont Le Chateau Frontenac",
-      "bracketInferred": true,
-      "brackets": {
-        "evening": {
-          "capturedAt": "2026-09-12 11:00:53 BST",
-          "city": "Quebec",
-          "country": "Canada",
-          "fromPingLog": true,
-          "lat": 46.811629,
-          "lon": -71.2058119,
-          "place": "Fairmont Le Château Frontenac"
-        }
-      },
-      "captureSource": "bracket-booking-inference",
-      "capturedAt": "2026-09-12 11:00:53 BST",
       "city": "1 rue des Carrieres, Quebec City QC G1R 5J5, Canada",
       "country": "Canada",
       "flights": "",
-      "lat": 46.811629,
-      "lon": -71.2058119,
-      "notes": "Flight-inferred country UK from TG910→BA590 stay — night between arrival and return flight (UK midnight rule). | Booking confirmed by evening bracket GPS in same country: Montreal 2026-09-12 02:04:15 BST | Booking confirmed by evening bracket GPS in same country: Montreal 2026-09-12 02:04:15 BST | Booking confirmed by evening bracket GPS in same country: Montreal 2026-09-12 02:04:15 BST | Booking confirmed by evening bracket GPS in same country: Quebec 2026-09-12 11:00:53 BST",
-      "pingConsensus": true,
-      "pings": [
-        {
-          "capturedAt": "2026-09-12 02:04:15 BST",
-          "city": "Montreal",
-          "country": "Canada",
-          "lat": 45.443249,
-          "localAt": "2026-09-11 21:04:15 America/Toronto",
-          "lon": -73.6593073,
-          "place": "Boulevard Montréal-Toronto",
-          "reason": "foreground"
-        },
-        {
-          "capturedAt": "2026-09-12 11:00:53 BST",
-          "city": "Quebec",
-          "country": "Canada",
-          "lat": 46.811629,
-          "localAt": "2026-09-12 06:00:53 America/Toronto",
-          "lon": -71.2058119,
-          "place": "Fairmont Le Château Frontenac",
-          "reason": "foreground"
-        }
-      ],
+      "notes": "Flight-inferred country UK from TG910→BA590 stay — night between arrival and return flight (UK midnight rule).",
       "place": "Fairmont Le Chateau Frontenac"
     },
     "2026-09-13": {
@@ -6953,35 +6664,6 @@
     },
     "2026-09-15": {
       "autoBooking": true,
-      "bookingSource": "calendar: Flight BA590: LHR - MXP, departs 20:40 | calendar: Flight BA336: LHR - Nice, departs 17:25 | Hotel: Hermitage Monte-Carlo | calendar: Flight BA336: LHR - Nice, departs 17:25 | Hotel: Hotel de Paris Monte-Carlo",
-      "city": "Nice",
-      "country": "France",
-      "flightInferred": true,
-      "flights": "BA590, BA336",
-      "notes": "",
-      "place": "Hotel de Paris Monte-Carlo"
-    },
-    "2026-09-16": {
-      "autoBooking": true,
-      "bookingSource": "calendar: Hotel: Hermitage Monte-Carlo | calendar: Hotel: Hotel de Paris Monte-Carlo",
-      "city": "",
-      "country": "France",
-      "flights": "",
-      "notes": "",
-      "place": "Hotel de Paris Monte-Carlo"
-    },
-    "2026-10-19": {
-      "autoBooking": true,
-      "bookingSource": "flight-inference: BA590",
-      "city": "London",
-      "country": "UK",
-      "flightInferred": true,
-      "flights": "",
-      "notes": "Flight-inferred country UK from BA590 direction (UK midnight rule).",
-      "place": ""
-    },
-    "2026-10-20": {
-      "autoBooking": true,
       "bookingSource": "calendar: Flight BA590: LHR - MXP, departs 20:40",
       "city": "Milan",
       "country": "Italy",
@@ -6989,6 +6671,15 @@
       "flights": "BA590",
       "notes": "",
       "place": ""
+    },
+    "2026-09-16": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Hotel: Hermitage Monte-Carlo",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "Hermitage Monte-Carlo"
     },
     "2026-11-09": {
       "autoBooking": true,
@@ -7061,7 +6752,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-09-13T04:50:20.874Z",
+    "lastBookingSync": "2026-09-06T03:55:29.132Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }

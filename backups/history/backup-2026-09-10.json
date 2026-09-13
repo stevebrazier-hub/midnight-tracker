@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-09-12T01:05:26.043Z"
+      "updatedAt": "2026-09-10T05:35:57.936Z"
     }
   },
   "locations": {
@@ -5426,8 +5426,6 @@
       "unconfirmed": true
     },
     "2026-07-30": {
-      "autoBooking": true,
-      "bookingSource": "flight-inference: Eurostar→BA0998",
       "bracketInferred": true,
       "brackets": {
         "evening": {
@@ -5451,6 +5449,7 @@
       "capturedAt": "2026-07-30 22:52:05 BST",
       "city": "Calvagese della Riviera",
       "country": "Italy",
+      "flightInferred": true,
       "flights": "",
       "lat": 45.5130473,
       "lon": 10.4772886,
@@ -6676,7 +6675,7 @@
       "flights": "TG910",
       "lat": 13.6910451,
       "lon": 100.7516938,
-      "notes": "Airborne at UK midnight (flight TG910) — transit day; confirm HMRC treatment. | Airborne at UK midnight (flight TG910) — transit day; confirm HMRC treatment. | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-08 02:27:16 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-08 02:27:16 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-08 02:27:16 BST | Booking confirmed by evening bracket GPS in same country: Nong Prue Subdistrict 2026-09-08 18:07:54 BST | Booking confirmed by evening bracket GPS in same country: Nong Prue Subdistrict 2026-09-08 18:07:54 BST | Booking confirmed by evening bracket GPS in same country: Nong Prue Subdistrict 2026-09-08 18:07:54 BST | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK",
+      "notes": "Airborne at UK midnight (flight TG910) — transit day; confirm HMRC treatment. | Airborne at UK midnight (flight TG910) — transit day; confirm HMRC treatment. | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-08 02:27:16 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-08 02:27:16 BST | Inferred from evening bracket at known location: 10600, Bangkok 2026-09-08 02:27:16 BST | Booking confirmed by evening bracket GPS in same country: Nong Prue Subdistrict 2026-09-08 18:07:54 BST | Booking confirmed by evening bracket GPS in same country: Nong Prue Subdistrict 2026-09-08 18:07:54 BST | Booking confirmed by evening bracket GPS in same country: Nong Prue Subdistrict 2026-09-08 18:07:54 BST | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK | Bracket mismatch: evening=Nong Prue Subdistrict,Thailand vs morning=Greater London,UK",
       "pingConsensus": true,
       "pings": [
         {
@@ -6762,33 +6761,21 @@
       "bookingSource": "flight-inference: TG910→BA590 | email: Hotel Asnigo Cernobbio - CIN: IT013065A1JK9CNPUY - Booking Confirmation - 2026090451645314 | calendar+email: Flight BA574: LHR - LIN, departs 12:00pm | Hotel Asnigo Cernobbio - CIN: IT013065A1JK9CNPUY - Booking Confirmation - 202",
       "brackets": {
         "evening": {
-          "capturedAt": "2026-09-10 10:19:35 BST",
-          "city": "Loudwater",
+          "capturedAt": "2026-09-10 06:36:00 BST",
+          "city": "Oxford",
           "country": "UK",
           "fromPingLog": true,
-          "lat": 51.6104121,
-          "lon": -0.7151764,
-          "place": "M40"
-        },
-        "morning": {
-          "capturedAt": "2026-09-11 04:23:27 BST",
-          "city": "Cernobbio",
-          "country": "Italy",
-          "fromPingLog": true,
-          "lat": 45.8437963,
-          "lon": 9.0709091,
-          "place": "Cernobbio"
+          "lat": 51.7329577,
+          "lon": -1.2372806,
+          "place": "Oxford"
         }
       },
-      "city": "Cernobbio",
+      "city": "London",
       "country": "Italy",
-      "countryConflict": "Flight says Italy; GPS brackets differ (ev=UK, am=Italy) — kept flight country, please confirm",
+      "countryConflict": "Flight says Italy; GPS brackets differ (ev=UK, am=-) — kept flight country, please confirm",
       "flightInferred": true,
       "flights": "BA574",
-      "lat": 45.8437963,
-      "lon": 9.0709091,
       "notes": "Flight-inferred country UK from TG910→BA590 stay — night between arrival and return flight (UK midnight rule).",
-      "pingConsensus": true,
       "pings": [
         {
           "capturedAt": "2026-09-10 06:36:00 BST",
@@ -6799,136 +6786,30 @@
           "lon": -1.2372806,
           "place": "Oxford",
           "reason": "foreground"
-        },
-        {
-          "capturedAt": "2026-09-10 10:19:35 BST",
-          "city": "Loudwater",
-          "country": "UK",
-          "lat": 51.6104121,
-          "localAt": "2026-09-10 10:19:35 Europe/London",
-          "lon": -0.7151764,
-          "place": "M40",
-          "reason": "foreground"
         }
       ],
-      "place": "Cernobbio",
+      "place": "",
       "unconfirmed": true
     },
     "2026-09-11": {
       "autoBooking": true,
       "bookingConflict": "Overlapping bookings disagree: UK vs Canada — picked UK (flight arrival)",
       "bookingSource": "calendar: Hotel reserved: Quebec | calendar: Flight BA095: LHR - Montreal, departs 18:05 | Hotel reserved: Quebec | calendar: Flight BA095: LHR - Montreal, departs 18:05 | Hotel: Fairmont Le Chateau Frontenac | calendar: Flight BA585: MXP - LHR, departs 14:35 | Hotel: Fairmont Le Chateau Frontenac",
-      "brackets": {
-        "evening": {
-          "capturedAt": "2026-09-11 09:21:56 BST",
-          "city": "Cernobbio",
-          "country": "Italy",
-          "fromPingLog": true,
-          "lat": 45.8454129,
-          "lon": 9.0679207,
-          "place": "Cernobbio"
-        },
-        "morning": {
-          "capturedAt": "2026-09-12 02:04:15 BST",
-          "city": "Montreal",
-          "country": "Canada",
-          "fromPingLog": true,
-          "lat": 45.443249,
-          "lon": -73.6593073,
-          "place": "Boulevard Montréal-Toronto"
-        }
-      },
       "city": "London",
-      "country": "Canada",
-      "countryConflict": "Flight says UK; 2 GPS pings that day were all in Italy - please confirm midnight country",
+      "country": "UK",
       "flightInferred": true,
       "flights": "BA095, BA585",
-      "manualOverride": true,
       "notes": "",
-      "pingConsensus": true,
-      "pings": [
-        {
-          "capturedAt": "2026-09-11 04:23:27 BST",
-          "city": "Cernobbio",
-          "country": "Italy",
-          "lat": 45.8437963,
-          "localAt": "2026-09-11 05:23:27 Europe/Rome",
-          "lon": 9.0709091,
-          "place": "Cernobbio",
-          "reason": "foreground"
-        },
-        {
-          "capturedAt": "2026-09-11 08:28:30 BST",
-          "city": "Cernobbio",
-          "country": "Italy",
-          "lat": 45.8437514,
-          "localAt": "2026-09-11 09:28:30 Europe/Rome",
-          "lon": 9.0709021,
-          "place": "Cernobbio",
-          "reason": "foreground"
-        },
-        {
-          "capturedAt": "2026-09-11 09:21:56 BST",
-          "city": "Cernobbio",
-          "country": "Italy",
-          "lat": 45.8454129,
-          "localAt": "2026-09-11 10:21:56 Europe/Rome",
-          "lon": 9.0679207,
-          "place": "Cernobbio",
-          "reason": "foreground"
-        }
-      ],
-      "place": "",
-      "unconfirmed": true
+      "place": "reserved: Quebec"
     },
     "2026-09-12": {
       "autoBooking": true,
-      "autoGps": true,
       "bookingConflict": "Flight gap-fill guessed UK; booked stay says Canada — kept the booking.",
       "bookingSource": "calendar: Hotel reserved: Quebec | calendar: Hotel: Fairmont Le Chateau Frontenac",
-      "bracketInferred": true,
-      "brackets": {
-        "evening": {
-          "capturedAt": "2026-09-12 11:00:53 BST",
-          "city": "Quebec",
-          "country": "Canada",
-          "fromPingLog": true,
-          "lat": 46.811629,
-          "lon": -71.2058119,
-          "place": "Fairmont Le Château Frontenac"
-        }
-      },
-      "captureSource": "bracket-booking-inference",
-      "capturedAt": "2026-09-12 11:00:53 BST",
       "city": "1 rue des Carrieres, Quebec City QC G1R 5J5, Canada",
       "country": "Canada",
       "flights": "",
-      "lat": 46.811629,
-      "lon": -71.2058119,
-      "notes": "Flight-inferred country UK from TG910→BA590 stay — night between arrival and return flight (UK midnight rule). | Booking confirmed by evening bracket GPS in same country: Montreal 2026-09-12 02:04:15 BST | Booking confirmed by evening bracket GPS in same country: Montreal 2026-09-12 02:04:15 BST | Booking confirmed by evening bracket GPS in same country: Montreal 2026-09-12 02:04:15 BST | Booking confirmed by evening bracket GPS in same country: Quebec 2026-09-12 11:00:53 BST",
-      "pingConsensus": true,
-      "pings": [
-        {
-          "capturedAt": "2026-09-12 02:04:15 BST",
-          "city": "Montreal",
-          "country": "Canada",
-          "lat": 45.443249,
-          "localAt": "2026-09-11 21:04:15 America/Toronto",
-          "lon": -73.6593073,
-          "place": "Boulevard Montréal-Toronto",
-          "reason": "foreground"
-        },
-        {
-          "capturedAt": "2026-09-12 11:00:53 BST",
-          "city": "Quebec",
-          "country": "Canada",
-          "lat": 46.811629,
-          "localAt": "2026-09-12 06:00:53 America/Toronto",
-          "lon": -71.2058119,
-          "place": "Fairmont Le Château Frontenac",
-          "reason": "foreground"
-        }
-      ],
+      "notes": "Flight-inferred country UK from TG910→BA590 stay — night between arrival and return flight (UK midnight rule).",
       "place": "Fairmont Le Chateau Frontenac"
     },
     "2026-09-13": {
@@ -6953,22 +6834,22 @@
     },
     "2026-09-15": {
       "autoBooking": true,
-      "bookingSource": "calendar: Flight BA590: LHR - MXP, departs 20:40 | calendar: Flight BA336: LHR - Nice, departs 17:25 | Hotel: Hermitage Monte-Carlo | calendar: Flight BA336: LHR - Nice, departs 17:25 | Hotel: Hotel de Paris Monte-Carlo",
+      "bookingSource": "calendar: Flight BA590: LHR - MXP, departs 20:40 | calendar: Flight BA336: LHR - Nice, departs 17:25 | Hotel: Hermitage Monte-Carlo",
       "city": "Nice",
       "country": "France",
       "flightInferred": true,
       "flights": "BA590, BA336",
       "notes": "",
-      "place": "Hotel de Paris Monte-Carlo"
+      "place": ""
     },
     "2026-09-16": {
       "autoBooking": true,
-      "bookingSource": "calendar: Hotel: Hermitage Monte-Carlo | calendar: Hotel: Hotel de Paris Monte-Carlo",
+      "bookingSource": "calendar: Hotel: Hermitage Monte-Carlo",
       "city": "",
-      "country": "France",
+      "country": "",
       "flights": "",
       "notes": "",
-      "place": "Hotel de Paris Monte-Carlo"
+      "place": "Hermitage Monte-Carlo"
     },
     "2026-10-19": {
       "autoBooking": true,
@@ -7061,7 +6942,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-09-13T04:50:20.874Z",
+    "lastBookingSync": "2026-09-10T04:01:19.410Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
