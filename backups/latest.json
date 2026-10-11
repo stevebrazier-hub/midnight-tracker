@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-10-10T06:16:55.512Z"
+      "updatedAt": "2026-10-10T11:09:08.797Z"
     }
   },
   "locations": {
@@ -8552,7 +8552,7 @@
       "flights": "",
       "lat": 45.8409843,
       "lon": 9.0669018,
-      "notes": "Flight-inferred country Italy from VY6342→BA591 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: Cernobbio 2026-10-08 07:04:52 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 07:04:52 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 11:33:30 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 11:33:30 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 11:33:30 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 11:33:30 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 11:33:30 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 11:33:30 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 11:33:30 BST",
+      "notes": "Flight-inferred country Italy from VY6342→BA591 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: Cernobbio 2026-10-08 07:04:52 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 07:04:52 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 11:33:30 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 11:33:30 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 11:33:30 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 11:33:30 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 11:33:30 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 11:33:30 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 11:33:30 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 11:33:30 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-08 11:33:30 BST",
       "pingConsensus": true,
       "pings": [
         {
@@ -8633,13 +8633,24 @@
           "lat": 45.6273759,
           "lon": 8.7162688,
           "place": "A74-B74"
+        },
+        "morning": {
+          "capturedAt": "2026-10-11 08:36:29 BST",
+          "city": "South Oxfordshire",
+          "country": "UK",
+          "fromPingLog": true,
+          "lat": 51.5210034,
+          "lon": -0.904684,
+          "place": "Woodlands Road"
         }
       },
-      "city": "London",
+      "city": "South Oxfordshire",
       "country": "UK",
-      "countryConflict": "Flight says UK; GPS brackets differ (ev=Italy, am=-) — kept flight country, please confirm",
+      "countryConflict": "Flight says UK; GPS brackets differ (ev=Italy, am=UK) — kept flight country, please confirm",
       "flightInferred": true,
       "flights": "BA591",
+      "lat": 51.5210034,
+      "lon": -0.904684,
       "notes": "",
       "pings": [
         {
@@ -8663,17 +8674,40 @@
           "reason": "foreground"
         }
       ],
-      "place": "",
+      "place": "Woodlands Road",
       "unconfirmed": true
     },
     "2026-10-11": {
       "autoBooking": true,
       "bookingSource": "flight-inference: BA590",
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-10-11 08:36:30 BST",
+          "city": "South Oxfordshire",
+          "country": "UK",
+          "fromPingLog": true,
+          "lat": 51.5210034,
+          "lon": -0.904684,
+          "place": "Woodlands Road"
+        }
+      },
       "city": "London",
       "country": "UK",
       "flightInferred": true,
       "flights": "",
       "notes": "Flight-inferred country UK from BA590 direction (UK midnight rule).",
+      "pings": [
+        {
+          "capturedAt": "2026-10-11 08:36:30 BST",
+          "city": "South Oxfordshire",
+          "country": "UK",
+          "lat": 51.5210034,
+          "localAt": "2026-10-11 08:36:30 Europe/London",
+          "lon": -0.904684,
+          "place": "Woodlands Road",
+          "reason": "foreground"
+        }
+      ],
       "place": ""
     },
     "2026-10-12": {
@@ -8838,7 +8872,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-10-10T05:14:59.171Z",
+    "lastBookingSync": "2026-10-11T05:05:38.023Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
