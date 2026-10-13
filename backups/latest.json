@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-10-12T07:38:03.654Z"
+      "updatedAt": "2026-10-12T23:56:24.446Z"
     }
   },
   "locations": {
@@ -8678,8 +8678,8 @@
       "unconfirmed": true
     },
     "2026-10-11": {
-      "autoBooking": true,
-      "bookingSource": "flight-inference: BA590",
+      "autoGps": true,
+      "bracketInferred": true,
       "brackets": {
         "evening": {
           "capturedAt": "2026-10-11 18:38:39 BST",
@@ -8700,11 +8700,15 @@
           "place": "Oxford"
         }
       },
-      "city": "London",
+      "captureSource": "bracket-inference",
+      "capturedAt": "2026-10-11 18:38:39 BST",
+      "city": "Oxford",
       "country": "UK",
       "flightInferred": true,
       "flights": "",
-      "notes": "Flight-inferred country UK from BA590 direction (UK midnight rule).",
+      "lat": 51.7330557,
+      "lon": -1.2384911,
+      "notes": "Flight-inferred country UK from BA590 direction (UK midnight rule). | Retracted stale flight-inference (flight-inference: BA590) — supporting flights no longer found. | Inferred from GPS brackets: evening=Oxford 2026-10-11 18:38:39 BST, morning=Oxford 2026-10-12 08:07:54 BST",
       "pingConsensus": true,
       "pings": [
         {
@@ -8738,7 +8742,7 @@
           "reason": "foreground"
         }
       ],
-      "place": ""
+      "place": "Oxford"
     },
     "2026-10-12": {
       "autoBooking": true,
@@ -8747,13 +8751,22 @@
       "bracketInferred": true,
       "brackets": {
         "evening": {
-          "capturedAt": "2026-10-12 08:07:54 BST",
-          "city": "Oxford",
-          "country": "UK",
+          "capturedAt": "2026-10-12 22:58:09 BST",
+          "city": "Ferno",
+          "country": "Italy",
           "fromPingLog": true,
-          "lat": 51.7329593,
-          "lon": -1.2372358,
-          "place": "Oxford"
+          "lat": 45.627706,
+          "lon": 8.7147379,
+          "place": "Terminal 1"
+        },
+        "morning": {
+          "capturedAt": "2026-10-13 00:56:31 BST",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "fromPingLog": true,
+          "lat": 45.8436435,
+          "lon": 9.0666435,
+          "place": "Cernobbio"
         }
       },
       "captureSource": "single-bracket-inference",
@@ -8778,6 +8791,26 @@
           "lon": -1.2372358,
           "place": "Oxford",
           "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-10-12 14:59:07 BST",
+          "city": "Spencers Wood",
+          "country": "UK",
+          "lat": 51.3933756,
+          "localAt": "2026-10-12 14:59:07 Europe/London",
+          "lon": -0.9969504,
+          "place": "Grazeley Road",
+          "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-10-12 22:58:09 BST",
+          "city": "Ferno",
+          "country": "Italy",
+          "lat": 45.627706,
+          "localAt": "2026-10-12 23:58:09 Europe/Rome",
+          "lon": 8.7147379,
+          "place": "Terminal 1",
+          "reason": "foreground"
         }
       ],
       "place": "Cernobbio",
@@ -8787,20 +8820,43 @@
     "2026-10-13": {
       "autoBooking": true,
       "bookingSource": "calendar: Finance department review",
-      "city": "London",
-      "country": "UK",
-      "flightGapFill": true,
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-10-13 00:56:31 BST",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "fromPingLog": true,
+          "lat": 45.8436435,
+          "lon": 9.0666435,
+          "place": "Cernobbio"
+        }
+      },
+      "city": "Milan",
+      "country": "Italy",
       "flightInferred": true,
       "flights": "",
-      "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule).",
+      "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule). | Flight-inferred country Italy from LO320 direction (UK midnight rule).",
+      "pings": [
+        {
+          "capturedAt": "2026-10-13 00:56:31 BST",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "lat": 45.8436435,
+          "localAt": "2026-10-13 01:56:31 Europe/Rome",
+          "lon": 9.0666435,
+          "place": "Cernobbio",
+          "reason": "foreground"
+        }
+      ],
       "place": ""
     },
     "2026-10-14": {
       "autoBooking": true,
-      "bookingSource": "calendar: ALSO speaking event",
+      "bookingSource": "calendar: ALSO speaking event | calendar: Flight LO 320: MXP - WAW, departs 19:40 | ALSO speaking event",
       "city": "Poland",
       "country": "Poland",
-      "flights": "",
+      "flightInferred": true,
+      "flights": "LO320",
       "notes": "",
       "place": "Poland"
     },
@@ -8809,16 +8865,19 @@
       "bookingSource": "calendar: ALSO speaking event",
       "city": "Poland",
       "country": "Poland",
+      "flightInferred": true,
       "flights": "",
       "notes": "",
       "place": "Poland"
     },
     "2026-10-16": {
       "autoBooking": true,
-      "bookingSource": "calendar: ALSO speaking event",
-      "city": "Poland",
-      "country": "Poland",
-      "flights": "",
+      "bookingConflict": "Overlapping bookings disagree: UK vs Poland — picked UK (flight arrival)",
+      "bookingSource": "calendar: ALSO speaking event | calendar: Flight: BA847 - Warsaw to LHR, departs 08:15 AM | ALSO speaking event",
+      "city": "London",
+      "country": "UK",
+      "flightInferred": true,
+      "flights": "BA847",
       "notes": "",
       "place": "Poland"
     },
@@ -8835,23 +8894,21 @@
     },
     "2026-10-18": {
       "autoBooking": true,
-      "bookingSource": "flight-inference: BA591→BA590",
-      "city": "London",
-      "country": "UK",
-      "flightGapFill": true,
+      "bookingSource": "flight-inference: BA591→BA590 | calendar: Flight BA590: LHR - MXP, departs 20:40",
+      "city": "Milan",
+      "country": "Italy",
       "flightInferred": true,
-      "flights": "",
+      "flights": "BA590",
       "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule).",
       "place": ""
     },
     "2026-10-19": {
-      "autoBooking": true,
-      "bookingSource": "flight-inference: BA590",
-      "city": "London",
-      "country": "UK",
+      "captureSource": "flight-inference-retracted",
+      "city": "",
+      "country": "",
       "flightInferred": true,
       "flights": "",
-      "notes": "Flight-inferred country UK from BA590 direction (UK midnight rule).",
+      "notes": "Flight-inferred country UK from BA590 direction (UK midnight rule). | Retracted stale flight-inference (flight-inference: BA590) — supporting flights no longer found.",
       "place": ""
     },
     "2026-10-20": {
@@ -8935,7 +8992,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-10-12T05:19:38.662Z",
+    "lastBookingSync": "2026-10-13T00:24:34.227Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
