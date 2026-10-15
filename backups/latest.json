@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-10-13T16:40:36.981Z"
+      "updatedAt": "2026-10-15T07:19:04.412Z"
     }
   },
   "locations": {
@@ -8864,22 +8864,101 @@
     "2026-10-14": {
       "autoBooking": true,
       "bookingSource": "calendar: ALSO speaking event | calendar: Flight LO 320: MXP - WAW, departs 19:40 | ALSO speaking event",
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-10-14 21:45:07 BST",
+          "city": "Warsaw",
+          "country": "Poland",
+          "fromPingLog": true,
+          "lat": 52.1699794,
+          "lon": 20.9719197,
+          "place": "18"
+        },
+        "morning": {
+          "capturedAt": "2026-10-15 08:19:07 BST",
+          "city": "Warsaw",
+          "country": "Poland",
+          "fromPingLog": true,
+          "lat": 52.2400172,
+          "lon": 21.0296026,
+          "place": "Barceló"
+        }
+      },
       "city": "Poland",
       "country": "Poland",
       "flightInferred": true,
       "flights": "LO320",
       "notes": "",
-      "place": "Poland"
+      "pings": [
+        {
+          "capturedAt": "2026-10-14 09:32:19 BST",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "lat": 45.8436424,
+          "localAt": "2026-10-14 10:32:19 Europe/Rome",
+          "lon": 9.0666458,
+          "place": "Cernobbio",
+          "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-10-14 10:55:57 BST",
+          "city": "Casnate con Bernate",
+          "country": "Italy",
+          "lat": 45.7604077,
+          "localAt": "2026-10-14 11:55:57 Europe/Rome",
+          "lon": 9.0835396,
+          "place": "Ridewill",
+          "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-10-14 21:45:07 BST",
+          "city": "Warsaw",
+          "country": "Poland",
+          "lat": 52.1699794,
+          "localAt": "2026-10-14 22:45:07 Europe/Warsaw",
+          "lon": 20.9719197,
+          "place": "18",
+          "reason": "foreground"
+        }
+      ],
+      "place": "Poland",
+      "workCountry": "Poland",
+      "worked": true
     },
     "2026-10-15": {
       "autoBooking": true,
       "bookingSource": "calendar: ALSO speaking event",
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-10-15 08:19:07 BST",
+          "city": "Warsaw",
+          "country": "Poland",
+          "fromPingLog": true,
+          "lat": 52.2400172,
+          "lon": 21.0296026,
+          "place": "Barceló"
+        }
+      },
       "city": "Poland",
       "country": "Poland",
       "flightInferred": true,
       "flights": "",
       "notes": "",
-      "place": "Poland"
+      "pings": [
+        {
+          "capturedAt": "2026-10-15 08:19:07 BST",
+          "city": "Warsaw",
+          "country": "Poland",
+          "lat": 52.2400172,
+          "localAt": "2026-10-15 09:19:07 Europe/Warsaw",
+          "lon": 21.0296026,
+          "place": "Barceló",
+          "reason": "foreground"
+        }
+      ],
+      "place": "Poland",
+      "workCountry": "Poland",
+      "worked": true
     },
     "2026-10-16": {
       "autoBooking": true,
@@ -9005,7 +9084,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-10-14T04:19:25.083Z",
+    "lastBookingSync": "2026-10-15T04:01:41.925Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
