@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-10-15T07:19:04.412Z"
+      "updatedAt": "2026-10-16T04:39:49.248Z"
     }
   },
   "locations": {
@@ -8937,6 +8937,15 @@
           "lat": 52.2400172,
           "lon": 21.0296026,
           "place": "Barceló"
+        },
+        "morning": {
+          "capturedAt": "2026-10-16 05:39:50 BST",
+          "city": "Warsaw",
+          "country": "Poland",
+          "fromPingLog": true,
+          "lat": 52.2400502,
+          "lon": 21.0293759,
+          "place": "Champs"
         }
       },
       "city": "Poland",
@@ -8944,6 +8953,7 @@
       "flightInferred": true,
       "flights": "",
       "notes": "",
+      "pingConsensus": true,
       "pings": [
         {
           "capturedAt": "2026-10-15 08:19:07 BST",
@@ -8964,12 +8974,37 @@
       "autoBooking": true,
       "bookingConflict": "Overlapping bookings disagree: UK vs Poland — picked UK (flight arrival)",
       "bookingSource": "calendar: ALSO speaking event | calendar: Flight: BA847 - Warsaw to LHR, departs 08:15 AM | ALSO speaking event",
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-10-16 05:39:50 BST",
+          "city": "Warsaw",
+          "country": "Poland",
+          "fromPingLog": true,
+          "lat": 52.2400502,
+          "lon": 21.0293759,
+          "place": "Champs"
+        }
+      },
       "city": "London",
       "country": "UK",
+      "countryConflict": "Flight says UK; GPS brackets differ (ev=Poland, am=-) — kept flight country, please confirm",
       "flightInferred": true,
       "flights": "BA847",
       "notes": "",
-      "place": "Poland"
+      "pings": [
+        {
+          "capturedAt": "2026-10-16 05:39:50 BST",
+          "city": "Warsaw",
+          "country": "Poland",
+          "lat": 52.2400502,
+          "localAt": "2026-10-16 06:39:50 Europe/Warsaw",
+          "lon": 21.0293759,
+          "place": "Champs",
+          "reason": "foreground"
+        }
+      ],
+      "place": "",
+      "unconfirmed": true
     },
     "2026-10-17": {
       "autoBooking": true,
@@ -9031,6 +9066,15 @@
       "notes": "",
       "place": "Fairmont Scottsdale Princess"
     },
+    "2026-11-11": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight UA5959: PHX - LAX, departs 17:10",
+      "city": "Los Angeles",
+      "country": "USA",
+      "flights": "UA5959, UA820",
+      "notes": "",
+      "place": ""
+    },
     "2027-06-04": {
       "autoBooking": true,
       "bookingSource": "email: Reservation Confirmation #82680619 for The Palace, a Luxury Collection Hotel, Madrid",
@@ -9084,7 +9128,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-10-15T04:01:41.925Z",
+    "lastBookingSync": "2026-10-16T03:58:51.329Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
