@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-10-16T04:39:49.248Z"
+      "updatedAt": "2026-10-16T16:07:12.585Z"
     }
   },
   "locations": {
@@ -8976,13 +8976,13 @@
       "bookingSource": "calendar: ALSO speaking event | calendar: Flight: BA847 - Warsaw to LHR, departs 08:15 AM | ALSO speaking event",
       "brackets": {
         "evening": {
-          "capturedAt": "2026-10-16 05:39:50 BST",
-          "city": "Warsaw",
-          "country": "Poland",
+          "capturedAt": "2026-10-16 17:07:24 BST",
+          "city": "Oxford",
+          "country": "UK",
           "fromPingLog": true,
-          "lat": 52.2400502,
-          "lon": 21.0293759,
-          "place": "Champs"
+          "lat": 51.7329984,
+          "lon": -1.2372887,
+          "place": "Oxford"
         }
       },
       "city": "London",
@@ -9000,6 +9000,16 @@
           "localAt": "2026-10-16 06:39:50 Europe/Warsaw",
           "lon": 21.0293759,
           "place": "Champs",
+          "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-10-16 17:07:24 BST",
+          "city": "Oxford",
+          "country": "UK",
+          "lat": 51.7329984,
+          "localAt": "2026-10-16 17:07:24 Europe/London",
+          "lon": -1.2372887,
+          "place": "Oxford",
           "reason": "foreground"
         }
       ],
@@ -9048,12 +9058,21 @@
       "notes": "",
       "place": ""
     },
+    "2026-11-08": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight WS001: LHR - Calgary, departs 14:50",
+      "city": "London",
+      "country": "UK",
+      "flights": "WS001",
+      "notes": "",
+      "place": ""
+    },
     "2026-11-09": {
       "autoBooking": true,
-      "bookingSource": "calendar: Hotel: Fairmont Scottsdale Princess",
+      "bookingSource": "calendar: Hotel: Fairmont Scottsdale Princess | calendar: Flight WS1160: Calgary - Phoenix, departs 09:50  | Hotel: Fairmont Scottsdale Princess",
       "city": "Fairmont Scottsdale Princess",
       "country": "",
-      "flights": "",
+      "flights": "WS1160",
       "notes": "",
       "place": "Fairmont Scottsdale Princess"
     },
@@ -9128,7 +9147,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-10-16T03:58:51.329Z",
+    "lastBookingSync": "2026-10-17T03:48:50.275Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
