@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-10-16T16:07:12.585Z"
+      "updatedAt": "2026-10-17T08:31:38.399Z"
     }
   },
   "locations": {
@@ -9018,14 +9018,43 @@
     },
     "2026-10-17": {
       "autoBooking": true,
+      "autoGps": true,
       "bookingSource": "flight-inference: BA591→BA590",
-      "city": "London",
+      "bracketInferred": true,
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-10-17 09:31:40 BST",
+          "city": "Oxford",
+          "country": "UK",
+          "fromPingLog": true,
+          "lat": 51.7329316,
+          "lon": -1.2373337,
+          "place": "Oxford"
+        }
+      },
+      "captureSource": "single-bracket-inference",
+      "capturedAt": "2026-10-17 09:31:40 BST",
+      "city": "Oxford",
       "country": "UK",
       "flightGapFill": true,
       "flightInferred": true,
       "flights": "",
-      "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule).",
-      "place": ""
+      "lat": 51.7329316,
+      "lon": -1.2373337,
+      "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: Oxford 2026-10-17 09:31:40 BST | Inferred from evening bracket at known location: Oxford 2026-10-17 09:31:40 BST",
+      "pings": [
+        {
+          "capturedAt": "2026-10-17 09:31:40 BST",
+          "city": "Oxford",
+          "country": "UK",
+          "lat": 51.7329316,
+          "localAt": "2026-10-17 09:31:40 Europe/London",
+          "lon": -1.2373337,
+          "place": "Oxford",
+          "reason": "foreground"
+        }
+      ],
+      "place": "Oxford"
     },
     "2026-10-18": {
       "autoBooking": true,
@@ -9147,7 +9176,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-10-17T03:48:50.275Z",
+    "lastBookingSync": "2026-10-18T03:55:20.839Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
