@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-10-19T06:32:01.767Z"
+      "updatedAt": "2026-10-20T06:11:28.375Z"
     }
   },
   "locations": {
@@ -9041,7 +9041,7 @@
       "flights": "",
       "lat": 51.7329316,
       "lon": -1.2373337,
-      "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: Oxford 2026-10-17 09:31:40 BST | Inferred from evening bracket at known location: Oxford 2026-10-17 09:31:40 BST | Inferred from evening bracket at known location: Oxford 2026-10-17 09:31:40 BST | Inferred from evening bracket at known location: Oxford 2026-10-17 09:31:40 BST | Inferred from evening bracket at known location: Oxford 2026-10-17 09:31:40 BST | Inferred from evening bracket at known location: Oxford 2026-10-17 09:31:40 BST | Inferred from evening bracket at known location: Oxford 2026-10-17 09:31:40 BST",
+      "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: Oxford 2026-10-17 09:31:40 BST | Inferred from evening bracket at known location: Oxford 2026-10-17 09:31:40 BST | Inferred from evening bracket at known location: Oxford 2026-10-17 09:31:40 BST | Inferred from evening bracket at known location: Oxford 2026-10-17 09:31:40 BST | Inferred from evening bracket at known location: Oxford 2026-10-17 09:31:40 BST | Inferred from evening bracket at known location: Oxford 2026-10-17 09:31:40 BST | Inferred from evening bracket at known location: Oxford 2026-10-17 09:31:40 BST | Inferred from evening bracket at known location: Oxford 2026-10-17 09:31:40 BST",
       "pings": [
         {
           "capturedAt": "2026-10-17 09:31:40 BST",
@@ -9090,7 +9090,7 @@
       "flights": "BA590",
       "lat": 51.5212229,
       "lon": -0.9045813,
-      "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule). | Flight-inferred country UK from BA847→BA584 stay — night between arrival and return flight (UK midnight rule). | Booking confirmed by evening bracket GPS in same country: South Oxfordshire 2026-10-18 13:06:06 BST | Booking confirmed by evening bracket GPS in same country: South Oxfordshire 2026-10-18 13:06:06 BST | Booking confirmed by evening bracket GPS in same country: South Oxfordshire 2026-10-18 13:06:06 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST",
+      "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule). | Flight-inferred country UK from BA847→BA584 stay — night between arrival and return flight (UK midnight rule). | Booking confirmed by evening bracket GPS in same country: South Oxfordshire 2026-10-18 13:06:06 BST | Booking confirmed by evening bracket GPS in same country: South Oxfordshire 2026-10-18 13:06:06 BST | Booking confirmed by evening bracket GPS in same country: South Oxfordshire 2026-10-18 13:06:06 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST",
       "pingConsensus": true,
       "pings": [
         {
@@ -9111,13 +9111,22 @@
       "bookingSource": "flight-inference: BA584",
       "brackets": {
         "evening": {
-          "capturedAt": "2026-10-19 07:32:03 BST",
+          "capturedAt": "2026-10-19 14:41:46 BST",
           "city": "Oxford",
           "country": "UK",
           "fromPingLog": true,
-          "lat": 51.7329775,
-          "lon": -1.2372882,
+          "lat": 51.7508281,
+          "lon": -1.1956661,
           "place": "Oxford"
+        },
+        "morning": {
+          "capturedAt": "2026-10-20 07:11:31 BST",
+          "city": "Greater London",
+          "country": "UK",
+          "fromPingLog": true,
+          "lat": 51.4738794,
+          "lon": -0.4917351,
+          "place": "SIXT"
         }
       },
       "city": "London",
@@ -9125,6 +9134,7 @@
       "flightInferred": true,
       "flights": "",
       "notes": "Flight-inferred country UK from BA590 direction (UK midnight rule). | Retracted stale flight-inference (flight-inference: BA590) — supporting flights no longer found. | Flight-inferred country UK from BA584 direction (UK midnight rule).",
+      "pingConsensus": true,
       "pings": [
         {
           "capturedAt": "2026-10-19 07:32:03 BST",
@@ -9135,6 +9145,16 @@
           "lon": -1.2372882,
           "place": "Oxford",
           "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-10-19 14:41:46 BST",
+          "city": "Oxford",
+          "country": "UK",
+          "lat": 51.7508281,
+          "localAt": "2026-10-19 14:41:46 Europe/London",
+          "lon": -1.1956661,
+          "place": "Oxford",
+          "reason": "foreground"
         }
       ],
       "place": ""
@@ -9142,12 +9162,37 @@
     "2026-10-20": {
       "autoBooking": true,
       "bookingSource": "calendar: Flight BA590: LHR - MXP, departs 20:40 | calendar: Flight BA584: LHR - MXP, departs 10:35",
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-10-20 07:11:31 BST",
+          "city": "Greater London",
+          "country": "UK",
+          "fromPingLog": true,
+          "lat": 51.4738794,
+          "lon": -0.4917351,
+          "place": "SIXT"
+        }
+      },
       "city": "Milan",
       "country": "Italy",
+      "countryConflict": "Flight says Italy; GPS brackets differ (ev=UK, am=-) — kept flight country, please confirm",
       "flightInferred": true,
       "flights": "BA590, BA584",
       "notes": "",
-      "place": ""
+      "pings": [
+        {
+          "capturedAt": "2026-10-20 07:11:31 BST",
+          "city": "Greater London",
+          "country": "UK",
+          "lat": 51.4738794,
+          "localAt": "2026-10-20 07:11:31 Europe/London",
+          "lon": -0.4917351,
+          "place": "SIXT",
+          "reason": "foreground"
+        }
+      ],
+      "place": "",
+      "unconfirmed": true
     },
     "2026-11-08": {
       "autoBooking": true,
@@ -9238,7 +9283,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-10-19T04:04:12.751Z",
+    "lastBookingSync": "2026-10-20T04:17:13.589Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
