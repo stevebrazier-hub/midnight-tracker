@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-10-20T06:11:28.375Z"
+      "updatedAt": "2026-10-21T06:33:00.130Z"
     }
   },
   "locations": {
@@ -9090,7 +9090,7 @@
       "flights": "BA590",
       "lat": 51.5212229,
       "lon": -0.9045813,
-      "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule). | Flight-inferred country UK from BA847→BA584 stay — night between arrival and return flight (UK midnight rule). | Booking confirmed by evening bracket GPS in same country: South Oxfordshire 2026-10-18 13:06:06 BST | Booking confirmed by evening bracket GPS in same country: South Oxfordshire 2026-10-18 13:06:06 BST | Booking confirmed by evening bracket GPS in same country: South Oxfordshire 2026-10-18 13:06:06 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST",
+      "notes": "Flight-inferred country UK from BA591→BA590 stay — night between arrival and return flight (UK midnight rule). | Flight-inferred country UK from BA847→BA584 stay — night between arrival and return flight (UK midnight rule). | Booking confirmed by evening bracket GPS in same country: South Oxfordshire 2026-10-18 13:06:06 BST | Booking confirmed by evening bracket GPS in same country: South Oxfordshire 2026-10-18 13:06:06 BST | Booking confirmed by evening bracket GPS in same country: South Oxfordshire 2026-10-18 13:06:06 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST | Inferred from GPS brackets: evening=South Oxfordshire 2026-10-18 13:06:06 BST, morning=Oxford 2026-10-19 07:32:03 BST",
       "pingConsensus": true,
       "pings": [
         {
@@ -9164,20 +9164,31 @@
       "bookingSource": "calendar: Flight BA590: LHR - MXP, departs 20:40 | calendar: Flight BA584: LHR - MXP, departs 10:35",
       "brackets": {
         "evening": {
-          "capturedAt": "2026-10-20 07:11:31 BST",
+          "capturedAt": "2026-10-20 09:19:00 BST",
           "city": "Greater London",
           "country": "UK",
           "fromPingLog": true,
-          "lat": 51.4738794,
-          "lon": -0.4917351,
+          "lat": 51.473891,
+          "lon": -0.4917275,
           "place": "SIXT"
+        },
+        "morning": {
+          "capturedAt": "2026-10-21 07:33:15 BST",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "fromPingLog": true,
+          "lat": 45.8436979,
+          "lon": 9.0666764,
+          "place": "Cernobbio"
         }
       },
-      "city": "Milan",
+      "city": "Cernobbio",
       "country": "Italy",
-      "countryConflict": "Flight says Italy; GPS brackets differ (ev=UK, am=-) — kept flight country, please confirm",
+      "countryConflict": "Flight says Italy; GPS brackets differ (ev=UK, am=Italy) — kept flight country, please confirm",
       "flightInferred": true,
       "flights": "BA590, BA584",
+      "lat": 45.8436979,
+      "lon": 9.0666764,
       "notes": "",
       "pings": [
         {
@@ -9189,10 +9200,56 @@
           "lon": -0.4917351,
           "place": "SIXT",
           "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-10-20 09:19:00 BST",
+          "city": "Greater London",
+          "country": "UK",
+          "lat": 51.473891,
+          "localAt": "2026-10-20 09:19:00 Europe/London",
+          "lon": -0.4917275,
+          "place": "SIXT",
+          "reason": "foreground"
         }
       ],
-      "place": "",
+      "place": "Cernobbio",
       "unconfirmed": true
+    },
+    "2026-10-21": {
+      "autoGps": true,
+      "bracketInferred": true,
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-10-21 07:33:15 BST",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "fromPingLog": true,
+          "lat": 45.8436979,
+          "lon": 9.0666764,
+          "place": "Cernobbio"
+        }
+      },
+      "captureSource": "single-bracket-inference",
+      "capturedAt": "2026-10-21 07:33:15 BST",
+      "city": "Cernobbio",
+      "country": "Italy",
+      "flights": "",
+      "lat": 45.8436979,
+      "lon": 9.0666764,
+      "notes": "Inferred from evening bracket at known location: Cernobbio 2026-10-21 07:33:15 BST",
+      "pings": [
+        {
+          "capturedAt": "2026-10-21 07:33:15 BST",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "lat": 45.8436979,
+          "localAt": "2026-10-21 08:33:15 Europe/Rome",
+          "lon": 9.0666764,
+          "place": "Cernobbio",
+          "reason": "foreground"
+        }
+      ],
+      "place": "Cernobbio"
     },
     "2026-11-08": {
       "autoBooking": true,
@@ -9283,7 +9340,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-10-20T04:17:13.589Z",
+    "lastBookingSync": "2026-10-21T04:05:45.380Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
