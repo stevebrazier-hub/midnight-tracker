@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-10-21T06:33:00.130Z"
+      "updatedAt": "2026-10-22T07:06:13.867Z"
     }
   },
   "locations": {
@@ -9189,6 +9189,7 @@
       "flights": "BA590, BA584",
       "lat": 45.8436979,
       "lon": 9.0666764,
+      "manualOverride": true,
       "notes": "",
       "pings": [
         {
@@ -9213,7 +9214,8 @@
         }
       ],
       "place": "Cernobbio",
-      "unconfirmed": true
+      "unconfirmed": true,
+      "worked": false
     },
     "2026-10-21": {
       "autoGps": true,
@@ -9227,16 +9229,26 @@
           "lat": 45.8436979,
           "lon": 9.0666764,
           "place": "Cernobbio"
+        },
+        "morning": {
+          "capturedAt": "2026-10-22 08:06:16 BST",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "fromPingLog": true,
+          "lat": 45.8436488,
+          "lon": 9.0666601,
+          "place": "Cernobbio"
         }
       },
-      "captureSource": "single-bracket-inference",
+      "captureSource": "bracket-inference",
       "capturedAt": "2026-10-21 07:33:15 BST",
       "city": "Cernobbio",
       "country": "Italy",
       "flights": "",
       "lat": 45.8436979,
       "lon": 9.0666764,
-      "notes": "Inferred from evening bracket at known location: Cernobbio 2026-10-21 07:33:15 BST",
+      "notes": "Inferred from evening bracket at known location: Cernobbio 2026-10-21 07:33:15 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-21 07:33:15 BST | Inferred from evening bracket at known location: Cernobbio 2026-10-21 07:33:15 BST | Inferred from GPS brackets: evening=Cernobbio 2026-10-21 07:33:15 BST, morning=Cernobbio 2026-10-22 08:06:16 BST",
+      "pingConsensus": true,
       "pings": [
         {
           "capturedAt": "2026-10-21 07:33:15 BST",
@@ -9245,6 +9257,42 @@
           "lat": 45.8436979,
           "localAt": "2026-10-21 08:33:15 Europe/Rome",
           "lon": 9.0666764,
+          "place": "Cernobbio",
+          "reason": "foreground"
+        }
+      ],
+      "place": "Cernobbio"
+    },
+    "2026-10-22": {
+      "autoGps": true,
+      "bracketInferred": true,
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-10-22 08:06:16 BST",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "fromPingLog": true,
+          "lat": 45.8436488,
+          "lon": 9.0666601,
+          "place": "Cernobbio"
+        }
+      },
+      "captureSource": "single-bracket-inference",
+      "capturedAt": "2026-10-22 08:06:16 BST",
+      "city": "Cernobbio",
+      "country": "Italy",
+      "flights": "",
+      "lat": 45.8436488,
+      "lon": 9.0666601,
+      "notes": "Inferred from evening bracket at known location: Cernobbio 2026-10-22 08:06:16 BST",
+      "pings": [
+        {
+          "capturedAt": "2026-10-22 08:06:16 BST",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "lat": 45.8436488,
+          "localAt": "2026-10-22 09:06:16 Europe/Rome",
+          "lon": 9.0666601,
           "place": "Cernobbio",
           "reason": "foreground"
         }
@@ -9340,7 +9388,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-10-21T04:05:45.380Z",
+    "lastBookingSync": "2026-10-22T04:06:26.916Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
