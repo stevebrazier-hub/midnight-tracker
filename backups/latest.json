@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-10-25T12:04:44.965Z"
+      "updatedAt": "2026-10-26T19:57:11.656Z"
     }
   },
   "locations": {
@@ -9368,6 +9368,9 @@
       "place": "Cernobbio"
     },
     "2026-10-24": {
+      "autoBooking": true,
+      "autoGps": true,
+      "bookingSource": "flight-inference: BA584→BA581",
       "bracketInferred": true,
       "brackets": {
         "evening": {
@@ -9380,14 +9383,14 @@
           "place": "Golf Villa D'Este"
         }
       },
-      "captureSource": "single-bracket-reconcile",
+      "captureSource": "bracket-booking-inference",
       "capturedAt": "2026-10-24 15:45:21 BST",
       "city": "Capiago Intimiano",
       "country": "Italy",
       "flights": "",
       "lat": 45.7776497,
       "lon": 9.135393,
-      "notes": "",
+      "notes": "Booking confirmed by evening bracket GPS in same country: Capiago Intimiano 2026-10-24 15:45:21 BST",
       "pings": [
         {
           "capturedAt": "2026-10-24 13:08:31 BST",
@@ -9433,7 +9436,7 @@
       "flights": "",
       "lat": 45.8436503,
       "lon": 9.066661,
-      "notes": "Inferred from evening bracket at known location: Cernobbio 2026-10-25 12:04:47 GMT+0 | Inferred from evening bracket at known location: Cernobbio 2026-10-25 12:04:47 GMT+0 | Inferred from evening bracket at known location: Cernobbio 2026-10-25 12:04:47 GMT+0",
+      "notes": "Inferred from evening bracket at known location: Cernobbio 2026-10-25 12:04:47 GMT+0 | Inferred from evening bracket at known location: Cernobbio 2026-10-25 12:04:47 GMT+0 | Inferred from evening bracket at known location: Cernobbio 2026-10-25 12:04:47 GMT+0 | Inferred from evening bracket at known location: Cernobbio 2026-10-25 12:04:47 GMT+0 | Inferred from evening bracket at known location: Cernobbio 2026-10-25 12:04:47 GMT+0 | Inferred from evening bracket at known location: Cernobbio 2026-10-25 12:04:47 GMT+0 | Inferred from evening bracket at known location: Cernobbio 2026-10-25 12:04:47 GMT+0 | Inferred from evening bracket at known location: Cernobbio 2026-10-25 12:04:47 GMT+0",
       "pings": [
         {
           "capturedAt": "2026-10-25 12:04:47 GMT+0",
@@ -9447,6 +9450,119 @@
         }
       ],
       "place": "Cernobbio"
+    },
+    "2026-10-26": {
+      "autoBooking": true,
+      "autoGps": true,
+      "bookingSource": "flight-inference: BA584→BA581",
+      "bracketInferred": true,
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-10-26 19:57:13 GMT+0",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "fromPingLog": true,
+          "lat": 45.8436497,
+          "lon": 9.0666591,
+          "place": "Cernobbio"
+        }
+      },
+      "captureSource": "single-bracket-inference",
+      "capturedAt": "2026-10-26 19:57:13 GMT+0",
+      "city": "Cernobbio",
+      "country": "Italy",
+      "flightGapFill": true,
+      "flightInferred": true,
+      "flights": "",
+      "lat": 45.8436497,
+      "lon": 9.0666591,
+      "notes": "Flight-inferred country Italy from BA584→BA581 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: Cernobbio 2026-10-26 19:57:13 GMT+0",
+      "pings": [
+        {
+          "capturedAt": "2026-10-26 19:57:13 GMT+0",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "lat": 45.8436497,
+          "localAt": "2026-10-26 20:57:13 Europe/Rome",
+          "lon": 9.0666591,
+          "place": "Cernobbio",
+          "reason": "foreground"
+        }
+      ],
+      "place": "Cernobbio"
+    },
+    "2026-10-27": {
+      "autoBooking": true,
+      "bookingSource": "flight-inference: BA584→BA581",
+      "city": "Milan",
+      "country": "Italy",
+      "flightGapFill": true,
+      "flightInferred": true,
+      "flights": "",
+      "notes": "Flight-inferred country Italy from BA584→BA581 stay — night between arrival and return flight (UK midnight rule).",
+      "place": ""
+    },
+    "2026-10-28": {
+      "autoBooking": true,
+      "bookingSource": "flight-inference: BA584→BA581",
+      "city": "Milan",
+      "country": "Italy",
+      "flightGapFill": true,
+      "flightInferred": true,
+      "flights": "",
+      "notes": "Flight-inferred country Italy from BA584→BA581 stay — night between arrival and return flight (UK midnight rule).",
+      "place": ""
+    },
+    "2026-10-29": {
+      "autoBooking": true,
+      "bookingSource": "flight-inference: BA581",
+      "city": "Milan",
+      "country": "Italy",
+      "flightInferred": true,
+      "flights": "",
+      "notes": "Flight-inferred country Italy from BA581 direction (UK midnight rule).",
+      "place": ""
+    },
+    "2026-10-30": {
+      "autoBooking": true,
+      "bookingSource": "calendar+email: Flight BA581: MXP - LHR, departs 12:45 | Fw: Your booking confirmation ZRDGS4",
+      "city": "London",
+      "country": "UK",
+      "flightInferred": true,
+      "flights": "BA581",
+      "notes": "",
+      "place": ""
+    },
+    "2026-10-31": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Your booking confirmation ZRDGS4",
+      "city": "London",
+      "country": "UK",
+      "flightGapFill": true,
+      "flightInferred": true,
+      "flights": "",
+      "notes": "Flight-inferred country UK from BA581→BA588 stay — night between arrival and return flight (UK midnight rule).",
+      "place": ""
+    },
+    "2026-11-01": {
+      "autoBooking": true,
+      "bookingSource": "email: Fw: Your booking confirmation ZRDGS4",
+      "city": "London",
+      "country": "UK",
+      "flightInferred": true,
+      "flights": "",
+      "notes": "Flight-inferred country UK from BA588 direction (UK midnight rule).",
+      "place": ""
+    },
+    "2026-11-02": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight BA588: LHR - MXP, departs 16:55",
+      "city": "Milan",
+      "country": "Italy",
+      "flightInferred": true,
+      "flights": "BA588",
+      "notes": "",
+      "place": ""
     },
     "2026-11-08": {
       "autoBooking": true,
@@ -9546,7 +9662,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-10-26T04:07:42.099Z",
+    "lastBookingSync": "2026-10-27T04:27:24.514Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
