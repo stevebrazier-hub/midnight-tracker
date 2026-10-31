@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-10-29T15:33:46.348Z"
+      "updatedAt": "2026-10-31T06:23:17.618Z"
     }
   },
   "locations": {
@@ -9566,7 +9566,7 @@
       "flights": "",
       "lat": 45.8436506,
       "lon": 9.0666565,
-      "notes": "Flight-inferred country Italy from BA584→BA581 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: Cernobbio 2026-10-28 03:36:23 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 03:36:23 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT",
+      "notes": "Flight-inferred country Italy from BA584→BA581 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: Cernobbio 2026-10-28 03:36:23 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 03:36:23 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT | Inferred from evening bracket at known location: Cernobbio 2026-10-28 06:49:08 GMT",
       "pingConsensus": true,
       "pings": [
         {
@@ -9639,23 +9639,88 @@
     "2026-10-30": {
       "autoBooking": true,
       "bookingSource": "calendar+email: Flight BA581: MXP - LHR, departs 12:45 | Fw: Your booking confirmation ZRDGS4",
-      "city": "London",
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-10-30 11:29:38 GMT",
+          "city": "Ferno",
+          "country": "Italy",
+          "fromPingLog": true,
+          "lat": 45.6271536,
+          "lon": 8.715294,
+          "place": "IMBARCHI Gates"
+        },
+        "morning": {
+          "capturedAt": "2026-10-31 06:23:19 GMT",
+          "city": "Oxford",
+          "country": "UK",
+          "fromPingLog": true,
+          "lat": 51.733026,
+          "lon": -1.2371727,
+          "place": "Oxford"
+        }
+      },
+      "city": "Oxford",
       "country": "UK",
+      "countryConflict": "Flight says UK; GPS brackets differ (ev=Italy, am=UK) — kept flight country, please confirm",
       "flightInferred": true,
       "flights": "BA581",
+      "lat": 51.733026,
+      "lon": -1.2371727,
       "notes": "",
-      "place": ""
+      "pings": [
+        {
+          "capturedAt": "2026-10-30 11:29:38 GMT",
+          "city": "Ferno",
+          "country": "Italy",
+          "lat": 45.6271536,
+          "localAt": "2026-10-30 12:29:38 Europe/Rome",
+          "lon": 8.715294,
+          "place": "IMBARCHI Gates",
+          "reason": "foreground"
+        }
+      ],
+      "place": "Oxford",
+      "unconfirmed": true
     },
     "2026-10-31": {
       "autoBooking": true,
+      "autoGps": true,
       "bookingSource": "email: Fw: Your booking confirmation ZRDGS4",
-      "city": "London",
+      "bracketInferred": true,
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-10-31 06:23:19 GMT",
+          "city": "Oxford",
+          "country": "UK",
+          "fromPingLog": true,
+          "lat": 51.733026,
+          "lon": -1.2371727,
+          "place": "Oxford"
+        }
+      },
+      "captureSource": "single-bracket-inference",
+      "capturedAt": "2026-10-31 06:23:19 GMT",
+      "city": "Oxford",
       "country": "UK",
       "flightGapFill": true,
       "flightInferred": true,
       "flights": "",
-      "notes": "Flight-inferred country UK from BA581→BA588 stay — night between arrival and return flight (UK midnight rule).",
-      "place": ""
+      "lat": 51.733026,
+      "lon": -1.2371727,
+      "notes": "Flight-inferred country UK from BA581→BA588 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT",
+      "pings": [
+        {
+          "capturedAt": "2026-10-31 06:23:19 GMT",
+          "city": "Oxford",
+          "country": "UK",
+          "lat": 51.733026,
+          "localAt": "2026-10-31 06:23:19 Europe/London",
+          "lon": -1.2371727,
+          "place": "Oxford",
+          "reason": "foreground"
+        }
+      ],
+      "place": "Oxford"
     },
     "2026-11-01": {
       "autoBooking": true,
@@ -9775,7 +9840,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-10-30T05:09:51.319Z",
+    "lastBookingSync": "2026-10-31T04:55:21.911Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
