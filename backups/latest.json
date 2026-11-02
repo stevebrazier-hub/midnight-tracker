@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-10-31T06:23:17.618Z"
+      "updatedAt": "2026-11-02T07:34:12.151Z"
     }
   },
   "locations": {
@@ -9707,7 +9707,7 @@
       "flights": "",
       "lat": 51.733026,
       "lon": -1.2371727,
-      "notes": "Flight-inferred country UK from BA581→BA588 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT",
+      "notes": "Flight-inferred country UK from BA581→BA588 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT",
       "pings": [
         {
           "capturedAt": "2026-10-31 06:23:19 GMT",
@@ -9725,22 +9725,90 @@
     "2026-11-01": {
       "autoBooking": true,
       "bookingSource": "email: Fw: Your booking confirmation ZRDGS4",
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-01 22:46:35 GMT",
+          "city": "Oxford",
+          "country": "UK",
+          "fromPingLog": true,
+          "lat": 51.7329729,
+          "lon": -1.2372041,
+          "place": "Oxford"
+        },
+        "morning": {
+          "capturedAt": "2026-11-02 07:11:44 GMT",
+          "city": "Oxford",
+          "country": "UK",
+          "fromPingLog": true,
+          "lat": 51.732965,
+          "lon": -1.2372101,
+          "place": "Oxford"
+        }
+      },
       "city": "London",
       "country": "UK",
       "flightInferred": true,
       "flights": "",
       "notes": "Flight-inferred country UK from BA588 direction (UK midnight rule).",
+      "pingConsensus": true,
+      "pings": [
+        {
+          "capturedAt": "2026-11-01 11:58:33 GMT",
+          "city": "Oxford",
+          "country": "UK",
+          "lat": 51.7330105,
+          "localAt": "2026-11-01 11:58:33 Europe/London",
+          "lon": -1.2372559,
+          "place": "Oxford",
+          "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-11-01 22:46:35 GMT",
+          "city": "Oxford",
+          "country": "UK",
+          "lat": 51.7329729,
+          "localAt": "2026-11-01 22:46:35 Europe/London",
+          "lon": -1.2372041,
+          "place": "Oxford",
+          "reason": "foreground"
+        }
+      ],
       "place": ""
     },
     "2026-11-02": {
       "autoBooking": true,
       "bookingSource": "calendar: Flight BA588: LHR - MXP, departs 16:55",
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-02 07:11:44 GMT",
+          "city": "Oxford",
+          "country": "UK",
+          "fromPingLog": true,
+          "lat": 51.732965,
+          "lon": -1.2372101,
+          "place": "Oxford"
+        }
+      },
       "city": "Milan",
       "country": "Italy",
+      "countryConflict": "Flight says Italy; GPS brackets differ (ev=UK, am=-) — kept flight country, please confirm",
       "flightInferred": true,
       "flights": "BA588",
       "notes": "",
-      "place": ""
+      "pings": [
+        {
+          "capturedAt": "2026-11-02 07:11:44 GMT",
+          "city": "Oxford",
+          "country": "UK",
+          "lat": 51.732965,
+          "localAt": "2026-11-02 07:11:44 Europe/London",
+          "lon": -1.2372101,
+          "place": "Oxford",
+          "reason": "foreground"
+        }
+      ],
+      "place": "",
+      "unconfirmed": true
     },
     "2026-11-08": {
       "autoBooking": true,
@@ -9840,7 +9908,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-11-01T05:23:48.570Z",
+    "lastBookingSync": "2026-11-02T05:21:54.550Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
