@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-11-02T07:34:12.151Z"
+      "updatedAt": "2026-11-03T08:19:14.792Z"
     }
   },
   "locations": {
@@ -9707,7 +9707,7 @@
       "flights": "",
       "lat": 51.733026,
       "lon": -1.2371727,
-      "notes": "Flight-inferred country UK from BA581→BA588 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT",
+      "notes": "Flight-inferred country UK from BA581→BA588 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT | Inferred from evening bracket at known location: Oxford 2026-10-31 06:23:19 GMT",
       "pings": [
         {
           "capturedAt": "2026-10-31 06:23:19 GMT",
@@ -9780,21 +9780,33 @@
       "bookingSource": "calendar: Flight BA588: LHR - MXP, departs 16:55",
       "brackets": {
         "evening": {
-          "capturedAt": "2026-11-02 07:11:44 GMT",
-          "city": "Oxford",
+          "capturedAt": "2026-11-02 13:47:42 GMT",
+          "city": "Spencers Wood",
           "country": "UK",
           "fromPingLog": true,
-          "lat": 51.732965,
-          "lon": -1.2372101,
-          "place": "Oxford"
+          "lat": 51.3934013,
+          "lon": -0.9967874,
+          "place": "Grazeley Road"
+        },
+        "morning": {
+          "capturedAt": "2026-11-03 08:19:16 GMT",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "fromPingLog": true,
+          "lat": 45.8436431,
+          "lon": 9.0666648,
+          "place": "Cernobbio"
         }
       },
-      "city": "Milan",
+      "city": "Cernobbio",
       "country": "Italy",
-      "countryConflict": "Flight says Italy; GPS brackets differ (ev=UK, am=-) — kept flight country, please confirm",
+      "countryConflict": "Flight says Italy; GPS brackets differ (ev=UK, am=Italy) — kept flight country, please confirm",
       "flightInferred": true,
       "flights": "BA588",
+      "lat": 45.8436431,
+      "lon": 9.0666648,
       "notes": "",
+      "pingConsensus": true,
       "pings": [
         {
           "capturedAt": "2026-11-02 07:11:44 GMT",
@@ -9805,10 +9817,56 @@
           "lon": -1.2372101,
           "place": "Oxford",
           "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-11-02 13:47:42 GMT",
+          "city": "Spencers Wood",
+          "country": "UK",
+          "lat": 51.3934013,
+          "localAt": "2026-11-02 13:47:42 Europe/London",
+          "lon": -0.9967874,
+          "place": "Grazeley Road",
+          "reason": "foreground"
         }
       ],
-      "place": "",
+      "place": "Cernobbio",
       "unconfirmed": true
+    },
+    "2026-11-03": {
+      "autoGps": true,
+      "bracketInferred": true,
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-03 08:19:16 GMT",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "fromPingLog": true,
+          "lat": 45.8436431,
+          "lon": 9.0666648,
+          "place": "Cernobbio"
+        }
+      },
+      "captureSource": "single-bracket-inference",
+      "capturedAt": "2026-11-03 08:19:16 GMT",
+      "city": "Cernobbio",
+      "country": "Italy",
+      "flights": "",
+      "lat": 45.8436431,
+      "lon": 9.0666648,
+      "notes": "Inferred from evening bracket at known location: Cernobbio 2026-11-03 08:19:16 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-03 08:19:16 GMT",
+      "pings": [
+        {
+          "capturedAt": "2026-11-03 08:19:16 GMT",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "lat": 45.8436431,
+          "localAt": "2026-11-03 09:19:16 Europe/Rome",
+          "lon": 9.0666648,
+          "place": "Cernobbio",
+          "reason": "foreground"
+        }
+      ],
+      "place": "Cernobbio"
     },
     "2026-11-08": {
       "autoBooking": true,
@@ -9845,6 +9903,33 @@
       "flights": "UA5959, UA820",
       "notes": "",
       "place": ""
+    },
+    "2026-11-30": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Hotel: Westin Bali | calendar: Flight TG439: BKK - DPS, departs 12:35 | Hotel: Westin Bali",
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "TG439",
+      "notes": "",
+      "place": "Westin Bali"
+    },
+    "2026-12-01": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Hotel: Westin Bali",
+      "city": "",
+      "country": "",
+      "flights": "",
+      "notes": "",
+      "place": "Westin Bali"
+    },
+    "2026-12-02": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Hotel: Westin Bali | calendar: Flight TG432: DPS - BKK, departs 16:10 | Hotel: Westin Bali",
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "TG432",
+      "notes": "",
+      "place": "Westin Bali"
     },
     "2026-12-16": {
       "autoBooking": true,
@@ -9908,7 +9993,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-11-02T05:21:54.550Z",
+    "lastBookingSync": "2026-11-03T00:47:08.713Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
