@@ -9868,12 +9868,56 @@
       ],
       "place": "Cernobbio"
     },
+    "2026-11-04": {
+      "autoBooking": true,
+      "bookingSource": "flight-inference: BA588→BA567",
+      "city": "Milan",
+      "country": "Italy",
+      "flightGapFill": true,
+      "flightInferred": true,
+      "flights": "",
+      "notes": "Flight-inferred country Italy from BA588→BA567 stay — night between arrival and return flight (UK midnight rule).",
+      "place": ""
+    },
+    "2026-11-05": {
+      "autoBooking": true,
+      "bookingSource": "flight-inference: BA588→BA567",
+      "city": "Milan",
+      "country": "Italy",
+      "flightGapFill": true,
+      "flightInferred": true,
+      "flights": "",
+      "notes": "Flight-inferred country Italy from BA588→BA567 stay — night between arrival and return flight (UK midnight rule).",
+      "place": ""
+    },
+    "2026-11-06": {
+      "autoBooking": true,
+      "bookingSource": "flight-inference: BA588→BA567",
+      "city": "Milan",
+      "country": "Italy",
+      "flightGapFill": true,
+      "flightInferred": true,
+      "flights": "",
+      "notes": "Flight-inferred country Italy from BA588→BA567 stay — night between arrival and return flight (UK midnight rule).",
+      "place": ""
+    },
+    "2026-11-07": {
+      "autoBooking": true,
+      "bookingSource": "flight-inference: BA567",
+      "city": "Milan",
+      "country": "Italy",
+      "flightInferred": true,
+      "flights": "",
+      "notes": "Flight-inferred country Italy from BA567 direction (UK midnight rule).",
+      "place": ""
+    },
     "2026-11-08": {
       "autoBooking": true,
-      "bookingSource": "calendar: Flight WS001: LHR - Calgary, departs 14:50",
+      "bookingSource": "calendar: Flight WS001: LHR - Calgary, departs 14:50 | calendar: Flight BA567: LIN - LHR, departs 10:55",
       "city": "London",
       "country": "UK",
-      "flights": "WS001",
+      "flightInferred": true,
+      "flights": "WS001, BA567",
       "notes": "",
       "place": ""
     },
@@ -9901,6 +9945,57 @@
       "city": "Los Angeles",
       "country": "USA",
       "flights": "UA5959, UA820",
+      "notes": "",
+      "place": ""
+    },
+    "2026-11-14": {
+      "autoBooking": true,
+      "bookingSource": "flight-inference: SQ705",
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flightInferred": true,
+      "flights": "",
+      "notes": "Flight-inferred country Thailand from SQ705 direction (UK midnight rule).",
+      "place": ""
+    },
+    "2026-11-15": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight SQ705: BKK - SIN, departing 09:40",
+      "city": "Singapore",
+      "country": "Singapore",
+      "flightInferred": true,
+      "flights": "SQ705",
+      "notes": "",
+      "place": ""
+    },
+    "2026-11-16": {
+      "autoBooking": true,
+      "bookingSource": "flight-inference: SQ705→SQ720",
+      "city": "Singapore",
+      "country": "Singapore",
+      "flightGapFill": true,
+      "flightInferred": true,
+      "flights": "",
+      "notes": "Flight-inferred country Singapore from SQ705→SQ720 stay — night between arrival and return flight (UK midnight rule).",
+      "place": ""
+    },
+    "2026-11-17": {
+      "autoBooking": true,
+      "bookingSource": "flight-inference: SQ720",
+      "city": "Singapore",
+      "country": "Singapore",
+      "flightInferred": true,
+      "flights": "",
+      "notes": "Flight-inferred country Singapore from SQ720 direction (UK midnight rule).",
+      "place": ""
+    },
+    "2026-11-18": {
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight SQ720: SIN - BKK, departs 18:35",
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flightInferred": true,
+      "flights": "SQ720",
       "notes": "",
       "place": ""
     },
@@ -9993,7 +10088,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-11-03T00:47:08.713Z",
+    "lastBookingSync": "2026-11-04T05:40:54.908Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
