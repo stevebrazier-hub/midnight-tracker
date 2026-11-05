@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-11-03T08:19:14.792Z"
+      "updatedAt": "2026-11-05T05:52:27.617Z"
     }
   },
   "locations": {
@@ -9805,6 +9805,7 @@
       "flights": "BA588",
       "lat": 45.8436431,
       "lon": 9.0666648,
+      "manualOverride": true,
       "notes": "",
       "pingConsensus": true,
       "pings": [
@@ -9830,7 +9831,9 @@
         }
       ],
       "place": "Cernobbio",
-      "unconfirmed": true
+      "unconfirmed": true,
+      "workCountry": "UK",
+      "worked": true
     },
     "2026-11-03": {
       "autoGps": true,
@@ -9853,7 +9856,7 @@
       "flights": "",
       "lat": 45.8436431,
       "lon": 9.0666648,
-      "notes": "Inferred from evening bracket at known location: Cernobbio 2026-11-03 08:19:16 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-03 08:19:16 GMT",
+      "notes": "Inferred from evening bracket at known location: Cernobbio 2026-11-03 08:19:16 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-03 08:19:16 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-03 08:19:16 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-03 08:19:16 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-03 08:19:16 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-03 08:19:16 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-03 08:19:16 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-03 08:19:16 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-03 08:19:16 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-03 08:19:16 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-03 08:19:16 GMT",
       "pings": [
         {
           "capturedAt": "2026-11-03 08:19:16 GMT",
@@ -9870,25 +9873,103 @@
     },
     "2026-11-04": {
       "autoBooking": true,
+      "autoGps": true,
       "bookingSource": "flight-inference: BA588→BA567",
-      "city": "Milan",
+      "bracketInferred": true,
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-04 13:13:01 GMT",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "fromPingLog": true,
+          "lat": 45.8436419,
+          "lon": 9.0666645,
+          "place": "Cernobbio"
+        },
+        "morning": {
+          "capturedAt": "2026-11-05 05:52:30 GMT",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "fromPingLog": true,
+          "lat": 45.8436428,
+          "lon": 9.0666578,
+          "place": "Cernobbio"
+        }
+      },
+      "captureSource": "bracket-inference",
+      "capturedAt": "2026-11-04 13:13:01 GMT",
+      "city": "Cernobbio",
       "country": "Italy",
       "flightGapFill": true,
       "flightInferred": true,
       "flights": "",
-      "notes": "Flight-inferred country Italy from BA588→BA567 stay — night between arrival and return flight (UK midnight rule).",
-      "place": ""
+      "lat": 45.8436419,
+      "lon": 9.0666645,
+      "notes": "Flight-inferred country Italy from BA588→BA567 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: Cernobbio 2026-11-04 12:36:00 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-04 12:36:00 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-04 13:13:01 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-04 13:13:01 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-04 13:13:01 GMT | Inferred from GPS brackets: evening=Cernobbio 2026-11-04 13:13:01 GMT, morning=Cernobbio 2026-11-05 05:52:30 GMT | Inferred from GPS brackets: evening=Cernobbio 2026-11-04 13:13:01 GMT, morning=Cernobbio 2026-11-05 05:52:30 GMT | Inferred from GPS brackets: evening=Cernobbio 2026-11-04 13:13:01 GMT, morning=Cernobbio 2026-11-05 05:52:30 GMT | Inferred from GPS brackets: evening=Cernobbio 2026-11-04 13:13:01 GMT, morning=Cernobbio 2026-11-05 05:52:30 GMT | Inferred from GPS brackets: evening=Cernobbio 2026-11-04 13:13:01 GMT, morning=Cernobbio 2026-11-05 05:52:30 GMT",
+      "pingConsensus": true,
+      "pings": [
+        {
+          "capturedAt": "2026-11-04 12:36:00 GMT",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "lat": 45.843644,
+          "localAt": "2026-11-04 13:36:00 Europe/Rome",
+          "lon": 9.0666595,
+          "place": "Cernobbio",
+          "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-11-04 13:13:01 GMT",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "lat": 45.8436419,
+          "localAt": "2026-11-04 14:13:01 Europe/Rome",
+          "lon": 9.0666645,
+          "place": "Cernobbio",
+          "reason": "push-morning"
+        }
+      ],
+      "place": "Cernobbio"
     },
     "2026-11-05": {
       "autoBooking": true,
+      "autoGps": true,
       "bookingSource": "flight-inference: BA588→BA567",
-      "city": "Milan",
+      "bracketInferred": true,
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-05 05:52:30 GMT",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "fromPingLog": true,
+          "lat": 45.8436428,
+          "lon": 9.0666578,
+          "place": "Cernobbio"
+        }
+      },
+      "captureSource": "single-bracket-inference",
+      "capturedAt": "2026-11-05 05:52:30 GMT",
+      "city": "Cernobbio",
       "country": "Italy",
       "flightGapFill": true,
       "flightInferred": true,
       "flights": "",
-      "notes": "Flight-inferred country Italy from BA588→BA567 stay — night between arrival and return flight (UK midnight rule).",
-      "place": ""
+      "lat": 45.8436428,
+      "lon": 9.0666578,
+      "notes": "Flight-inferred country Italy from BA588→BA567 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: Cernobbio 2026-11-05 05:52:30 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-05 05:52:30 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-05 05:52:30 GMT",
+      "pings": [
+        {
+          "capturedAt": "2026-11-05 05:52:30 GMT",
+          "city": "Cernobbio",
+          "country": "Italy",
+          "lat": 45.8436428,
+          "localAt": "2026-11-05 06:52:30 Europe/Rome",
+          "lon": 9.0666578,
+          "place": "Cernobbio",
+          "reason": "foreground"
+        }
+      ],
+      "place": "Cernobbio"
     },
     "2026-11-06": {
       "autoBooking": true,
@@ -10088,7 +10169,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-11-04T05:40:54.908Z",
+    "lastBookingSync": "2026-11-05T05:58:30.040Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
