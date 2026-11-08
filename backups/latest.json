@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-11-05T05:52:27.617Z"
+      "updatedAt": "2026-11-07T13:53:42.791Z"
     }
   },
   "locations": {
@@ -9956,7 +9956,7 @@
       "flights": "",
       "lat": 45.8436428,
       "lon": 9.0666578,
-      "notes": "Flight-inferred country Italy from BA588→BA567 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: Cernobbio 2026-11-05 05:52:30 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-05 05:52:30 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-05 05:52:30 GMT",
+      "notes": "Flight-inferred country Italy from BA588→BA567 stay — night between arrival and return flight (UK midnight rule). | Inferred from evening bracket at known location: Cernobbio 2026-11-05 05:52:30 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-05 05:52:30 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-05 05:52:30 GMT | Inferred from evening bracket at known location: Cernobbio 2026-11-05 05:52:30 GMT",
       "pings": [
         {
           "capturedAt": "2026-11-05 05:52:30 GMT",
@@ -9985,22 +9985,91 @@
     "2026-11-07": {
       "autoBooking": true,
       "bookingSource": "flight-inference: BA567",
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-07 13:53:45 GMT",
+          "city": "Novello",
+          "country": "Italy",
+          "fromPingLog": true,
+          "lat": 44.5892669,
+          "lon": 7.9278271,
+          "place": "Via Giordano"
+        },
+        "morning": {
+          "capturedAt": "2026-11-08 00:51:02 GMT",
+          "city": "Serralunga d'Alba",
+          "country": "Italy",
+          "fromPingLog": true,
+          "lat": 44.5942774,
+          "lon": 7.9995892,
+          "place": "Via Roddino"
+        }
+      },
       "city": "Milan",
       "country": "Italy",
       "flightInferred": true,
       "flights": "",
       "notes": "Flight-inferred country Italy from BA567 direction (UK midnight rule).",
+      "pingConsensus": true,
+      "pings": [
+        {
+          "capturedAt": "2026-11-07 13:53:45 GMT",
+          "city": "Novello",
+          "country": "Italy",
+          "lat": 44.5892669,
+          "localAt": "2026-11-07 14:53:45 Europe/Rome",
+          "lon": 7.9278271,
+          "place": "Via Giordano",
+          "reason": "foreground"
+        }
+      ],
       "place": ""
     },
     "2026-11-08": {
       "autoBooking": true,
       "bookingSource": "calendar: Flight WS001: LHR - Calgary, departs 14:50 | calendar: Flight BA567: LIN - LHR, departs 10:55",
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-08 06:51:57 GMT",
+          "city": "Asti",
+          "country": "Italy",
+          "fromPingLog": true,
+          "lat": 44.879044,
+          "lon": 8.2241154,
+          "place": "Strada statale 231"
+        }
+      },
       "city": "London",
       "country": "UK",
+      "countryConflict": "Flight says UK; 2 GPS pings that day were all in Italy - please confirm midnight country",
       "flightInferred": true,
       "flights": "WS001, BA567",
       "notes": "",
-      "place": ""
+      "pingConsensus": true,
+      "pings": [
+        {
+          "capturedAt": "2026-11-08 00:51:02 GMT",
+          "city": "Serralunga d'Alba",
+          "country": "Italy",
+          "lat": 44.5942774,
+          "localAt": "2026-11-08 01:51:02 Europe/Rome",
+          "lon": 7.9995892,
+          "place": "Via Roddino",
+          "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-11-08 06:51:57 GMT",
+          "city": "Asti",
+          "country": "Italy",
+          "lat": 44.879044,
+          "localAt": "2026-11-08 07:51:57 Europe/Rome",
+          "lon": 8.2241154,
+          "place": "Strada statale 231",
+          "reason": "foreground"
+        }
+      ],
+      "place": "",
+      "unconfirmed": true
     },
     "2026-11-09": {
       "autoBooking": true,
@@ -10169,7 +10238,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-11-07T05:26:48.084Z",
+    "lastBookingSync": "2026-11-08T05:26:21.504Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
