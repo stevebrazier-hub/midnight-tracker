@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-11-07T13:53:42.791Z"
+      "updatedAt": "2026-11-10T02:44:22.630Z"
     }
   },
   "locations": {
@@ -10039,11 +10039,12 @@
           "place": "Strada statale 231"
         }
       },
-      "city": "London",
-      "country": "UK",
+      "city": "Calgary",
+      "country": "Canada",
       "countryConflict": "Flight says UK; 2 GPS pings that day were all in Italy - please confirm midnight country",
       "flightInferred": true,
       "flights": "WS001, BA567",
+      "manualOverride": true,
       "notes": "",
       "pingConsensus": true,
       "pings": [
@@ -10068,34 +10069,145 @@
           "reason": "foreground"
         }
       ],
-      "place": "",
-      "unconfirmed": true
+      "place": "Marriot Downtown",
+      "unconfirmed": true,
+      "worked": false
     },
     "2026-11-09": {
       "autoBooking": true,
       "bookingSource": "calendar: Hotel: Fairmont Scottsdale Princess | calendar: Flight WS1160: Calgary - Phoenix, departs 09:50  | Hotel: Fairmont Scottsdale Princess",
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-09 19:27:21 GMT",
+          "city": "",
+          "country": "USA",
+          "fromPingLog": true,
+          "lat": 33.5147646,
+          "lon": -111.8877005,
+          "place": "Pima Freeway"
+        },
+        "morning": {
+          "capturedAt": "2026-11-10 00:48:17 GMT",
+          "city": "Scottsdale",
+          "country": "USA",
+          "fromPingLog": true,
+          "lat": 33.6479385,
+          "lon": -111.9200939,
+          "place": "East Princess Boulevard"
+        }
+      },
       "city": "Fairmont Scottsdale Princess",
-      "country": "",
+      "country": "USA",
       "flights": "WS1160",
+      "manualOverride": true,
       "notes": "",
-      "place": "Fairmont Scottsdale Princess"
+      "pings": [
+        {
+          "capturedAt": "2026-11-09 10:47:56 GMT",
+          "city": "Calgary",
+          "country": "Canada",
+          "lat": 51.0454799,
+          "localAt": "2026-11-09 04:47:56 America/Regina",
+          "lon": -114.06284,
+          "place": "Modern Steak",
+          "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-11-09 13:21:06 GMT",
+          "city": "Calgary",
+          "country": "Canada",
+          "lat": 51.0445393,
+          "localAt": "2026-11-09 07:21:06 America/Regina",
+          "lon": -114.0617931,
+          "place": "Calgary TELUS Convention Centre South Building",
+          "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-11-09 19:27:21 GMT",
+          "city": "",
+          "country": "USA",
+          "lat": 33.5147646,
+          "localAt": "2026-11-09 12:27:21 America/Denver",
+          "lon": -111.8877005,
+          "place": "Pima Freeway",
+          "reason": "foreground"
+        }
+      ],
+      "place": "Fairmont Scottsdale Princess",
+      "workCountry": "USA",
+      "worked": true
     },
     "2026-11-10": {
       "autoBooking": true,
       "bookingSource": "calendar: Hotel: Fairmont Scottsdale Princess",
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-10 02:39:58 GMT",
+          "city": "Scottsdale",
+          "country": "USA",
+          "fromPingLog": true,
+          "lat": 33.644536,
+          "lon": -111.915562,
+          "place": "Sonoran Splash Pool"
+        }
+      },
       "city": "Fairmont Scottsdale Princess",
       "country": "",
       "flights": "",
       "notes": "",
+      "pings": [
+        {
+          "capturedAt": "2026-11-10 00:48:17 GMT",
+          "city": "Scottsdale",
+          "country": "USA",
+          "lat": 33.6479385,
+          "localAt": "2026-11-09 17:48:17 America/Denver",
+          "lon": -111.9200939,
+          "place": "East Princess Boulevard",
+          "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-11-10 02:39:58 GMT",
+          "city": "Scottsdale",
+          "country": "USA",
+          "lat": 33.644536,
+          "localAt": "2026-11-09 19:39:58 America/Denver",
+          "lon": -111.915562,
+          "place": "Sonoran Splash Pool",
+          "reason": "foreground"
+        }
+      ],
       "place": "Fairmont Scottsdale Princess"
     },
     "2026-11-11": {
       "autoBooking": true,
       "bookingSource": "calendar: Flight UA5959: PHX - LAX, departs 17:10",
-      "city": "Los Angeles",
-      "country": "USA",
+      "city": "Hong Kong",
+      "country": "Hong Kong",
+      "flightInferred": true,
       "flights": "UA5959, UA820",
-      "notes": "",
+      "notes": "Flight-inferred country Hong Kong from TG603 direction (UK midnight rule). | Flight-inferred country Hong Kong from TG603 direction (UK midnight rule).",
+      "place": ""
+    },
+    "2026-11-12": {
+      "airborneTransit": true,
+      "autoBooking": true,
+      "bookingSource": "calendar: Flight TG603: HKG - BKK, departs 07:55",
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "TG603",
+      "notes": "Airborne at UK midnight (flight TG603) — transit day; confirm HMRC treatment.",
+      "place": "",
+      "unconfirmed": true
+    },
+    "2026-11-13": {
+      "autoBooking": true,
+      "bookingSource": "flight-inference: TG603",
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flightInferred": true,
+      "flights": "",
+      "notes": "Flight-inferred country Thailand from TG603 direction (UK midnight rule).",
       "place": ""
     },
     "2026-11-14": {
@@ -10238,7 +10350,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-11-09T05:37:36.735Z",
+    "lastBookingSync": "2026-11-10T01:21:18.502Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
