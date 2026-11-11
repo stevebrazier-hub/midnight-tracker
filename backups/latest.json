@@ -10139,22 +10139,29 @@
     },
     "2026-11-10": {
       "autoBooking": true,
+      "autoGps": true,
       "bookingSource": "calendar: Hotel: Fairmont Scottsdale Princess",
+      "bracketInferred": true,
       "brackets": {
         "evening": {
-          "capturedAt": "2026-11-10 02:39:58 GMT",
+          "capturedAt": "2026-11-10 10:45:32 GMT",
           "city": "Scottsdale",
           "country": "USA",
           "fromPingLog": true,
-          "lat": 33.644536,
-          "lon": -111.915562,
+          "lat": 33.6445272,
+          "lon": -111.9155513,
           "place": "Sonoran Splash Pool"
         }
       },
-      "city": "Fairmont Scottsdale Princess",
-      "country": "",
+      "captureSource": "bracket-booking-inference",
+      "capturedAt": "2026-11-10 10:45:32 GMT",
+      "city": "Scottsdale",
+      "country": "USA",
       "flights": "",
-      "notes": "",
+      "lat": 33.6445272,
+      "lon": -111.9155513,
+      "notes": "Ping consensus: 3 GPS readings between 2026-11-10 00:48:17 GMT and 2026-11-10 10:45:32 GMT were all in USA. | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT",
+      "pingConsensus": true,
       "pings": [
         {
           "capturedAt": "2026-11-10 00:48:17 GMT",
@@ -10175,9 +10182,22 @@
           "lon": -111.915562,
           "place": "Sonoran Splash Pool",
           "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-11-10 10:45:32 GMT",
+          "city": "Scottsdale",
+          "country": "USA",
+          "lat": 33.6445272,
+          "localAt": "2026-11-10 03:45:32 America/Denver",
+          "lon": -111.9155513,
+          "place": "Sonoran Splash Pool",
+          "reason": "foreground"
         }
       ],
-      "place": "Fairmont Scottsdale Princess"
+      "place": "Sonoran Splash Pool",
+      "unconfirmed": true,
+      "workCountry": "USA",
+      "worked": true
     },
     "2026-11-11": {
       "autoBooking": true,
@@ -10186,7 +10206,7 @@
       "country": "Hong Kong",
       "flightInferred": true,
       "flights": "UA5959, UA820",
-      "notes": "Flight-inferred country Hong Kong from TG603 direction (UK midnight rule). | Flight-inferred country Hong Kong from TG603 direction (UK midnight rule).",
+      "notes": "Flight-inferred country Hong Kong from TG603 direction (UK midnight rule). | Flight-inferred country Hong Kong from TG603 direction (UK midnight rule). | Flight-inferred country Hong Kong from TG603 direction (UK midnight rule). | Flight-inferred country Hong Kong from TG603 direction (UK midnight rule). | Flight-inferred country Hong Kong from TG603 direction (UK midnight rule).",
       "place": ""
     },
     "2026-11-12": {
@@ -10350,7 +10370,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-11-10T01:21:18.502Z",
+    "lastBookingSync": "2026-11-11T05:34:25.813Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
