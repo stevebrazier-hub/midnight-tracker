@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-11-10T02:44:22.630Z"
+      "updatedAt": "2026-11-11T23:16:35.009Z"
     }
   },
   "locations": {
@@ -10160,7 +10160,7 @@
       "flights": "",
       "lat": 33.6445272,
       "lon": -111.9155513,
-      "notes": "Ping consensus: 3 GPS readings between 2026-11-10 00:48:17 GMT and 2026-11-10 10:45:32 GMT were all in USA. | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT",
+      "notes": "Ping consensus: 3 GPS readings between 2026-11-10 00:48:17 GMT and 2026-11-10 10:45:32 GMT were all in USA. | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT",
       "pingConsensus": true,
       "pings": [
         {
@@ -10201,13 +10201,45 @@
     },
     "2026-11-11": {
       "autoBooking": true,
+      "autoGps": true,
       "bookingSource": "calendar: Flight UA5959: PHX - LAX, departs 17:10",
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-11 23:16:35 GMT",
+          "city": "Hong Kong",
+          "country": "China",
+          "fromPingLog": true,
+          "lat": 22.3171657,
+          "lon": 114.1608419,
+          "place": "Lin Cheung Road"
+        }
+      },
+      "captureSource": "12am",
+      "capturedAt": "2026-11-11 23:16:35 GMT",
       "city": "Hong Kong",
-      "country": "Hong Kong",
+      "country": "China",
+      "countryConflict": "GPS says China, booking says Hong Kong",
       "flightInferred": true,
       "flights": "UA5959, UA820",
-      "notes": "Flight-inferred country Hong Kong from TG603 direction (UK midnight rule). | Flight-inferred country Hong Kong from TG603 direction (UK midnight rule). | Flight-inferred country Hong Kong from TG603 direction (UK midnight rule). | Flight-inferred country Hong Kong from TG603 direction (UK midnight rule). | Flight-inferred country Hong Kong from TG603 direction (UK midnight rule).",
-      "place": ""
+      "lat": 22.3171657,
+      "lon": 114.1608419,
+      "notes": "Flight-inferred country Hong Kong from TG603 direction (UK midnight rule). | Flight-inferred country Hong Kong from TG603 direction (UK midnight rule).",
+      "pings": [
+        {
+          "capturedAt": "2026-11-11 23:16:35 GMT",
+          "city": "Hong Kong",
+          "country": "China",
+          "lat": 22.3171657,
+          "localAt": "2026-11-12 07:16:35 Asia/Hong_Kong",
+          "lon": 114.1608419,
+          "place": "Lin Cheung Road",
+          "reason": "foreground"
+        }
+      ],
+      "place": "Lin Cheung Road",
+      "unconfirmed": true,
+      "workCountry": "China",
+      "worked": true
     },
     "2026-11-12": {
       "airborneTransit": true,
@@ -10218,7 +10250,9 @@
       "flights": "TG603",
       "notes": "Airborne at UK midnight (flight TG603) — transit day; confirm HMRC treatment.",
       "place": "",
-      "unconfirmed": true
+      "unconfirmed": true,
+      "workCountry": "Thailand",
+      "worked": true
     },
     "2026-11-13": {
       "autoBooking": true,
@@ -10370,7 +10404,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-11-11T05:34:25.813Z",
+    "lastBookingSync": "2026-11-12T00:19:12.823Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
