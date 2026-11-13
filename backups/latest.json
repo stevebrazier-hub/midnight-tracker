@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-11-11T23:16:35.009Z"
+      "updatedAt": "2026-11-12T22:09:08.106Z"
     }
   },
   "locations": {
@@ -10160,7 +10160,7 @@
       "flights": "",
       "lat": 33.6445272,
       "lon": -111.9155513,
-      "notes": "Ping consensus: 3 GPS readings between 2026-11-10 00:48:17 GMT and 2026-11-10 10:45:32 GMT were all in USA. | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT",
+      "notes": "Ping consensus: 3 GPS readings between 2026-11-10 00:48:17 GMT and 2026-11-10 10:45:32 GMT were all in USA. | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT | Booking confirmed by evening bracket GPS in same country: Scottsdale 2026-11-10 10:45:32 GMT",
       "pingConsensus": true,
       "pings": [
         {
@@ -10244,12 +10244,42 @@
     "2026-11-12": {
       "airborneTransit": true,
       "autoBooking": true,
+      "autoGps": true,
       "bookingSource": "calendar: Flight TG603: HKG - BKK, departs 07:55",
-      "city": "Bangkok",
-      "country": "Thailand",
+      "bracketInferred": true,
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-12 22:08:40 GMT",
+          "city": "Hong Kong",
+          "country": "China",
+          "fromPingLog": true,
+          "lat": 22.3033652,
+          "lon": 114.1601965,
+          "place": "The Ritz-Carlton"
+        }
+      },
+      "captureSource": "bracket-booking-inference",
+      "capturedAt": "2026-11-12 22:08:40 GMT",
+      "city": "Hong Kong",
+      "country": "China",
+      "countryConflict": "GPS bracket says China, booking said Thailand",
       "flights": "TG603",
-      "notes": "Airborne at UK midnight (flight TG603) — transit day; confirm HMRC treatment.",
-      "place": "",
+      "lat": 22.3033652,
+      "lon": 114.1601965,
+      "notes": "Airborne at UK midnight (flight TG603) — transit day; confirm HMRC treatment. | GPS evening bracket overrode booking country: was Thailand (Bangkok), now China (Hong Kong 2026-11-12 22:08:40 GMT) | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT",
+      "pings": [
+        {
+          "capturedAt": "2026-11-12 22:08:40 GMT",
+          "city": "Hong Kong",
+          "country": "China",
+          "lat": 22.3033652,
+          "localAt": "2026-11-13 06:08:40 Asia/Hong_Kong",
+          "lon": 114.1601965,
+          "place": "The Ritz-Carlton",
+          "reason": "foreground"
+        }
+      ],
+      "place": "The Ritz-Carlton",
       "unconfirmed": true,
       "workCountry": "Thailand",
       "worked": true
@@ -10404,7 +10434,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-11-12T00:19:12.823Z",
+    "lastBookingSync": "2026-11-12T14:54:36.327Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
