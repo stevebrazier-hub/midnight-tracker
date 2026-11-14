@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-11-12T22:09:08.106Z"
+      "updatedAt": "2026-11-14T02:57:39.139Z"
     }
   },
   "locations": {
@@ -10266,7 +10266,7 @@
       "flights": "TG603",
       "lat": 22.3033652,
       "lon": 114.1601965,
-      "notes": "Airborne at UK midnight (flight TG603) — transit day; confirm HMRC treatment. | GPS evening bracket overrode booking country: was Thailand (Bangkok), now China (Hong Kong 2026-11-12 22:08:40 GMT) | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT",
+      "notes": "Airborne at UK midnight (flight TG603) — transit day; confirm HMRC treatment. | GPS evening bracket overrode booking country: was Thailand (Bangkok), now China (Hong Kong 2026-11-12 22:08:40 GMT) | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT",
       "pings": [
         {
           "capturedAt": "2026-11-12 22:08:40 GMT",
@@ -10287,21 +10287,90 @@
     "2026-11-13": {
       "autoBooking": true,
       "bookingSource": "flight-inference: TG603",
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-13 13:42:58 GMT",
+          "city": "10600, Bangkok",
+          "country": "Thailand",
+          "fromPingLog": true,
+          "lat": 13.7193796,
+          "lon": 100.5077199,
+          "place": "931/301 Baan Sathorn Chaophraya"
+        },
+        "morning": {
+          "capturedAt": "2026-11-14 02:57:41 GMT",
+          "city": "Bangkok",
+          "country": "Thailand",
+          "fromPingLog": true,
+          "lat": 13.74586,
+          "lon": 100.5527473,
+          "place": "Soi Sukhumvit 1/1"
+        }
+      },
       "city": "Bangkok",
       "country": "Thailand",
       "flightInferred": true,
       "flights": "",
       "notes": "Flight-inferred country Thailand from TG603 direction (UK midnight rule).",
-      "place": ""
+      "pingConsensus": true,
+      "pings": [
+        {
+          "capturedAt": "2026-11-13 13:42:58 GMT",
+          "city": "10600, Bangkok",
+          "country": "Thailand",
+          "lat": 13.7193796,
+          "localAt": "2026-11-13 20:42:58 Asia/Bangkok",
+          "lon": 100.5077199,
+          "place": "931/301 Baan Sathorn Chaophraya",
+          "reason": "foreground"
+        }
+      ],
+      "place": "",
+      "workCountry": "Thailand",
+      "worked": true
     },
     "2026-11-14": {
       "autoBooking": true,
       "bookingSource": "flight-inference: SQ705",
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-14 06:12:32 GMT",
+          "city": "10600, Bangkok",
+          "country": "Thailand",
+          "fromPingLog": true,
+          "lat": 13.7188176,
+          "lon": 100.5090611,
+          "place": "931/301 Baan Sathorn Chaophraya"
+        }
+      },
       "city": "Bangkok",
       "country": "Thailand",
       "flightInferred": true,
       "flights": "",
       "notes": "Flight-inferred country Thailand from SQ705 direction (UK midnight rule).",
+      "pingConsensus": true,
+      "pings": [
+        {
+          "capturedAt": "2026-11-14 02:57:41 GMT",
+          "city": "Bangkok",
+          "country": "Thailand",
+          "lat": 13.74586,
+          "localAt": "2026-11-14 09:57:41 Asia/Bangkok",
+          "lon": 100.5527473,
+          "place": "Soi Sukhumvit 1/1",
+          "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-11-14 06:12:32 GMT",
+          "city": "10600, Bangkok",
+          "country": "Thailand",
+          "lat": 13.7188176,
+          "localAt": "2026-11-14 13:12:32 Asia/Bangkok",
+          "lon": 100.5090611,
+          "place": "931/301 Baan Sathorn Chaophraya",
+          "reason": "foreground"
+        }
+      ],
       "place": ""
     },
     "2026-11-15": {
@@ -10434,7 +10503,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-11-12T14:54:36.327Z",
+    "lastBookingSync": "2026-11-14T05:46:01.936Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
