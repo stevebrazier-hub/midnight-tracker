@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-11-14T02:57:39.139Z"
+      "updatedAt": "2026-11-15T00:58:18.741Z"
     }
   },
   "locations": {
@@ -10266,7 +10266,7 @@
       "flights": "TG603",
       "lat": 22.3033652,
       "lon": 114.1601965,
-      "notes": "Airborne at UK midnight (flight TG603) — transit day; confirm HMRC treatment. | GPS evening bracket overrode booking country: was Thailand (Bangkok), now China (Hong Kong 2026-11-12 22:08:40 GMT) | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT",
+      "notes": "Airborne at UK midnight (flight TG603) — transit day; confirm HMRC treatment. | GPS evening bracket overrode booking country: was Thailand (Bangkok), now China (Hong Kong 2026-11-12 22:08:40 GMT) | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT | Booking confirmed by evening bracket GPS in same country: Hong Kong 2026-11-12 22:08:40 GMT",
       "pings": [
         {
           "capturedAt": "2026-11-12 22:08:40 GMT",
@@ -10334,13 +10334,22 @@
       "bookingSource": "flight-inference: SQ705",
       "brackets": {
         "evening": {
-          "capturedAt": "2026-11-14 06:12:32 GMT",
+          "capturedAt": "2026-11-14 23:08:47 GMT",
           "city": "10600, Bangkok",
           "country": "Thailand",
           "fromPingLog": true,
-          "lat": 13.7188176,
-          "lon": 100.5090611,
+          "lat": 13.7186688,
+          "lon": 100.5090969,
           "place": "931/301 Baan Sathorn Chaophraya"
+        },
+        "morning": {
+          "capturedAt": "2026-11-15 00:23:06 GMT",
+          "city": "Nong Prue Subdistrict",
+          "country": "Thailand",
+          "fromPingLog": true,
+          "lat": 13.6927509,
+          "lon": 100.7536214,
+          "place": "Suvarnabhumi 1 Road"
         }
       },
       "city": "Bangkok",
@@ -10369,6 +10378,16 @@
           "lon": 100.5090611,
           "place": "931/301 Baan Sathorn Chaophraya",
           "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-11-14 23:08:47 GMT",
+          "city": "10600, Bangkok",
+          "country": "Thailand",
+          "lat": 13.7186688,
+          "localAt": "2026-11-15 06:08:47 Asia/Bangkok",
+          "lon": 100.5090969,
+          "place": "931/301 Baan Sathorn Chaophraya",
+          "reason": "foreground"
         }
       ],
       "place": ""
@@ -10376,12 +10395,38 @@
     "2026-11-15": {
       "autoBooking": true,
       "bookingSource": "calendar: Flight SQ705: BKK - SIN, departing 09:40",
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-15 00:23:06 GMT",
+          "city": "Nong Prue Subdistrict",
+          "country": "Thailand",
+          "fromPingLog": true,
+          "lat": 13.6927509,
+          "lon": 100.7536214,
+          "place": "Suvarnabhumi 1 Road"
+        }
+      },
       "city": "Singapore",
       "country": "Singapore",
       "flightInferred": true,
       "flights": "SQ705",
+      "manualOverride": true,
       "notes": "",
-      "place": ""
+      "pings": [
+        {
+          "capturedAt": "2026-11-15 00:23:06 GMT",
+          "city": "Nong Prue Subdistrict",
+          "country": "Thailand",
+          "lat": 13.6927509,
+          "localAt": "2026-11-15 07:23:06 Asia/Bangkok",
+          "lon": 100.7536214,
+          "place": "Suvarnabhumi 1 Road",
+          "reason": "foreground"
+        }
+      ],
+      "place": "",
+      "workCountry": "Singapore",
+      "worked": true
     },
     "2026-11-16": {
       "autoBooking": true,
@@ -10503,7 +10548,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-11-14T05:46:01.936Z",
+    "lastBookingSync": "2026-11-15T05:46:08.906Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
