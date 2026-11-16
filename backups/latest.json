@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-11-15T00:58:18.741Z"
+      "updatedAt": "2026-11-16T09:43:53.915Z"
     }
   },
   "locations": {
@@ -10397,13 +10397,13 @@
       "bookingSource": "calendar: Flight SQ705: BKK - SIN, departing 09:40",
       "brackets": {
         "evening": {
-          "capturedAt": "2026-11-15 00:23:06 GMT",
-          "city": "Nong Prue Subdistrict",
-          "country": "Thailand",
+          "capturedAt": "2026-11-15 10:58:45 GMT",
+          "city": "Singapore",
+          "country": "Singapore",
           "fromPingLog": true,
-          "lat": 13.6927509,
-          "lon": 100.7536214,
-          "place": "Suvarnabhumi 1 Road"
+          "lat": 1.2938355,
+          "lon": 103.8537047,
+          "place": "Womb"
         }
       },
       "city": "Singapore",
@@ -10422,6 +10422,16 @@
           "lon": 100.7536214,
           "place": "Suvarnabhumi 1 Road",
           "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-11-15 10:58:45 GMT",
+          "city": "Singapore",
+          "country": "Singapore",
+          "lat": 1.2938355,
+          "localAt": "2026-11-15 18:58:45 Asia/Singapore",
+          "lon": 103.8537047,
+          "place": "Womb",
+          "reason": "foreground"
         }
       ],
       "place": "",
@@ -10430,13 +10440,42 @@
     },
     "2026-11-16": {
       "autoBooking": true,
+      "autoGps": true,
       "bookingSource": "flight-inference: SQ705→SQ720",
+      "bracketInferred": true,
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-16 09:43:56 GMT",
+          "city": "Singapore",
+          "country": "Singapore",
+          "fromPingLog": true,
+          "lat": 1.2937892,
+          "lon": 103.8529559,
+          "place": "Raffles City"
+        }
+      },
+      "captureSource": "bracket-booking-inference",
+      "capturedAt": "2026-11-16 09:43:56 GMT",
       "city": "Singapore",
       "country": "Singapore",
       "flightGapFill": true,
       "flightInferred": true,
       "flights": "",
-      "notes": "Flight-inferred country Singapore from SQ705→SQ720 stay — night between arrival and return flight (UK midnight rule).",
+      "lat": 1.2937892,
+      "lon": 103.8529559,
+      "notes": "Flight-inferred country Singapore from SQ705→SQ720 stay — night between arrival and return flight (UK midnight rule). | Booking confirmed by evening bracket GPS in same country: Singapore 2026-11-16 09:43:56 GMT",
+      "pings": [
+        {
+          "capturedAt": "2026-11-16 09:43:56 GMT",
+          "city": "Singapore",
+          "country": "Singapore",
+          "lat": 1.2937892,
+          "localAt": "2026-11-16 17:43:56 Asia/Singapore",
+          "lon": 103.8529559,
+          "place": "Raffles City",
+          "reason": "foreground"
+        }
+      ],
       "place": ""
     },
     "2026-11-17": {
@@ -10548,7 +10587,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-11-15T05:46:08.906Z",
+    "lastBookingSync": "2026-11-16T05:45:28.040Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
