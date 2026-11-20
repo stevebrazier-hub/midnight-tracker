@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-11-19T07:36:42.703Z"
+      "updatedAt": "2026-11-20T07:39:31.144Z"
     }
   },
   "locations": {
@@ -10563,17 +10563,26 @@
     "2026-11-19": {
       "brackets": {
         "evening": {
-          "capturedAt": "2026-11-19 07:36:48 GMT",
+          "capturedAt": "2026-11-19 11:46:20 GMT",
           "city": "10600, Bangkok",
           "country": "Thailand",
           "fromPingLog": true,
-          "lat": 13.7186661,
-          "lon": 100.5091699,
+          "lat": 13.7187826,
+          "lon": 100.5089806,
+          "place": "931/301 Baan Sathorn Chaophraya"
+        },
+        "morning": {
+          "capturedAt": "2026-11-20 02:25:46 GMT",
+          "city": "10600, Bangkok",
+          "country": "Thailand",
+          "fromPingLog": true,
+          "lat": 13.7186445,
+          "lon": 100.5090627,
           "place": "931/301 Baan Sathorn Chaophraya"
         }
       },
-      "city": "",
-      "country": "",
+      "city": "10600, Bangkok",
+      "country": "Thailand",
       "flights": "",
       "manualOverride": true,
       "notes": "",
@@ -10587,9 +10596,78 @@
           "lon": 100.5091699,
           "place": "931/301 Baan Sathorn Chaophraya",
           "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-11-19 11:46:20 GMT",
+          "city": "10600, Bangkok",
+          "country": "Thailand",
+          "lat": 13.7187826,
+          "localAt": "2026-11-19 18:46:20 Asia/Bangkok",
+          "lon": 100.5089806,
+          "place": "931/301 Baan Sathorn Chaophraya",
+          "reason": "foreground"
         }
       ],
-      "place": "",
+      "place": "931/301 Baan Sathorn Chaophraya",
+      "workCountry": "Thailand",
+      "worked": true
+    },
+    "2026-11-20": {
+      "autoGps": true,
+      "bracketInferred": true,
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-20 07:39:35 GMT",
+          "city": "10600, Bangkok",
+          "country": "Thailand",
+          "fromPingLog": true,
+          "lat": 13.7210882,
+          "lon": 100.5107814,
+          "place": "931/301 Baan Sathorn Chaophraya"
+        }
+      },
+      "captureSource": "single-bracket-inference",
+      "capturedAt": "2026-11-20 07:39:35 GMT",
+      "city": "10600, Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "lat": 13.7210882,
+      "lon": 100.5107814,
+      "notes": "Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 02:25:46 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 02:25:46 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 02:25:46 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 03:57:09 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 03:57:09 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 07:39:35 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 07:39:35 GMT",
+      "pingConsensus": true,
+      "pings": [
+        {
+          "capturedAt": "2026-11-20 02:25:46 GMT",
+          "city": "10600, Bangkok",
+          "country": "Thailand",
+          "lat": 13.7186445,
+          "localAt": "2026-11-20 09:25:46 Asia/Bangkok",
+          "lon": 100.5090627,
+          "place": "931/301 Baan Sathorn Chaophraya",
+          "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-11-20 03:57:09 GMT",
+          "city": "10600, Bangkok",
+          "country": "Thailand",
+          "lat": 13.7186672,
+          "localAt": "2026-11-20 10:57:09 Asia/Bangkok",
+          "lon": 100.5091753,
+          "place": "931/301 Baan Sathorn Chaophraya",
+          "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-11-20 07:39:35 GMT",
+          "city": "10600, Bangkok",
+          "country": "Thailand",
+          "lat": 13.7210882,
+          "localAt": "2026-11-20 14:39:35 Asia/Bangkok",
+          "lon": 100.5107814,
+          "place": "931/301 Baan Sathorn Chaophraya",
+          "reason": "foreground"
+        }
+      ],
+      "place": "931/301 Baan Sathorn Chaophraya",
       "workCountry": "Thailand",
       "worked": true
     },
@@ -10682,7 +10760,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-11-19T00:05:03.753Z",
+    "lastBookingSync": "2026-11-20T00:27:46.451Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
