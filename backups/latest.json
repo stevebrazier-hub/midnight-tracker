@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-11-20T07:39:31.144Z"
+      "updatedAt": "2026-11-21T14:07:00.136Z"
     }
   },
   "locations": {
@@ -10633,7 +10633,7 @@
       "flights": "",
       "lat": 13.7210882,
       "lon": 100.5107814,
-      "notes": "Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 02:25:46 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 02:25:46 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 02:25:46 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 03:57:09 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 03:57:09 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 07:39:35 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 07:39:35 GMT",
+      "notes": "Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 02:25:46 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 02:25:46 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 02:25:46 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 03:57:09 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 03:57:09 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 07:39:35 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 07:39:35 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 07:39:35 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 07:39:35 GMT | Inferred from evening bracket at known location: 10600, Bangkok 2026-11-20 07:39:35 GMT",
       "pingConsensus": true,
       "pings": [
         {
@@ -10670,6 +10670,42 @@
       "place": "931/301 Baan Sathorn Chaophraya",
       "workCountry": "Thailand",
       "worked": true
+    },
+    "2026-11-21": {
+      "autoGps": true,
+      "bracketInferred": true,
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-21 14:07:01 GMT",
+          "city": "10600, Bangkok",
+          "country": "Thailand",
+          "fromPingLog": true,
+          "lat": 13.7207662,
+          "lon": 100.4771614,
+          "place": "931/301 Baan Sathorn Chaophraya"
+        }
+      },
+      "captureSource": "single-bracket-inference",
+      "capturedAt": "2026-11-21 14:07:01 GMT",
+      "city": "10600, Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "lat": 13.7207662,
+      "lon": 100.4771614,
+      "notes": "Inferred from evening bracket at known location: 10600, Bangkok 2026-11-21 14:07:01 GMT",
+      "pings": [
+        {
+          "capturedAt": "2026-11-21 14:07:01 GMT",
+          "city": "10600, Bangkok",
+          "country": "Thailand",
+          "lat": 13.7207662,
+          "localAt": "2026-11-21 21:07:01 Asia/Bangkok",
+          "lon": 100.4771614,
+          "place": "931/301 Baan Sathorn Chaophraya",
+          "reason": "foreground"
+        }
+      ],
+      "place": "931/301 Baan Sathorn Chaophraya"
     },
     "2026-11-30": {
       "autoBooking": true,
@@ -10760,7 +10796,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-11-21T06:29:45.198Z",
+    "lastBookingSync": "2026-11-22T05:58:42.263Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
