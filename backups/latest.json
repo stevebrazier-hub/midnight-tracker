@@ -3,7 +3,7 @@
     "H6AomFfLUIVqf2DgZzzoMuDsWa22": {
       "email": "steveb@canapii.com",
       "token": "fy21RaOdzsPoSbDqy_2u_V:APA91bGU_zUbfUTN1VOP4RXtQL5Ptyd0oCL5odDvWvk4ZvtMdQFxIyQ4Pj1TzJjITj689XGu55_yP6IZoNCSY5IYO7nujGI-mwdrkDYsgxrlh37dvqNUIac",
-      "updatedAt": "2026-11-25T10:03:25.285Z"
+      "updatedAt": "2026-11-26T10:53:50.369Z"
     }
   },
   "locations": {
@@ -10784,6 +10784,85 @@
       ],
       "place": "931/301 Baan Sathorn Chaophraya"
     },
+    "2026-11-24": {
+      "city": "10600, Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "manualOverride": true,
+      "notes": "",
+      "place": "931/301 Baan Sathorn Chaophraya",
+      "worked": false
+    },
+    "2026-11-25": {
+      "autoGps": true,
+      "brackets": {
+        "morning": {
+          "capturedAt": "2026-11-26 03:16:42 GMT",
+          "city": "Bangkok",
+          "country": "Thailand",
+          "fromPingLog": true,
+          "lat": 13.8030449,
+          "lon": 100.6739482,
+          "place": "Navatanee Golf Course"
+        }
+      },
+      "captureSource": "backfill",
+      "capturedAt": "2026-11-26 03:16:42 GMT",
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "lat": 13.8030449,
+      "lateBackfill": true,
+      "lon": 100.6739482,
+      "notes": "Late backfill: GPS captured 2026-11-26 03:16:42 GMT (midnight push missed)",
+      "place": "Navatanee Golf Course",
+      "unconfirmed": true
+    },
+    "2026-11-26": {
+      "bracketInferred": true,
+      "brackets": {
+        "evening": {
+          "capturedAt": "2026-11-26 10:53:51 GMT",
+          "city": "10600, Bangkok",
+          "country": "Thailand",
+          "fromPingLog": true,
+          "lat": 13.7180914,
+          "lon": 100.5091101,
+          "place": "931/301 Baan Sathorn Chaophraya"
+        }
+      },
+      "captureSource": "single-bracket-reconcile",
+      "capturedAt": "2026-11-26 03:16:42 GMT",
+      "city": "Bangkok",
+      "country": "Thailand",
+      "flights": "",
+      "lat": 13.8030449,
+      "lon": 100.6739482,
+      "notes": "",
+      "pings": [
+        {
+          "capturedAt": "2026-11-26 03:16:42 GMT",
+          "city": "Bangkok",
+          "country": "Thailand",
+          "lat": 13.8030449,
+          "localAt": "2026-11-26 10:16:42 Asia/Bangkok",
+          "lon": 100.6739482,
+          "place": "Navatanee Golf Course",
+          "reason": "foreground"
+        },
+        {
+          "capturedAt": "2026-11-26 10:53:51 GMT",
+          "city": "10600, Bangkok",
+          "country": "Thailand",
+          "lat": 13.7180914,
+          "localAt": "2026-11-26 17:53:51 Asia/Bangkok",
+          "lon": 100.5091101,
+          "place": "931/301 Baan Sathorn Chaophraya",
+          "reason": "foreground"
+        }
+      ],
+      "place": "Navatanee Golf Course"
+    },
     "2026-11-30": {
       "autoBooking": true,
       "bookingSource": "calendar: Hotel: Westin Bali | calendar: Flight TG439: BKK - DPS, departs 12:35 | Hotel: Westin Bali",
@@ -10873,7 +10952,7 @@
   ],
   "settings": {
     "lastBackfill": "2026-02-21T08:03:53.452Z",
-    "lastBookingSync": "2026-11-25T07:51:37.570Z",
+    "lastBookingSync": "2026-11-26T07:42:30.644Z",
     "vapidKey": "BKdCVtIX4M0muS1Z2niZCgZN2ofPyX0sATBNkf7LU0KI3WHCL2MyOEbUP_ZlBEWdHDY3bOhvU8Mdjc4SOXjSw18"
   }
 }
